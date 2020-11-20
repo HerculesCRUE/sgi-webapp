@@ -1,0 +1,41 @@
+<mat-drawer-container class="mat-drawer-tabs">
+  <mat-drawer class="tabs" mode="side" opened>
+    <mat-list class="opciones-menu">
+      <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.DATOS_GENERALES]"
+        [title]="'eti.memoria.datosGenerales.title' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.FORMULARIO]"
+        [title]="'eti.memoria.formulario.title' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.FORMULARIO)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.DOCUMENTACION]"
+        [title]="'eti.memoria.documentacion.title' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.DOCUMENTACION)">
+      </sgi-action-fragment-menu-item>
+
+      <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.EVALUACIONES]"
+        [title]="'eti.memoria.evaluaciones.title' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.EVALUACIONES)">
+      </sgi-action-fragment-menu-item>
+
+      <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.INFORMES]"
+        [title]="'eti.memoria.informes.title' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.INFORMES)">
+      </sgi-action-fragment-menu-item>
+    </mat-list>
+
+    <mat-list class="enlaces-menu" *ngIf="actionService.getActionLinks().length">
+      <sgi-action-fragment-link-item *ngFor="let action of actionService.getActionLinks()"
+        [title]="action.title | translate" [route]="action.routerLink"></sgi-action-fragment-link-item>
+    </mat-list>
+
+  </mat-drawer>
+  <mat-drawer-content class="mat-drawer-content">
+    <div class="mat-drawer-content-panel">
+      <router-outlet></router-outlet>
+    </div>
+    <sgi-action-footer [texto]="textoActualizar" [actionService]="actionService">
+    </sgi-action-footer>
+  </mat-drawer-content>
+</mat-drawer-container>

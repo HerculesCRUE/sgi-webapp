@@ -1,0 +1,54 @@
+@import "colors.scss";
+
+.memoria-formulario {
+  .mat-radio-button ~ .mat-radio-button {
+      margin-left: 16px;
+  }
+  formly-field-mat-multicheckbox mat-checkbox {
+    display: block;
+  }
+  .template {
+    .template-input {
+      border-width: 1px;
+      border-style: solid;
+      border-radius: .5em;
+      background: lightgrey;
+      padding: .5em;
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+  }
+
+  formly-field.vertical-radio   {
+    mat-radio-button ~ mat-radio-button {
+        margin-top: 5px;
+    }
+    mat-radio-button {
+      display: block;
+      margin-left: 0 !important;
+    }
+  }
+
+  .link {
+    button {
+      background: transparent;
+      border: 0;
+    }
+  }
+  .informacion {
+    background: #e5eff3;
+    padding: 15px;
+    color: black;
+    border: 1px solid #add5e4;
+    margin-bottom: 1.25em;
+  }
+  .nota {
+    color: #4f92bc;
+  }
+  .colorAzul {
+    color: blue($color: #4f92bc);
+  }
+  .botones-formly {
+    padding-top: 15px;
+  }
+}

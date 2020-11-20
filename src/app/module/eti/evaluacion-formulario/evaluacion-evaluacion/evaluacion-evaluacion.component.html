@@ -1,0 +1,83 @@
+<section class="evaluacion-evaluacion">
+  <h2>{{'eti.evaluacion.evaluacion.title' | translate}}</h2>
+  <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+    [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+    <!--Comité-->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'eti.evaluacion.evaluar.evaluacion.comite' | translate}}</mat-label>
+        <input type="text" placeholder="{{'eti.evaluacion.evaluar.evaluacion.comite' | translate}}" arial-label="Number"
+          matInput formControlName="comite">
+      </mat-form-field>
+    </div>
+
+    <!--Fecha Evaluación-->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field color="primary">
+        <mat-label>{{'eti.evaluacion.evaluar.evaluacion.fechaEvaluacion'| translate}}</mat-label>
+        <input matInput [matDatepicker]="fechaEvaluacion" formControlName="fechaEvaluacion" appDatepickerFormat>
+        <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="fechaEvaluacion"></mat-datepicker-toggle>
+        <mat-datepicker #fechaEvaluacion></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <!--Referencia Memoria-->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'eti.evaluacion.evaluar.evaluacion.referenciaMemoria' | translate}}</mat-label>
+        <input matInput formControlName="referenciaMemoria"
+          placeholder="{{'eti.evaluacion.evaluar.evaluacion.referenciaMemoria' | translate}}">
+      </mat-form-field>
+    </div>
+
+    <!--Solicitante-->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'eti.evaluacion.evaluar.evaluacion.solicitante' | translate}}</mat-label>
+        <input matInput formControlName="solicitante"
+          placeholder="{{'eti.evaluacion.evaluar.evaluacion.solicitante' | translate}}">
+      </mat-form-field>
+    </div>
+
+    <!--Versión-->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'eti.evaluacion.evaluar.evaluacion.version' | translate}}</mat-label>
+        <input matInput formControlName="version"
+          placeholder="{{'eti.evaluacion.evaluar.evaluacion.version' | translate}}">
+      </mat-form-field>
+    </div>
+
+    <!-- Dictamen -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <div fxLayout="row">
+        <mat-form-field class="input-form">
+          <mat-label>{{'eti.evaluacion.evaluar.evaluacion.dictamen' | translate}}</mat-label>
+          <input type="text" [placeholder]="'eti.evaluacion.evaluar.evaluacion.dictamen' | translate"
+            arial-label="Number" matInput formControlName="dictamen" [matAutocomplete]="autocompleteDictamen">
+          <mat-autocomplete #autocompleteDictamen="matAutocomplete" [displayWith]="getDictamen">
+            <mat-option *ngFor="let dictamen of dictamenListado" [value]="dictamen">
+              {{dictamen.nombre}}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+        <div fxLayoutAlign="center center">
+          <button mat-icon-button
+            (click)="generateInformeDictamenFavorable(this.formPart.evaluacion?.memoria?.tipoMemoria?.id)"
+            [disabled]="(this.formPart.evaluacion?.memoria?.tipoMemoria?.id === 1 || this.formPart.evaluacion?.memoria?.tipoMemoria?.id === 3) && this.formGroup.controls.dictamen.value?.id !== 1">
+            <mat-icon color="primary">picture_as_pdf</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </form>
+  <sgi-evaluacion-listado-anterior-memoria #evaluaciones></sgi-evaluacion-listado-anterior-memoria>
+</section>

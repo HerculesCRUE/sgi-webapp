@@ -1,0 +1,63 @@
+<!-- Convocatoria enlace -->
+<section class="convocatoria-enlace">
+
+  <h2>{{'csp.convocatoria.enlace.titulo' | translate}}</h2>
+
+  <div *ngIf="disableAddEnlace" class="info-message">
+    {{'csp.convocatoria.tipo.enlace.modeloEjecucion' | translate}}
+  </div>
+  <table class="mat-elevation-z8 table-enlace" mat-table [dataSource]="dataSource" matSort matSortActive="id"
+    matSortDirection="asc" matSortDisableClear>
+
+    <!-- URL Column -->
+    <ng-container matColumnDef="url">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.convocatoria.enlace.url' | translate}} </th>
+      <td mat-cell *matCellDef="let enlace"> {{enlace.value.url}}</td>
+    </ng-container>
+
+    <!-- Descripcion Column -->
+    <ng-container matColumnDef="descripcion">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.convocatoria.enlace.descripcion' | translate}} </th>
+      <td mat-cell *matCellDef="let enlace"> {{enlace.value.descripcion}}</td>
+    </ng-container>
+
+    <!-- Tipo de enlace Column -->
+    <ng-container matColumnDef="tipoEnlace">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.convocatoria.enlace.tipoEnlace' | translate}} </th>
+      <td mat-cell *matCellDef="let enlace">{{enlace.value.tipoEnlace?.nombre}}</td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.enlace.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let enlace;let i=index;">
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModal(enlace)">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deleteEnlace(enlace)">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+  </table>
+
+
+  <mat-paginator [pageSizeOptions]="elementosPagina" [length]="totalElementos" showFirstLastButtons>
+  </mat-paginator>
+
+  <div class="separation-button">
+    <button color="three" aria-label="Center Align" md-button mat-raised-button (click)="openModal()"
+      [disabled]="disableAddEnlace">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.convocatoria.enlace.anadir'| translate}}
+    </button>
+  </div>
+</section>

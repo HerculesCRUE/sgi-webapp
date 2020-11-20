@@ -1,0 +1,73 @@
+<div class="dialog-persona">
+  <h3 mat-dialog-title>{{'eti.buscarUsuario.titulo' | translate}}</h3>
+  <div class="dialog-modal" mat-dialog-content>
+    <mat-form-field>
+      <mat-label>{{'eti.buscarUsuario.datosUsuario.nombre' | translate}}</mat-label>
+      <input matInput [(ngModel)]="data.nombre">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>{{'eti.buscarUsuario.datosUsuario.primerApellido' | translate}}</mat-label>
+      <input matInput [(ngModel)]="data.primerApellido">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>{{'eti.buscarUsuario.datosUsuario.segundoApellido' | translate}}</mat-label>
+      <input matInput [(ngModel)]="data.segundoApellido">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>{{'eti.buscarUsuario.datosUsuario.numIdentificadorPersonal' | translate}}</mat-label>
+      <input matInput type="number" [(ngModel)]="data.identificadorNumero">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>{{'eti.buscarUsuario.datosUsuario.letraIdentificadorPersonal' | translate}}</mat-label>
+      <input matInput [(ngModel)]="data.identificadorLetra">
+    </mat-form-field>
+    <div class="separacion">
+      <button color="primary" md-button mat-raised-button
+        (click)="buscarPersona(true)">{{'eti.buscarUsuario.boton.buscar' | translate}}</button>
+    </div>
+    <table class="mat-elevation-z8 table-usuarios" mat-table [dataSource]="personas$ | async" matSort matSortActive="id"
+      matSortDirection="asc" matSortDisableClear>
+
+      <!-- Nombre y apellidos persona -->
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.buscarUsuario.datosUsuario.nombre' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let persona">
+          {{persona.nombre}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="primerApellido">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'eti.buscarUsuario.datosUsuario.primerApellido' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let persona">
+          {{persona.primerApellido}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="segundoApellido">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'eti.buscarUsuario.datosUsuario.segundoApellido' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let persona">
+          {{persona.segundoApellido}} </td>
+      </ng-container>
+
+      <!-- numIdentificadorPersonal persona -->
+      <ng-container matColumnDef="numIdentificadorPersonal">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'eti.buscarUsuario.datosUsuario.numIdentificadorPersonal' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let persona"> {{persona.identificadorNumero}}{{persona.identificadorLetra}} </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" [mat-dialog-close]="row"></tr>
+    </table>
+    <mat-paginator [pageSizeOptions]="elementosPagina" [length]="totalElementos" showFirstLastButtons>
+    </mat-paginator>
+  </div>
+  <div mat-dialog-actions>
+    <button color="warn" md-button mat-button
+      (click)="onNoClick()">{{'eti.buscarUsuario.boton.cancelar' | translate}}</button>
+  </div>
+</div>

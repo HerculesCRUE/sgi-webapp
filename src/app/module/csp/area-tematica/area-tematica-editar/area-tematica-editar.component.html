@@ -1,0 +1,20 @@
+<mat-drawer-container class="mat-drawer-tabs">
+  <mat-drawer mode="side" class="tabs" opened>
+    <mat-list class="opciones-menu">
+      <sgi-action-fragment-menu-item [route]="[AREA_TEMATICA_ROUTE_NAMES.DATOS_GENERALES]"
+        [title]="'label.datos-generales' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[AREA_TEMATICA_ROUTE_NAMES.AREAS_ARBOL]"
+        [title]="'label.areas-arbol' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.AREAS_ARBOL)">
+      </sgi-action-fragment-menu-item>
+    </mat-list>
+  </mat-drawer>
+  <mat-drawer-content class="mat-drawer-content">
+    <div class="mat-drawer-content-panel">
+      <router-outlet></router-outlet>
+    </div>
+    <sgi-action-footer [texto]="textoCrear" [actionService]="actionService"></sgi-action-footer>
+  </mat-drawer-content>
+</mat-drawer-container>

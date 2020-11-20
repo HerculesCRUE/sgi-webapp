@@ -1,0 +1,28 @@
+<section class="memoria-formulario">
+  <h2>{{'eti.memoria.formulario.title' | translate}}</h2>
+  <mat-horizontal-stepper [linear]="true" labelPosition="bottom" (selectionChange)="onStepChange($event)">
+    <ng-container *ngFor="let block of blocks; let step_index = index; let last = last;">
+      <mat-step [stepControl]="block.formlyData.formGroup">
+        <div>
+          <ng-template matStepLabel>{{block.bloque.orden}} {{block.bloque.nombre}}</ng-template>
+          <ng-container *ngIf="block.selected">
+            <form [formGroup]="block.formlyData.formGroup">
+              <div class="formly">
+                <formly-form [model]="block.formlyData.model" [fields]="block.formlyData.fields"
+                  [options]="block.formlyData.options" [form]="block.formlyData.formGroup">
+                </formly-form>
+              </div>
+            </form>
+          </ng-container>
+        </div>
+        <div class="botones-formly">
+          <button *ngIf="step_index > 0" mat-button matStepperPrevious color="warn" aria-label="Center Align" md-button
+            mat-button>Atrás</button>
+          <button *ngIf="!last" mat-button matStepperNext color="primary" aria-label="Center Align" md-button
+            mat-button>Siguiente</button>
+        </div>
+      </mat-step>
+    </ng-container>
+
+  </mat-horizontal-stepper>
+</section>

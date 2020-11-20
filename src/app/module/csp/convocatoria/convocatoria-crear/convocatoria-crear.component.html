@@ -1,0 +1,65 @@
+<mat-drawer-container class="mat-drawer-tabs">
+  <mat-drawer mode="side" class="tabs" opened>
+    <mat-list class="opciones-menu">
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.DATOS_GENERALES]"
+        [title]="'label.datos-generales' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.ENTIDADES_CONVOCANTES]"
+        [title]="'label.entidades-convocantes' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.ENTIDADES_CONVOCANTES)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.ENTIDADES_FINANCIADORAS]"
+        [title]="'label.entidades-financiadoras' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.ENTIDADES_FINANCIADORAS)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.ENLACES]" [title]="'label.enlaces' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.ENLACES)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.PERIODO_JUSTIFICACION]"
+        [title]="'label.periodo-justificacion' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.PERIODO_JUSTIFICACION)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.PLAZOS_FASES]"
+        [title]="'label.plazos-fases' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.PLAZOS_FASES)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.SEGUIMIENTO_CIENTIFICO]"
+        [title]="'label.seguimiento-cientifico' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.SEGUIMIENTO_CIENTIFICO)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.HITOS]"
+        [title]="'csp.convocatoria.hitos' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.HITOS)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.DOCUMENTOS]"
+        [title]="'csp.convocatoria.documentos' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.DOCUMENTOS)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.REQUISITOS_IP]"
+        [title]="'csp.convocatoria.requisitos-ip' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.REQUISITOS_IP)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.REQUISITOS_EQUIPO]"
+        [title]="'csp.convocatoria.requisitos.equipo' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.REQUISITOS_EQUIPO)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.ELEGIBILIDAD]"
+        [title]="'csp.convocatoria.elegibilidad' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.ELEGIBILIDAD)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.CODIGOS_ECONOMICOS]"
+        [title]="'csp.convocatoria.codigos.economicos' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.CODIGOS_ECONOMICOS)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item class="demo" [title]="'csp.convocatoria.configuracion.solicitudes' | translate">
+      </sgi-action-fragment-menu-item>
+    </mat-list>
+  </mat-drawer>
+  <mat-drawer-content class="mat-drawer-content">
+    <div class="mat-drawer-content-panel">
+      <router-outlet></router-outlet>
+    </div>
+    <sgi-action-footer [texto]="textoCrear" [actionService]="actionService"></sgi-action-footer>
+  </mat-drawer-content>
+</mat-drawer-container>

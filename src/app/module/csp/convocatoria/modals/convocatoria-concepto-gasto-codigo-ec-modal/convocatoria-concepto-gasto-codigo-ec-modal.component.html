@@ -1,0 +1,104 @@
+<div class="convocatoria-concepto-gasto-codigo-ec-modal">
+  <header class="modal-header-material">
+    <h3 mat-dialog-title>{{'csp.convocatoria.concepto-gasto-codigo-ec.modal.titulo' | translate}}</h3>
+  </header>
+  <main>
+    <form [formGroup]="formGroup">
+      <!-- Concepto Gasto -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.convocatoria.concepto-gasto-codigo-ec.modal.conceptoGasto' | translate}}</mat-label>
+            <input matInput formControlName="convocatoriaConceptoGasto" type="text" id="convocatoriaConceptoGasto"
+              placeholder="{{'csp.convocatoria.concepto-gasto-codigo-ec.modal.conceptoGasto' | translate}}"
+              [matAutocomplete]="autocompleteConceptoGasto" required>
+            <mat-autocomplete #autocompleteConceptoGasto="matAutocomplete" [displayWith]="getNombreConceptoGasto">
+              <mat-option *ngFor="let convocatoriaConceptoGasto of convocatoriaConceptoGastos$ | async"
+                [value]="convocatoriaConceptoGasto">
+                {{convocatoriaConceptoGasto.conceptoGasto.nombre}}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="formGroup.controls.convocatoriaConceptoGasto.errors?.invalid">
+              {{'csp.convocatoria.concepto-gasto-codigo-ec.modal.error.invalido' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Código Económico -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.convocatoria.concepto-gasto-codigo-ec.modal.codigoEconomicoRef' | translate}}</mat-label>
+            <input matInput formControlName="codigoEconomicoRef" type="text" id="codigoEconomicoRef"
+              placeholder="{{'csp.convocatoria.concepto-gasto-codigo-ec.modal.codigoEconomicoRef' | translate}}"
+              [matAutocomplete]="autocompleteCodigoEconomico" required>
+            <mat-autocomplete #autocompleteCodigoEconomico="matAutocomplete">
+              <mat-option *ngFor="let codigoEconomico of codigosEconomicos$ | async"
+                [value]="codigoEconomico?.codigoEconomicoRef" (click)="getCodigoEconomico(codigoEconomico)">
+                {{codigoEconomico.codigoEconomicoRef}}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="formGroup.controls.codigoEconomicoRef.errors?.invalid">
+              {{'csp.convocatoria.concepto-gasto-codigo-ec.modal.error.invalido' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+      <h5>{{'csp.convocatoria.concepto-gasto-codigo-ec.modal.vigencia' | translate}}</h5>
+      <mat-divider></mat-divider>
+      <!-- Fecha inicio -->
+      <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+        [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field color="primary">
+            <mat-label>{{'csp.convocatoria.concepto-gasto-codigo-ec.modal.fechaInicio'| translate}}</mat-label>
+            <input matInput [matDatepicker]="pickerFechaInicio" formControlName="fechaInicio">
+            <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaInicio"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFechaInicio></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <!-- Fecha fin -->
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field color="primary">
+            <mat-label>{{'csp.convocatoria.concepto-gasto-codigo-ec.modal.fechaFin'| translate}}</mat-label>
+            <input matInput [matDatepicker]="pickerFechaFin" formControlName="fechaFin">
+            <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaFin"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFechaFin></mat-datepicker>
+            <mat-error *ngIf="formGroup.controls.fechaFin.errors?.after">
+              {{'csp.convocatoria.concepto-gasto-codigo-ec.modal.fechaFin.after' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+      <mat-divider></mat-divider>
+
+      <!-- Observaciones -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.convocatoria.concepto-gasto-codigo-ec.modal.observaciones' | translate}}
+            </mat-label>
+            <textarea #obs matInput formControlName="observaciones" type="text" id="observaciones"
+              placeholder="{{'csp.convocatoria.concepto-gasto-codigo-ec.modal.observaciones' | translate}}"
+              maxlength="250">
+                         </textarea>
+            <mat-hint>{{obs.value.length}} / 250</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+    </form>
+  </main>
+  <div id="modals-buttons" class="float-right" mat-dialog-actions>
+    <button color="accent" (click)="saveOrUpdate()" md-button mat-raised-button
+      type="submit">{{'botones.guardar' | translate}}</button>
+    <button class="link-cancelar" mat-button mat-dialog-close tabindex="-1"
+      type="button">{{'botones.cancelar' | translate}}</button>
+  </div>
+</div>

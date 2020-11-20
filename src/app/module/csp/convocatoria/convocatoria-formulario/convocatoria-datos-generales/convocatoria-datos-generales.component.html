@@ -1,0 +1,339 @@
+<section class="convocatoria-datos-generales">
+  <h2>{{'label.datos-generales' | translate}}</h2>
+
+  <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+    [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+    <!-- Código de referencia -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.codigo' | translate}}</mat-label>
+        <input matInput formControlName="codigo" type="text" id="codigo"
+          placeholder="{{'csp.convocatoria.codigo' | translate}}" required>
+        <mat-error *ngIf="formGroup.controls.codigo.errors?.required">
+          {{'csp.convocatoria.codigo.vacio' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.codigo.errors?.maxlength">
+          {{'csp.convocatoria.codigo.maxlength' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Estado actual -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order" *ngIf="formPart.getKey()">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.estado' | translate}}</mat-label>
+        <input type="text" placeholder="{{'csp.convocatoria.estado' | translate}}" arial-label="Number" matInput
+          formControlName="estadoActual">
+      </mat-form-field>
+    </div>
+
+    <!-- Unidad de gestión -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.unidad.gestion' | translate}}</mat-label>
+        <input matInput formControlName="unidadGestion" type="text" id="unidadGestion" required
+          placeholder="{{'csp.convocatoria.unidad.gestion' | translate}}" [matAutocomplete]="autoUnidadGestion"
+          (ngModelChange)="loadModelosEjecucion()" (keyup)="clearModeloEjecuccion()">
+        <mat-autocomplete #autoUnidadGestion="matAutocomplete" [displayWith]="getUnidadGestion">
+          <mat-option *ngFor="let unidadGestion of unidadesGestion$ | async" [value]="unidadGestion"
+            (click)="clearModeloEjecuccion()">
+            {{unidadGestion.nombre}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="formGroup.controls.unidadGestion.errors?.required">
+          {{'csp.convocatoria.unidad.gestion.error.required' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.unidadGestion.errors?.invalid">
+          {{'csp.convocatoria.unidad.gestion.error.invalid' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Año -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.anio' | translate}}</mat-label>
+        <input matInput formControlName="anio" type="number" id="anio" min="1900" required
+          placeholder="{{'csp.convocatoria.anio' | translate}}">
+        <mat-error *ngIf="formGroup.controls.anio.errors?.required">
+          {{'csp.convocatoria.anio.vacio' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.anio.errors?.min">
+          {{'csp.convocatoria.anio.min' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.anio.errors?.max">
+          {{'csp.convocatoria.anio.max' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.anio.errors?.isPlusYear">
+          {{'csp.convocatoria.anio.isPlusYear' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Titulo -->
+    <div fxFlex.sm="fxFlexPropertiesInline.sm" [fxFlex.md]="fxFlexPropertiesInline.md"
+      [fxFlex.gt-md]="fxFlexPropertiesInline.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.titulo' | translate}}</mat-label>
+        <input matInput formControlName="titulo" type="text" id="titulo"
+          placeholder="{{'csp.convocatoria.titulo' | translate}}" required>
+        <mat-error *ngIf="formGroup.controls.titulo.errors?.required">
+          {{'csp.convocatoria.titulo.vacio' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.titulo.errors?.maxlength">
+          {{'csp.convocatoria.titulo.maxlength' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Modelo de ejecución -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.modelo.ejecucion' | translate}}</mat-label>
+        <input type="text" placeholder="{{'csp.convocatoria.modelo.ejecucion' | translate}}" matInput
+          formControlName="modeloEjecucion" [matAutocomplete]="autoModeloEjecucion" (ngModelChange)="loadFinalidades()"
+          (keyup)="clearFinalidad()" [required]="formPart.isEstadoRegistrada()">
+        <mat-autocomplete #autoModeloEjecucion="matAutocomplete" [displayWith]="getModeloEjecucion">
+          <mat-option *ngFor="let modeloEjecucion of modelosEjecucion$ | async" [value]="modeloEjecucion"
+            (click)="clearFinalidad()">
+            {{modeloEjecucion.nombre}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="formGroup.controls.modeloEjecucion.errors?.required">
+          {{'csp.convocatoria.modelo.ejecucion.error.required' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.modeloEjecucion.errors?.invalid">
+          {{'csp.convocatoria.modelo.ejecucion.error.invalid' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Finalidades -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.finalidad' | translate}}</mat-label>
+        <input matInput formControlName="finalidad" type="text" id="finalidad"
+          [required]="formPart.isEstadoRegistrada()" placeholder="{{'csp.convocatoria.finalidad' | translate}}"
+          [matAutocomplete]="autoFinalidad">
+        <mat-autocomplete #autoFinalidad="matAutocomplete" [displayWith]="getFinalidad">
+          <mat-option *ngFor="let finalidad of finalidades$ | async" [value]="finalidad">
+            {{finalidad.nombre}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="formGroup.controls.finalidad.errors?.required">
+          {{'csp.convocatoria.finalidad.error.required' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.finalidad.errors?.invalid">
+          {{'csp.convocatoria.finalidad.error.invalid' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Duración meses -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.duracion.meses' | translate}}</mat-label>
+        <input matInput formControlName="duracion" type="number" id="duracion" step="1" min="1"
+          placeholder="{{'csp.convocatoria.duracion.meses' | translate}}">
+        <mat-error *ngIf="formGroup.controls.duracion.errors?.min">
+          {{'csp.convocatoria.duracion.error.min' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.duracion.errors?.max">
+          {{'csp.convocatoria.duracion.error.max' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Tipo de ámbito geográfico -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.tipo.ambito.geografico' | translate}}</mat-label>
+        <input matInput formControlName="ambitoGeografico" type="text" id="ambitoGeografico"
+          [required]="formPart.isEstadoRegistrada()"
+          placeholder="{{'csp.convocatoria.tipo.ambito.geografico' | translate}}"
+          [matAutocomplete]="autoTipoAmbitoGeografico">
+        <mat-autocomplete #autoTipoAmbitoGeografico="matAutocomplete" [displayWith]="getTipoAmbitoGeografico">
+          <mat-option *ngFor="let tipoAmbitoGeografico of tipoAmbitosGeograficos$ | async"
+            [value]="tipoAmbitoGeografico">
+            {{tipoAmbitoGeografico.nombre}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="formGroup.controls.ambitoGeografico.errors?.required">
+          {{'csp.convocatoria.tipo.ambito.geografico.error.required' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.ambitoGeografico.errors?.vacio">
+          {{'csp.convocatoria.tipo.ambito.geografico.error.vacio' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.ambitoGeografico.errors?.invalid">
+          {{'csp.convocatoria.ambito.geografico.error.invalid' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Clasificación producción -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.clasificacion.produccion' | translate}}</mat-label>
+        <input matInput formControlName="clasificacionCVN" type="text" id="clasificacionCVN"
+          placeholder="{{'csp.convocatoria.clasificacion.produccion' | translate}}"
+          [matAutocomplete]="autoclasificacionProduccion">
+        <mat-autocomplete #autoclasificacionProduccion="matAutocomplete">
+          <mat-option *ngFor="let clasificacionProduccion of clasificacionesProduccion"
+            [value]="clasificacionProduccion">{{clasificacionProduccion}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="formGroup.controls.clasificacionCVN.errors?.invalid">
+          {{'csp.convocatoria.clasificacion.CVN.error.invalid' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Tipo de régimen de concurrencia-->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.tipo.regimen.concurrencia' | translate}}</mat-label>
+        <input matInput formControlName="regimenConcurrencia" type="text" id="regimenConcurrencia"
+          placeholder="{{'csp.convocatoria.tipo.regimen.concurrencia' | translate}}"
+          [matAutocomplete]="autoTipoRegimenConcurrencia">
+        <mat-autocomplete #autoTipoRegimenConcurrencia="matAutocomplete" [displayWith]="getTipoRegimenConcurrencia">
+          <mat-option *ngFor="let tipoRegimenConcurrencia of tipoRegimenesConcurrencia$ | async"
+            [value]="tipoRegimenConcurrencia">{{tipoRegimenConcurrencia.nombre}}</mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+
+    <!-- Proyecto colaborativo -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.proyecto.colaborativo' | translate}}</mat-label>
+        <mat-select matNativeControl formControlName="colaborativos">
+          <mat-option [value]="null"></mat-option>
+          <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
+          <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Destinatarios -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.destinatarios' | translate}}</mat-label>
+        <input matInput formControlName="destinatarios" type="text" id="destinatarios"
+          placeholder="{{'csp.convocatoria.destinatarios' | translate}}" required [matAutocomplete]="autoDestinatarios">
+        <mat-autocomplete #autoDestinatarios="matAutocomplete">
+          <mat-option *ngFor="let destinatario of destinatarios" [value]="destinatario">
+            {{destinatario}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="formGroup.controls.destinatarios.errors?.invalid">
+          {{'csp.convocatoria.destinatarios.error.invalid' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.destinatarios.errors?.required">
+          {{'csp.convocatoria.destinatarios.error.required' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Empresa Economica -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <sgi-buscar-empresa-economica [textoLabel]="label" [textoInput]="label"
+        [datosEmpresaEconomicaTexto]="formPart.empresaEconomicaText"
+        (empresaEconomicaSeleccionada)="formPart.setEmpresaEconomica($event)">
+      </sgi-buscar-empresa-economica>
+    </div>
+
+    <!-- Objeto -->
+    <div [fxFlex.sm]="fxFlexPropertiesInline.sm" [fxFlex.md]="fxFlexProperties.md"
+      [fxFlex.gt-md]="fxFlexPropertiesInline.gtMd" [fxFlexOrder]="fxFlexPropertiesInline.order">
+      <mat-form-field fxFill>
+        <mat-label>{{'csp.convocatoria.descripcion.convocatoria' | translate}}</mat-label>
+        <textarea matInput formControlName="objeto" type="text" id="objeto"
+          placeholder="{{'csp.convocatoria.descripcion.convocatoria' | translate}}">
+        </textarea>
+        <mat-error *ngIf="formGroup.controls.objeto.errors?.maxlength">
+          {{'csp.convocatoria.objeto.error.maxlength' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Observaciones -->
+    <div [fxFlex.sm]="fxFlexPropertiesInline.sm" [fxFlex.md]="fxFlexProperties.md"
+      [fxFlex.gt-md]="fxFlexPropertiesInline.gtMd" [fxFlexOrder]="fxFlexPropertiesInline.order">
+      <mat-form-field fxFill>
+        <mat-label>{{'csp.convocatoria.observaciones' | translate}}</mat-label>
+        <textarea matInput formControlName="observaciones" type="text" id="observaciones"
+          placeholder="{{'csp.convocatoria.observaciones' | translate}}">
+        </textarea>
+        <mat-error *ngIf="formGroup.controls.observaciones.errors?.maxlength">
+          {{'csp.convocatoria.observaciones.error.maxlength' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+  </form>
+
+  <div class="separation-button">
+    <h3>{{'csp.convocatoria.area.tematica.titulo' | translate}}</h3>
+    <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="convocatoriaAreaTematicas" matSort
+      matSortActive="id" matSortDirection="asc" matSortDisableClear>
+      <ng-container matColumnDef="padre">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'csp.convocatoria.area.tematica.listado.areas' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let data">{{data.padre.nombre}}</td>
+      </ng-container>
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{'csp.convocatoria.area.tematica.nombre' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let data">
+          {{data.padre.id === data.convocatoriaAreaTematica.value.areaTematica.id ? '' : data.convocatoriaAreaTematica.value.areaTematica?.nombre}}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="observaciones">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'csp.convocatoria.area.tematica.observaciones' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let data"> {{data.observaciones}} </td>
+      </ng-container>
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>{{'csp.convocatoria.listado.acciones' | translate}} </th>
+        <td mat-cell *matCellDef="let data">
+          <ng-container>
+            <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModal(data)">
+              <mat-icon color="primary">border_color</mat-icon>
+            </button>
+          </ng-container>
+          <ng-container>
+            <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deleteAreaTematica(data)">
+              <mat-icon color="warn">highlight_off</mat-icon>
+            </button>
+          </ng-container>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+    </table>
+    <mat-paginator [pageSizeOptions]="numPage" showFirstLastButtons>
+    </mat-paginator>
+    <div class="separation-button">
+      <button color="three" aria-label="Center Align" md-button mat-raised-button (click)="openModal()"
+        *ngIf="convocatoriaAreaTematicas.data.length === 0">
+        <mat-icon color="accent">add_circle</mat-icon>
+        {{'csp.convocatoria.area.tematica.aniadir'| translate}}
+      </button>
+    </div>
+  </div>
+</section>

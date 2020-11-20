@@ -1,0 +1,93 @@
+<div class="convocatoria-concepto-gasto-modal">
+  <header class="modal-header-material">
+    <h3 mat-dialog-title>{{'csp.convocatoria.concepto-gasto.modal.titulo' | translate}}</h3>
+  </header>
+  <main>
+    <form [formGroup]="formGroup">
+      <!-- Concepto Gasto -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.convocatoria.concepto-gasto.modal.conceptoGasto' | translate}}</mat-label>
+            <input matInput formControlName="conceptoGasto" type="text" id="conceptoGasto"
+              placeholder="{{'csp.convocatoria.concepto-gasto.modal.conceptoGasto' | translate}}"
+              [matAutocomplete]="autocompleteConceptoGasto" required>
+            <mat-autocomplete #autocompleteConceptoGasto="matAutocomplete" [displayWith]="getNombreConceptoGasto">
+              <mat-option *ngFor="let conceptoGasto of conceptoGastos$ | async" [value]="conceptoGasto">
+                {{conceptoGasto.nombre}}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="formGroup.controls.conceptoGasto.errors?.invalid">
+              {{'csp.convocatoria.concepto-gasto.modal.conceptoGasto.error.invalido' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Importe máximo -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign"
+        *ngIf="data.convocatoriaConceptoGasto.permitido">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.convocatoria.concepto-gasto.modal.importeMaximo' | translate}}
+            </mat-label>
+            <input matInput formControlName="importeMaximo" type="number" id="importeMaximo" min="0"
+              placeholder="{{'csp.convocatoria.concepto-gasto.modal.importeMaximo' | translate}}">
+            <mat-error *ngIf="formGroup.controls.importeMaximo.hasError('max')">
+              {{'csp.convocatoria.concepto-gasto.error.max' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.importeMaximo.hasError('min')">
+              {{'csp.convocatoria.concepto-gasto.error.min' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Número de meses -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign"
+        *ngIf="data.convocatoriaConceptoGasto.permitido">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.convocatoria.concepto-gasto.modal.numMeses' | translate}}
+            </mat-label>
+            <input matInput formControlName="numMeses" type="number" id="numMeses" min="0"
+              placeholder="{{'csp.convocatoria.concepto-gasto.modal.numMeses' | translate}}">
+            <mat-error *ngIf="formGroup.controls.numMeses.hasError('max')">
+              {{'csp.convocatoria.concepto-gasto.error.max' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.numMeses.hasError('min')">
+              {{'csp.convocatoria.concepto-gasto.error.min' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.numMeses.hasError('integer')">
+              {{'csp.convocatoria.concepto-gasto.error.integer' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Observaciones -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.convocatoria.concepto-gasto.modal.observaciones' | translate}}
+            </mat-label>
+            <textarea #obs matInput formControlName="observaciones" type="text" id="observaciones"
+              placeholder="{{'csp.convocatoria.concepto-gasto.modal.observaciones' | translate}}" maxlength="250">
+                         </textarea>
+            <mat-hint>{{obs.value.length}} / 250</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+    </form>
+  </main>
+  <div id="modals-buttons" class="float-right" mat-dialog-actions>
+    <button color="accent" (click)="saveOrUpdate()" md-button mat-raised-button
+      type="submit">{{'botones.guardar' | translate}}</button>
+    <button class="link-cancelar" mat-button mat-dialog-close tabindex="-1"
+      type="button">{{'botones.cancelar' | translate}}</button>
+  </div>
+</div>

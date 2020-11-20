@@ -1,0 +1,142 @@
+<!-- Peticiones Evaluacion listado -->
+<section class="peticionEvaluacion-listado">
+
+  <!-- Buscador de comités -->
+
+  <form class="formulario" [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs"
+    [fxLayout]="fxLayoutProperties.layout" fxLayoutGap="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+    <!-- Código -->
+    <div class="col">
+      <mat-form-field>
+        <mat-label>{{'eti.peticionEvaluacion.listado.buscador.codigo' | translate}}</mat-label>
+        <input matInput type="text" placeholder="{{'eti.peticionEvaluacion.listado.buscador.codigo' | translate}}"
+          formControlName="codigo">
+      </mat-form-field>
+    </div>
+
+    <!-- Título proyecto -->
+    <div class="col">
+      <mat-form-field>
+        <mat-label>{{'eti.peticionEvaluacion.listado.buscador.proyecto.titulo' | translate}}</mat-label>
+        <input matInput type="text"
+          placeholder="{{'eti.peticionEvaluacion.listado.buscador.proyecto.titulo' | translate}}"
+          formControlName="titulo">
+      </mat-form-field>
+    </div>
+
+    <!-- Comité -->
+    <div class="col">
+      <mat-form-field class="input-form">
+        <mat-label>{{'eti.peticionEvaluacion.listado.buscador.comite' | translate}}</mat-label>
+        <input type="text" [placeholder]="'eti.peticionEvaluacion.listado.buscador.comite' | translate"
+          arial-label="Number" matInput formControlName="comite" [matAutocomplete]="autocompleteComite">
+        <mat-autocomplete #autocompleteComite="matAutocomplete" [displayWith]="getComite">
+          <mat-option *ngFor="let comite of filteredComites | async" [value]="comite">
+            {{comite.comite}}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+
+    <!--Solicitante-->
+    <sgi-buscar-persona [textoLabel]="textoUsuarioLabel" [textoInput]="textoUsuarioInput"
+      [textoButton]="textoUsuarioButton" [datosUsuarioTexto]="datosSolicitante" (usuarioSeleccionado)="
+                        setUsuario($event)"></sgi-buscar-persona>
+
+    <!-- Estado Memoria -->
+    <div class="col">
+      <mat-form-field class="input-form">
+        <mat-label>{{'eti.peticionEvaluacion.listado.buscador.estadoMemoria' | translate}}</mat-label>
+        <input type="text" [placeholder]="'eti.peticionEvaluacion.listado.buscador.estadoMemoria' | translate"
+          arial-label="Number" matInput formControlName="tipoEstadoMemoria"
+          [matAutocomplete]="autocompleteEstadoMemoria">
+        <mat-autocomplete #autocompleteEstadoMemoria="matAutocomplete" [displayWith]="getEstadoMemoria">
+          <mat-option *ngFor="let tipoEstadoMemoria of filteredEstadosMemoria | async" [value]="tipoEstadoMemoria">
+            {{tipoEstadoMemoria.nombre}}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+
+    <div class="buttons-final">
+      <div class="col filter-button">
+        <button color="primary" aria-label="Center Align" md-button mat-raised-button (click)="onSearch()">
+          <mat-icon>search</mat-icon> {{'botones.buscar'| translate}}
+        </button>
+        <button color="warn" aria-label="Center Align" md-button (click)="onClearFilters()"
+          mat-button>{{'botones.limpiar'| translate}}
+        </button>
+      </div>
+    </div>
+
+  </form>
+
+  <table class="mat-elevation-z8 table-peticionEvaluacion" mat-table [dataSource]="peticionesEvaluacion$ | async"
+    matSort matSortActive="id" matSortDirection="asc" matSortDisableClear>
+    <!-- Nombre y apellidos persona -->
+    <ng-container matColumnDef="solicitante">
+      <th mat-header-cell *matHeaderCellDef> {{'eti.peticionEvaluacion.listado.solicitante' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let peticionEvaluacion">
+        {{peticionEvaluacion.nombre}} {{peticionEvaluacion.primerApellido}} {{peticionEvaluacion.segundoApellido}} </td>
+    </ng-container>
+
+    <!-- Código -->
+    <ng-container matColumnDef="codigo">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.peticionEvaluacion.listado.codigo' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let peticionEvaluacion"> {{peticionEvaluacion.codigo}} </td>
+    </ng-container>
+
+    <!-- Título proyecto -->
+    <ng-container matColumnDef="titulo">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'eti.peticionEvaluacion.listado.proyecto.titulo' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let peticionEvaluacion">{{peticionEvaluacion.titulo}}</td>
+    </ng-container>
+
+    <!-- Financiación -->
+    <ng-container matColumnDef="fuenteFinanciacion">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'eti.peticionEvaluacion.listado.fuenteFinanciacion' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let peticionEvaluacion"> {{peticionEvaluacion.fuenteFinanciacion}} </td>
+    </ng-container>
+
+    <!-- Fecha inicio -->
+    <ng-container matColumnDef="fechaInicio">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'eti.peticionEvaluacion.listado.fechaInicio' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let peticionEvaluacion"> {{peticionEvaluacion.fechaInicio}} </td>
+    </ng-container>
+
+    <!-- Fecha fin -->
+    <ng-container matColumnDef="fechaFin">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.peticionEvaluacion.listado.fechaFin' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let peticionEvaluacion"> {{peticionEvaluacion.fechaFin}} </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones" class="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'eti.peticionEvaluacion.listado.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let peticionEvaluacion;let i=index;">
+        <ng-container *sgiHasAuthorityForAnyUO="'ETI-PEV-V'">
+          <button mat-button [routerLink]="[peticionEvaluacion.id]"
+            matTooltip="{{'eti.peticionEvaluacion.listado.editar' | translate}}">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</section>
+<mat-paginator [pageSizeOptions]="elementosPagina" [length]="totalElementos" showFirstLastButtons>
+</mat-paginator>
+<!-- FIN Peticiones Evaluacion listado-->

@@ -1,0 +1,72 @@
+<mat-dialog-content align="center">
+  <section>
+    <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+      [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+      <!-- Memoria -->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field class="input-form">
+          <mat-label>{{'eti.convocatoriaReunion.formulario.asignacionMemorias.memoria' | translate}}</mat-label>
+          <input type="text" [placeholder]="'eti.convocatoriaReunion.formulario.asignacionMemorias.memoria' | translate"
+            arial-label="Number" matInput formControlName="memoria" [matAutocomplete]="autocompleteMemoria" required>
+          <mat-autocomplete #autocompleteMemoria="matAutocomplete" [displayWith]="getMemoria">
+            <mat-option *ngFor="let memoria of filteredMemorias | async" [value]="memoria">
+              {{memoria.numReferencia}} - {{memoria.titulo}}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="formGroup.controls.memoria.errors?.required">
+            {{'eti.convocatoriaReunion.formulario.asignacionMemorias.memoria.error.vacio' | translate}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Evaluador 1 -->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field>
+          <mat-label>{{'eti.convocatoriaReunion.formulario.asignacionMemorias.evaluador1' | translate}}
+          </mat-label>
+          <input type="text"
+            [placeholder]="'eti.convocatoriaReunion.formulario.asignacionMemorias.evaluador1' | translate"
+            arial-label="Number" matInput formControlName="evaluador1" [matAutocomplete]="autocompleteEvaluador1"
+            required>
+          <mat-autocomplete #autocompleteEvaluador1="matAutocomplete" [displayWith]="getEvaluador">
+            <mat-option *ngFor="let evaluador of filteredEvaluadoresEvaluador1 | async" [value]="evaluador">
+              {{evaluador.nombre}} {{evaluador.primerApellido}} {{evaluador.segundoApellido}}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="formGroup.controls.evaluador1.errors?.required">
+            {{'eti.convocatoriaReunion.formulario.asignacionMemorias.evaluador1.error.vacio' | translate}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Evaluador 2 -->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field>
+          <mat-label>{{'eti.convocatoriaReunion.formulario.asignacionMemorias.evaluador2' | translate}}
+          </mat-label>
+          <input type="text"
+            [placeholder]="'eti.convocatoriaReunion.formulario.asignacionMemorias.evaluador2' | translate"
+            arial-label="Number" matInput formControlName="evaluador2" [matAutocomplete]="autocompleteEvaluador2"
+            required>
+          <mat-autocomplete #autocompleteEvaluador2="matAutocomplete" [displayWith]="getEvaluador">
+            <mat-option *ngFor="let evaluador of filteredEvaluadoresEvaluador2 | async" [value]="evaluador">
+              {{evaluador.nombre}} {{evaluador.primerApellido}} {{evaluador.segundoApellido}}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="formGroup.controls.evaluador2.errors?.required">
+            {{'eti.convocatoriaReunion.formulario.asignacionMemorias.evaluador2.error.vacio' | translate}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </form>
+  </section>
+</mat-dialog-content>
+<mat-dialog-actions align="center">
+  <button color="accent" (click)="onAsignarmemoria()" md-button mat-raised-button
+    tabindex="-1">{{'botones.anadir' | translate}}</button>
+  <button class="link-cancelar" mat-button mat-dialog-close tabindex="-1">{{'botones.cancelar' | translate}}</button>
+</mat-dialog-actions>

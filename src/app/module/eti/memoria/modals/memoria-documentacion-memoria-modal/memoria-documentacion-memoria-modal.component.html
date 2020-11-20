@@ -1,0 +1,53 @@
+<div class="modal-documentacion-memoria">
+
+  <main>
+
+    <form [formGroup]="formGroup">
+      <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+        [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+        <div [fxFlex.sm]="fxFlexProperties2.sm" [fxFlex.md]="fxFlexProperties2.md"
+          [fxFlex.gt-md]="fxFlexProperties2.gtMd" [fxFlexOrder]="fxFlexProperties2.order">
+          <mat-form-field>
+            <mat-label>{{'eti.memoria.documentacion.tipo.documento' | translate}}</mat-label>
+            <input matInput formControlName="tipoDocumento" type="text" id="tipoDocumento"
+              placeholder="{{'eti.memoria.documentacion.tipo.documento' | translate}}" required
+              [matAutocomplete]="auto">
+            <mat-autocomplete #auto="matAutocomplete" [displayWith]="getTipoDocumento">
+              <mat-option *ngFor="let tipoDcoumentacion of tiposDcoumentacion | async" [value]="tipoDcoumentacion">
+                {{tipoDcoumentacion.nombre}}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="formGroup.controls.tipoDocumento.errors?.required">
+              {{'eti.memoria.documentacion.tipo.documento.error.vacio' | translate}}
+            </mat-error>
+
+          </mat-form-field>
+        </div>
+
+        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+
+            <div class=" mat-form-field-wrapper">
+              <button class="icon-foto" mat-icon-button color="primary" title=" {{'botones.examinar' | translate}}">
+
+              </button>
+              <input type="file" #file #fileUpload id="fileUpload" name="fileUpload" accept="image/*"
+                (change)="onDocumentoSelect($event)" />
+            </div>
+          </div>
+          <div fxFlex="100%" fxFlex.md="100" fxFlex.sm="100" fxFlex.xs="100" fxFlexOrder="1"></div>
+        </div>
+      </div>
+
+    </form>
+  </main>
+
+  <div id="modals-buttons" class="float-right" mat-dialog-actions>
+    <button color="accent" md-button mat-raised-button type="submit" (click)="save()">Guardar</button>
+    <button class="link-cancelar" mat-button (click)="closeModal()" type="button">Cancelar</button>
+  </div>
+</div>

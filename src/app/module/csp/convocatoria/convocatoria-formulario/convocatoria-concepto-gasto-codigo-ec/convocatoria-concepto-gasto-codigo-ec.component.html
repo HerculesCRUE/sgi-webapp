@@ -1,0 +1,173 @@
+<!-- Convocatoria concepto-gasto-codigo-ec -->
+<section class="convocatoriaConceptoGasto">
+  <h2>{{'csp.convocatoria.concepto-gasto-codigo-ec.listado.titulo' | translate}}</h2>
+
+  <h3>{{'csp.convocatoria.concepto-gasto-codigo-ec.table.permitidos' | translate}}</h3>
+  <table class="mat-elevation-z8 table-convocatoriaConceptoGastoCodigoEc-permitidos" mat-table
+    [dataSource]="dataSourcePermitidos" matSort matSortDisableClear #sortPermitidos="matSort">
+    <!-- Nombre concepto gasto -->
+    <ng-container matColumnDef="convocatoriaConceptoGasto.conceptoGasto.nombre">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto-codigo-ec.listado.concepto-gasto-codigo-ec.nombre' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGastoCodigoEc">
+        {{convocatoriaConceptoGastoCodigoEc.value.convocatoriaConceptoGasto.conceptoGasto.nombre}}
+      </td>
+    </ng-container>
+
+    <!-- Código económico -->
+    <ng-container matColumnDef="codigoEconomicoRef">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto-codigo-ec.listado.codigoEconomicoRef' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGastoCodigoEc">
+        {{convocatoriaConceptoGastoCodigoEc.value.codigoEconomicoRef}}
+      </td>
+    </ng-container>
+
+    <!-- Fecha inicio -->
+    <ng-container matColumnDef="fechaInicio">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto-codigo-ec.listado.fechaInicio' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGastoCodigoEc">
+        {{convocatoriaConceptoGastoCodigoEc.value.fechaInicio | date:'dd/MM/yyyy'}}
+      </td>
+    </ng-container>
+
+    <!-- Fecha fin -->
+    <ng-container matColumnDef="fechaFin">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto-codigo-ec.listado.fechaFin' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGastoCodigoEc">
+        {{convocatoriaConceptoGastoCodigoEc.value.fechaFin | date:'dd/MM/yyyy'}}
+      </td>
+    </ng-container>
+
+    <!-- Observaciones -->
+    <ng-container matColumnDef="convocatoriaConceptoGasto.observaciones">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto-codigo-ec.listado.observaciones' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGastoCodigoEc">
+        {{convocatoriaConceptoGastoCodigoEc.value.observaciones}}
+      </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef>
+        {{'csp.convocatoria.concepto-gasto-codigo-ec.listado.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGastoCodigoEc;let i=index;">
+        <ng-container *ngIf="convocatoriaConceptoGastoCodigoEc.value.enableAccion">
+          <button mat-button matTooltip="{{'botones.editar' | translate}}"
+            (click)="openModal(convocatoriaConceptoGastoCodigoEc, i)">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container *ngIf="convocatoriaConceptoGastoCodigoEc.value.enableAccion">
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}"
+            (click)="deleteConvocatoriaConceptoGastoCodigoEc(convocatoriaConceptoGastoCodigoEc)">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumnsPermitidos"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumnsPermitidos"></tr>
+
+  </table>
+
+  <mat-paginator #paginatorPermitidos [pageSizeOptions]="elementosPagina" showFirstLastButtons>
+  </mat-paginator>
+
+  <div class="separation-button">
+    <button color="three" aria-label="Center Align" md-button mat-raised-button (click)="openModalCrear(true)">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.convocatoria.concepto-gasto-codigo-ec.permitido.anadir'| translate}}
+    </button>
+  </div>
+</section>
+
+<section class="convocatoriaConceptoGasto">
+  <h3>{{'csp.convocatoria.concepto-gasto-codigo-ec.table.nopermitidos' | translate}}</h3>
+  <table class="mat-elevation-z8 table-convocatoriaConceptoGasto-nopermitidos" mat-table
+    [dataSource]="dataSourceNoPermitidos" matSort matSortDisableClear #sortNoPermitidos="matSort">
+
+    <!-- Nombre concepto gasto -->
+    <ng-container matColumnDef="convocatoriaConceptoGasto.conceptoGasto.nombre">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto-codigo-ec.listado.concepto-gasto-codigo-ec.nombre' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGastoCodigoEc">
+        {{convocatoriaConceptoGastoCodigoEc.value.convocatoriaConceptoGasto.conceptoGasto.nombre}}
+      </td>
+    </ng-container>
+
+    <!-- Código económico -->
+    <ng-container matColumnDef="codigoEconomicoRef">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto-codigo-ec.listado.codigoEconomicoRef' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGastoCodigoEc">
+        {{convocatoriaConceptoGastoCodigoEc.value.codigoEconomicoRef}}
+      </td>
+    </ng-container>
+
+    <!-- Fecha inicio -->
+    <ng-container matColumnDef="fechaInicio">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto-codigo-ec.listado.fechaInicio' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGastoCodigoEc">
+        {{convocatoriaConceptoGastoCodigoEc.value.fechaInicio | date:'dd/MM/yyyy'}}
+      </td>
+    </ng-container>
+
+    <!-- Fecha fin -->
+    <ng-container matColumnDef="fechaFin">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto-codigo-ec.listado.fechaFin' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGastoCodigoEc">
+        {{convocatoriaConceptoGastoCodigoEc.value.fechaFin | date:'dd/MM/yyyy'}}
+      </td>
+    </ng-container>
+
+    <!-- Observaciones -->
+    <ng-container matColumnDef="convocatoriaConceptoGasto.observaciones">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto-codigo-ec.listado.observaciones' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGastoCodigoEc">
+        {{convocatoriaConceptoGastoCodigoEc.value.observaciones}}
+      </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef>
+        {{'csp.convocatoria.concepto-gasto-codigo-ec.listado.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGastoCodigoEc;let i=index;">
+        <ng-container *ngIf="convocatoriaConceptoGastoCodigoEc.value.enableAccion">
+          <button mat-button matTooltip="{{'botones.editar' | translate}}"
+            (click)="openModal(convocatoriaConceptoGastoCodigoEc, i)">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container *ngIf="convocatoriaConceptoGastoCodigoEc.value.enableAccion">
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}"
+            (click)="deleteConvocatoriaConceptoGastoCodigoEc(convocatoriaConceptoGastoCodigoEc)">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumnsNoPermitidos"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumnsNoPermitidos"></tr>
+
+  </table>
+
+  <mat-paginator #paginatorNoPermitidos [pageSizeOptions]="elementosPagina" showFirstLastButtons>
+  </mat-paginator>
+
+  <div class="separation-button">
+    <button color="three" aria-label="Center Align" md-button mat-raised-button (click)="openModalCrear(false)">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.convocatoria.concepto-gasto-codigo-ec.nopermitido.anadir'| translate}}
+    </button>
+  </div>
+</section>

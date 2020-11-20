@@ -1,0 +1,31 @@
+<mat-drawer-container class="mat-drawer-tabs">
+  <mat-drawer class="tabs" mode="side" opened>
+    <mat-list class="opciones-menu">
+      <sgi-action-fragment-menu-item [route]="[PETICION_EVALUACION_ROUTE_NAMES.DATOS_GENERALES]"
+        [title]="'label.datos-generales' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[PETICION_EVALUACION_ROUTE_NAMES.EQUIPO_INVESTIGADOR]"
+        [title]="'eti.peticionEvaluacion.formulario.equipoInvestigador.listado.cabecera' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.EQUIPO_INVESTIGADOR)">
+      </sgi-action-fragment-menu-item>
+      <mat-list class="opciones-menu">
+        <sgi-action-fragment-menu-item [route]="[PETICION_EVALUACION_ROUTE_NAMES.TAREAS]"
+          [title]="'eti.peticionEvaluacion.listado.tareas.title' | translate"
+          [fragment]="actionService.getFragment(actionService.FRAGMENT.TAREAS)">
+        </sgi-action-fragment-menu-item>
+      </mat-list>
+      <sgi-action-fragment-menu-item [route]="[PETICION_EVALUACION_ROUTE_NAMES.MEMORIAS]"
+        [title]="'eti.peticionEvaluacion.formulario.memorias.listado.cabecera' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.MEMORIAS)">
+      </sgi-action-fragment-menu-item>
+    </mat-list>
+  </mat-drawer>
+  <mat-drawer-content class="mat-drawer-content">
+    <div class="mat-drawer-content-panel">
+      <router-outlet></router-outlet>
+    </div>
+    <sgi-action-footer [texto]="textoCrear" [actionService]="actionService">
+    </sgi-action-footer>
+  </mat-drawer-content>
+</mat-drawer-container>

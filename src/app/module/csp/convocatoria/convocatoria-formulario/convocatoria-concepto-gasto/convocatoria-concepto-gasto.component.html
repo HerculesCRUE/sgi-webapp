@@ -1,0 +1,188 @@
+<!-- Convocatoria concepto-gasto -->
+<section class="convocatoriaConceptoGasto">
+  <h2>{{'csp.convocatoria.concepto-gasto.listado.titulo' | translate}}</h2>
+
+  <h3>{{'csp.convocatoria.concepto-gasto.table.permitidos' | translate}}</h3>
+  <table class="mat-elevation-z8 table-convocatoriaConceptoGasto-permitidos" mat-table
+    [dataSource]="dataSourcePermitidos" matSort matSortDisableClear #sortPermitidos="matSort">
+    <!-- Nombre concepto gasto -->
+    <ng-container matColumnDef="conceptoGasto.nombre">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto.listado.concepto-gasto.nombre' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGasto"> {{convocatoriaConceptoGasto.value.conceptoGasto.nombre}}
+      </td>
+    </ng-container>
+
+    <!-- Descripción -->
+    <ng-container matColumnDef="conceptoGasto.descripcion">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto.listado.concepto-gasto.descripcion' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGasto">
+        {{convocatoriaConceptoGasto.value.conceptoGasto.descripcion}}
+      </td>
+    </ng-container>
+
+    <!-- Importe máximo -->
+    <ng-container matColumnDef="importeMaximo">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto.listado.importeMaximo' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGasto"> {{convocatoriaConceptoGasto.value.importeMaximo}}
+      </td>
+    </ng-container>
+
+    <!-- Permitido hasta mes -->
+    <ng-container matColumnDef="numMeses">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto.listado.numMeses' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGasto"> {{convocatoriaConceptoGasto.value.numMeses}}
+      </td>
+    </ng-container>
+
+    <!-- Observaciones -->
+    <ng-container matColumnDef="observaciones">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto.listado.observaciones' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGasto"> {{convocatoriaConceptoGasto.value.observaciones}}
+      </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.concepto-gasto.listado.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGasto;let i=index;">
+        <ng-container *ngIf="convocatoriaConceptoGasto.value.enableAccion">
+          <button mat-button matTooltip="{{'botones.editar' | translate}}"
+            (click)="openModal(convocatoriaConceptoGasto)">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container *ngIf="convocatoriaConceptoGasto.value.enableAccion">
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}"
+            (click)="deleteConvocatoriaConceptoGasto(convocatoriaConceptoGasto)">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumnsPermitidos"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumnsPermitidos"></tr>
+
+  </table>
+
+  <mat-paginator #paginatorPermitidos [pageSizeOptions]="elementosPagina" showFirstLastButtons>
+  </mat-paginator>
+
+  <div class="separation-button">
+    <button color="three" aria-label="Center Align" md-button mat-raised-button (click)="openModalCrear(true)">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.convocatoria.concepto-gasto.permitido.anadir'| translate}}
+    </button>
+  </div>
+</section>
+<mat-divider></mat-divider>
+<section>
+  <h3>{{'csp.convocatoria.concepto-gasto.formulario.costesIndirectos.title' | translate}}</h3>
+  <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+    [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+    <!-- Costes indirectos -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'csp.convocatoria.concepto-gasto.formulario.costesIndirectos' | translate}}</mat-label>
+        <input type="text"
+          [placeholder]="'csp.convocatoria.concepto-gasto.formulario.costesIndirectos.default' | translate"
+          arial-label="Number" matInput formControlName="costeIndirecto"
+          [matAutocomplete]="autocompleteCostesIndirectos">
+        <mat-autocomplete #autocompleteCostesIndirectos="matAutocomplete" [displayWith]="getCosteIndirecto">
+          <mat-option *ngFor="let costeIndirecto of filteredCostesIndirectos | async" [value]="costeIndirecto">
+            {{costeIndirecto.nombre}}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+
+    <!-- porcentajeCosteIndirecto -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field fxFill>
+        <mat-label>{{'csp.convocatoria.concepto-gasto.formulario.porcentajeCosteIndirecto' | translate}}</mat-label>
+        <input matInput formControlName="porcentajeCosteIndirecto" type="number" id="porcentajeCosteIndirecto" min="0"
+          placeholder="{{'csp.convocatoria.concepto-gasto.formulario.porcentajeCosteIndirecto' | translate}}">
+        <mat-error *ngIf="formGroup.controls.porcentajeCosteIndirecto.hasError('max')">
+          {{'csp.convocatoria.concepto-gasto.error.max' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.porcentajeCosteIndirecto.hasError('min')">
+          {{'csp.convocatoria.concepto-gasto.error.min' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+  </form>
+</section>
+<mat-divider></mat-divider>
+<section class="convocatoriaConceptoGasto">
+  <h3>{{'csp.convocatoria.concepto-gasto.table.nopermitidos' | translate}}</h3>
+  <table class="mat-elevation-z8 table-convocatoriaConceptoGasto-nopermitidos" mat-table
+    [dataSource]="dataSourceNoPermitidos" matSort matSortDisableClear #sortNoPermitidos="matSort">
+
+    <!-- Nombre concepto gasto -->
+    <ng-container matColumnDef="conceptoGasto.nombre">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto.listado.concepto-gasto.nombre' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGasto"> {{convocatoriaConceptoGasto.value.conceptoGasto.nombre}}
+      </td>
+    </ng-container>
+
+    <!-- Descripción -->
+    <ng-container matColumnDef="conceptoGasto.descripcion">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto.listado.concepto-gasto.descripcion' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGasto">
+        {{convocatoriaConceptoGasto.value.conceptoGasto.descripcion}}
+      </td>
+    </ng-container>
+
+    <!-- Observaciones -->
+    <ng-container matColumnDef="observaciones">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.convocatoria.concepto-gasto.listado.observaciones' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGasto"> {{convocatoriaConceptoGasto.value.observaciones}}
+      </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.concepto-gasto.listado.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let convocatoriaConceptoGasto;let i=index;">
+        <ng-container *ngIf="convocatoriaConceptoGasto.value.enableAccion">
+          <button mat-button matTooltip="{{'botones.editar' | translate}}"
+            (click)="openModal(convocatoriaConceptoGasto)">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container *ngIf="convocatoriaConceptoGasto.value.enableAccion">
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}"
+            (click)="deleteConvocatoriaConceptoGasto(convocatoriaConceptoGasto)">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumnsNoPermitidos"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumnsNoPermitidos"></tr>
+
+  </table>
+
+  <mat-paginator #paginatorNoPermitidos [pageSizeOptions]="elementosPagina" showFirstLastButtons>
+  </mat-paginator>
+
+  <div class="separation-button">
+    <button color="three" aria-label="Center Align" md-button mat-raised-button (click)="openModalCrear(false)">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.convocatoria.concepto-gasto.nopermitido.anadir'| translate}}
+    </button>
+  </div>
+</section>

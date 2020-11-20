@@ -1,0 +1,85 @@
+<!-- Configuración -->
+<section class="configuracion-actualizar">
+  <h2>{{'eti.configuracion.formulario.actualizar.titulo' | translate}}</h2>
+
+  <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+    [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+    <!-- mesesArchivadaInactivo -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'eti.configuracion.formulario.mesesArchivadaInactivo' | translate}}</mat-label>
+        <input type="number" [placeholder]="'eti.configuracion.formulario.mesesArchivadaInactivo' | translate"
+          arial-label="Number" matInput formControlName="mesesArchivadaInactivo">
+        <mat-hint>{{'eti.configuracion.formulario.mesesArchivadaInactivo.descripcion' | translate}}
+        </mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- diasArchivadaPendienteCorrecciones -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'eti.configuracion.formulario.diasArchivadaPendienteCorrecciones' | translate}}</mat-label>
+        <input type="number"
+          [placeholder]="'eti.configuracion.formulario.diasArchivadaPendienteCorrecciones' | translate"
+          arial-label="Number" matInput formControlName="diasArchivadaPendienteCorrecciones">
+        <mat-hint>{{'eti.configuracion.formulario.diasArchivadaPendienteCorrecciones.descripcion' | translate}}
+        </mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- diasLimiteEvaluador -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'eti.configuracion.formulario.diasLimiteEvaluador' | translate}}</mat-label>
+        <input type="number" [placeholder]="'eti.configuracion.formulario.diasLimiteEvaluador' | translate"
+          arial-label="Number" matInput formControlName="diasLimiteEvaluador">
+        <mat-hint>{{'eti.configuracion.formulario.diasLimiteEvaluador.descripcion' | translate}}</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- mesesAvisoProyectoCEEA -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'eti.configuracion.formulario.mesesAvisoProyectoCEEA' | translate}}</mat-label>
+        <input type="number" [placeholder]="'eti.configuracion.formulario.mesesAvisoProyectoCEEA' | translate"
+          arial-label="Number" matInput formControlName="mesesAvisoProyectoCEEA">
+        <mat-hint>{{'eti.configuracion.formulario.mesesAvisoProyectoCEEA.descripcion' | translate}}</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- mesesAvisoProyectoCEISH -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'eti.configuracion.formulario.mesesAvisoProyectoCEISH' | translate}}</mat-label>
+        <input type="number" [placeholder]="'eti.configuracion.formulario.mesesAvisoProyectoCEISH' | translate"
+          arial-label="Number" matInput formControlName="mesesAvisoProyectoCEISH">
+        <mat-hint>{{'eti.configuracion.formulario.mesesAvisoProyectoCEISH.descripcion' | translate}}</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- mesesAvisoProyectoCEIAB -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'eti.configuracion.formulario.mesesAvisoProyectoCEIAB' | translate}}</mat-label>
+        <input type="number" [placeholder]="'eti.configuracion.formulario.mesesAvisoProyectoCEIAB' | translate"
+          arial-label="Number" matInput formControlName="mesesAvisoProyectoCEIAB">
+        <mat-hint>{{'eti.configuracion.formulario.mesesAvisoProyectoCEIAB.descripcion' | translate}}</mat-hint>
+      </mat-form-field>
+    </div>
+
+  </form>
+
+  <div id="modals-buttons" class="float-right" mat-dialog-actions>
+    <button color="accent" (click)="update()" md-button mat-raised-button type="submit"
+      [disabled]="!updateEnable">{{'botones.guardar' | translate}}</button>
+    <button class="link-cancelar" mat-button (click)="cancel()"
+      type="button">{{'botones.cancelar' | translate}}</button>
+  </div>
+</section>

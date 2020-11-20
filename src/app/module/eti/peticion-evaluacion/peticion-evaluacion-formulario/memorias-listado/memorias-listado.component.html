@@ -1,0 +1,114 @@
+<section class="equipo-investigador-listado">
+  <h2>{{'eti.peticionEvaluacion.formulario.memorias.listado.cabecera' | translate}}</h2>
+
+  <table class="mat-elevation-z8 table-equipo-investigador" mat-table [dataSource]="datasource" matSort
+    matSortDirection="asc" matSortDisableClear>
+
+    <!-- Referencia memoria -->
+    <ng-container matColumnDef="numReferencia">
+      <th mat-header-cell *matHeaderCellDef>
+        {{'eti.peticionEvaluacion.formulario.memorias.listado.referenciaMemoria' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper"> {{ wrapper.value.numReferencia }}</td>
+    </ng-container>
+
+    <!-- Comite -->
+    <ng-container matColumnDef="comite.id">
+      <th mat-header-cell *matHeaderCellDef>
+        {{'eti.peticionEvaluacion.formulario.memorias.listado.comite' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{ wrapper.value.comite.comite }}
+      </td>
+    </ng-container>
+
+    <!-- Estado -->
+    <ng-container matColumnDef="estadoActual.id">
+      <th mat-header-cell *matHeaderCellDef>
+        {{'eti.peticionEvaluacion.formulario.memoria.listado.estado' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{ wrapper.value.estadoActual.nombre }}
+      </td>
+    </ng-container>
+
+    <!-- Fecha evaluacion -->
+    <ng-container matColumnDef="fechaEvaluacion">
+      <th mat-header-cell *matHeaderCellDef>
+        {{'eti.peticionEvaluacion.formulario.memoria.listado.fechaEvaluacion' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{ wrapper.value.fechaEvaluacion | date:'dd/MM/yyyy' }}
+      </td>
+    </ng-container>
+
+    <!-- Fecha limite -->
+    <ng-container matColumnDef="fechaLimite">
+      <th mat-header-cell *matHeaderCellDef>
+        {{'eti.peticionEvaluacion.formulario.memoria.listado.fechaLimite' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{ wrapper.value.fechaLimite | date:'dd/MM/yyyy' }}
+      </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef>
+        {{'eti.peticionEvaluacion.formulario.memoria.listado.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper;let i=index;">
+        <!-- TODO: Uncoment -->
+        <!-- <ng-container *ngIf="wrapper.value.estadoActual.id === 1 || wrapper.value.estadoActual.id === 2"> -->
+        <button mat-button *sgiHasAnyAuthorityForAnyUO="['ETI-PEV-C-INV', 'ETI-PEV-ER-INV']"
+          [routerLink]="['../../..', MEMORIAS_ROUTE, wrapper.value.id]"
+          matTooltip="{{'eti.peticionEvaluacion.formulario.memoria.listado.editar' | translate}}">
+          <mat-icon color="primary">border_color</mat-icon>
+        </button>
+
+        <button mat-button *sgiHasAnyAuthorityForAnyUO="['ETI-PEV-C-INV', 'ETI-PEV-ER-INV']"
+          matTooltip="{{'eti.peticionEvaluacion.formulario.memoria.listado.borrar' | translate}}"
+          (click)="delete(wrapper)">
+          <mat-icon color="warn">highlight_off</mat-icon>
+        </button>
+
+        <ng-container *sgiHasAuthorityForAnyUO="'ETI-PEV-V'">
+          <button *ngIf="wrapper.value.estadoActual.id === 3 || wrapper.value.estadoActual.id === 4 || 
+                              wrapper.value.estadoActual.id === 10 || wrapper.value.estadoActual.id === 5" mat-button
+            (click)="recuperarEstadoAnterior(wrapper.value)"
+            matTooltip="{{'eti.memoria.listado.volverEstadoAnterior' | translate}}">
+            <mat-icon color="primary">restore</mat-icon>
+          </button>
+        </ng-container>
+
+        <ng-container *ngIf="hasPermisoEnviarSecretaria(wrapper.value.estadoActual.id)">
+          <button mat-button *sgiHasAnyAuthorityForAnyUO="['ETI-PEV-C-INV', 'ETI-PEV-ER-INV']"
+            (click)="enviarSecretaria(wrapper.value)" [disabled]="disableEnviarSecretaria"
+            matTooltip="{{'eti.peticionEvaluacion.formulario.memoria.listado.enviarSecretaria' | translate}}">
+            <mat-icon color="primary">send</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container *ngIf="hasPermisoEnviarSecretariaRetrospectiva(wrapper.value)">
+          <button mat-button *sgiHasAnyAuthorityForAnyUO="['ETI-PEV-C-INV', 'ETI-PEV-ER-INV']"
+            (click)="enviarSecretariaRetrospectiva(wrapper.value)" [disabled]="disableEnviarSecretaria"
+            matTooltip="{{'eti.peticionEvaluacion.formulario.memoria.listado.enviarSecretariaRetrospectiva' | translate}}">
+            <mat-icon color="primary">assignment</mat-icon>
+          </button>
+        </ng-container>
+        <!-- </ng-container> -->
+      </td>
+    </ng-container>
+
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <!-- Botón añadir memoria -->
+  <div class="separation-button">
+    <button mat-button color="three" *sgiHasAnyAuthorityForAnyUO="['ETI-PEV-C-INV', 'ETI-PEV-ER-INV']"
+      [routerLink]="['../../..', MEMORIAS_ROUTE, 'new']" [state]="{idPeticionEvaluacion: fragment.getKey()}">
+      <mat-icon>add_box</mat-icon>
+      {{'eti.peticionEvaluacion.formulario.memorias.listado.nuevaMemoria' | translate}}
+    </button>
+
+  </div>
+</section>

@@ -1,0 +1,61 @@
+{
+  "/auth": {
+    "target": "http://sgi-auth:8080",
+    "secure": false,
+    "logLevel": "debug",
+    "headers": {}
+  },
+  "/api/eti": {
+    "target": "http://sgi-eti-service:8080",
+    "pathRewrite": {
+      "^/api/eti": ""
+    },
+    "secure": false,
+    "logLevel": "debug"
+  },
+  "/api/csp": {
+    "target": "http://sgi-csp-service:8080",
+    "pathRewrite": {
+      "^/api/csp": ""
+    },
+    "secure": false,
+    "logLevel": "debug"
+  },
+  "/api/usr": {
+    "target": "http://sgi-usr-service:8080",
+    "pathRewrite": {
+      "^/api/usr": ""
+    },
+    "secure": false,
+    "logLevel": "debug"
+  },
+  "/api/sgp": {
+    "target": "http://sgi-esb:8080",
+    "pathRewrite": {
+      "^/api/sgp": "/sgp"
+    },
+    "secure": false,
+    "logLevel": "debug"
+  },
+  "/api/sge": {
+    "target": "http://sgi-esb:8080",
+    "pathRewrite": {
+      "^/api/sge": "/sge"
+    },
+    "secure": false,
+    "logLevel": "debug"
+  },
+  "/api/sgdoc": {
+    "target": "http://sgi-esb:8080",
+    "pathRewrite": {
+      "^/api/sgdoc": "/sgdoc"
+    },
+    "secure": false,
+    "logLevel": "debug"
+  },
+  "/pentaho": {
+    "target": "http://sgi-reporting:8080",
+    "secure": false,
+    "logLevel": "debug"
+  }
+}

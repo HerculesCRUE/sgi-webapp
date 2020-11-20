@@ -1,0 +1,54 @@
+<div class="modelo-tipo-fase-modal">
+  <header class="modal-header-material">
+    <h3 mat-dialog-title *ngIf="data.modeloTipoFase.tipoFase">
+      {{'csp.modelo.tipo.fase.modal.titulo.actualizar' | translate}}</h3>
+    <h3 mat-dialog-title *ngIf="!data.modeloTipoFase.tipoFase">{{'csp.modelo.tipo.fase.modal.titulo.crear' | translate}}
+    </h3>
+  </header>
+  <main>
+    <form [formGroup]="formGroup">
+      <!-- Tipo de fase -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.tipo.fase' | translate}}</mat-label>
+            <mat-select matNativeControl formControlName="tipoFase" required [compareWith]="equals">
+              <mat-option *ngFor="let tipoFase of tipoFases$ | async" [value]="tipoFase">{{tipoFase.nombre}}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="formGroup.controls.tipoFase.errors?.required">
+              {{'csp.tipo.fase.error.requerido' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Disponibilidad -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <label>{{'csp.modelo.tipo.fase.disponible' | translate}}</label>
+          <div class="checkbox-inline" formGroupName="disponible">
+            <mat-checkbox color="primary" class="checkbox" formControlName="convocatoria">
+              {{'csp.modelo.tipo.fase.convocatoria' | translate}}
+            </mat-checkbox>
+            <mat-checkbox color="primary" class="checkbox" formControlName="proyecto">
+              {{'csp.modelo.tipo.fase.proyecto' | translate}}</mat-checkbox>
+            <mat-error *ngIf="formGroup.controls.disponible.errors?.requiredChecked">
+              {{'csp.tipo.fase.checkbox.error.requerido' | translate}}
+            </mat-error>
+          </div>
+        </div>
+      </div>
+
+
+    </form>
+  </main>
+  <div id="modals-buttons" class="float-right" mat-dialog-actions>
+    <button color="accent" (click)="saveOrUpdate()" md-button mat-raised-button
+      type="submit">{{'botones.guardar' | translate}}</button>
+    <button class="link-cancelar" mat-button (click)="closeModal()"
+      type="button">{{'botones.cancelar' | translate}}</button>
+  </div>
+</div>

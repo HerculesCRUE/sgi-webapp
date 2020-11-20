@@ -1,0 +1,60 @@
+@import "colors.scss";
+@import "vars.scss";
+
+$padding: 15px;
+$config: mat-typography-config();
+
+/* HEADER */
+.header {
+  border-bottom: #{$borderWidth} solid map-get($palette-primary, 50);
+  padding: 0px 0px 0px 0px;
+  height: calc(#{$headerHeight} - #{$borderWidth * 1});
+  .menu {
+    width: 40px;
+    float: left;
+    display: inline;
+  }
+
+  .logos {
+    .hercules {
+      width: 65px;
+      float: left;
+      padding: 10px 0px 0px 15px;
+      img {
+        width: 44px;
+      }
+    }
+    .universidad {
+      width: 100px;
+      float: left;
+      padding: 5px 0px 0px 0px;
+      img {
+        width: 200px;
+      }
+    }
+  }
+  .icons-options {
+    .inline {
+      display: flex;
+    }
+  }
+  #seleccionarModulo {
+    float: left;
+    width: auto;
+    display: block;
+    margin-left: 115px;
+    padding-top: 17px;
+    h2 {
+      font-size: mat-font-size($config, caption);
+      font-weight: bold;
+      margin: 0px;
+    }
+    mat-form-field {
+      width: 100%;
+    }
+  }
+  .mat-menu {
+    padding: $padding;
+  }
+}
+/* FIN HEADER */

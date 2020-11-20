@@ -1,0 +1,347 @@
+@import "vars.scss";
+
+/**/
+/** CUERPO HTML */
+/**/
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+}
+
+/**/
+/** FIN CUERPO HTML */
+/**/
+
+/**/
+/** Layout estructura */
+/**/
+
+.layout-components {
+  section {
+    h2 {
+      font-weight: bold;
+    }
+    padding: 15px 25px 25px 25px;
+  }
+}
+
+/**/
+/** FIN Layout estructura */
+/**/
+
+
+/**/
+/** MENU DERECHO SIDENAV */
+/**/
+
+// Puntos de menu simples
+.opciones-menu {
+  .item {
+    font-size: mat-font-size($custom-typography, body-2);
+    border-bottom: 1px solid map-get($palette-grease, 100);
+    box-shadow: none;
+    border-radius: 0px;
+    p {
+      //Si es grande el titulo en 2 líneas
+      width: 10em;
+      white-space: normal;
+    }
+    &:hover,
+    &:focus {
+      &:before {
+        @extend .border-seleccion;
+      }
+    }
+    &.is-active {
+      &:before {
+        @extend .border-seleccion;
+      }
+    }
+  }
+  // extensiones
+  .border-seleccion {
+    content: "";
+    position: absolute;
+    height: 100%;
+    border-left: 3px solid map-get($palette-primary, 500);
+  }
+}
+
+// Puntos de menu accordeon
+.acordeon-sidenav{
+  .panel {
+    border-radius: 0px;
+    .header {
+      padding: 4px 7px 4px 20px;
+      &.item {
+        padding: 4px 7px 4px 0px;
+        .titulo {
+          padding: 4px 7px 4px 20px;
+        }
+      }
+      .titulo {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        box-sizing: border-box;
+        position: relative;
+        height: inherit;
+      }
+    }
+    .mat-expansion-panel-body {
+      background:map-get($palette-primary, 50);
+    }
+    .opciones-accordion {
+      padding-top: 5px;
+      a {
+        font-size: mat-font-size($custom-typography, caption);
+        color: map-get($custom-colors, black);
+        background: map-get($custom-colors, white);
+        height: 25px;
+        border-radius: 18px;
+        padding: 2px 0px 2px 0px;
+        margin-top: 5px;
+        line-height: 12px;
+        &:hover,
+        &:focus {
+          font-weight: bold;
+        }
+        mat-icon {
+          color: map-get($custom-colors, success);
+          display: flex;
+          width: 100%;
+          justify-content: flex-end;
+        }
+        &.is-active{
+          font-weight: bold;
+        }
+      }
+    }
+  }
+}
+
+/**/
+/** MENU DERECHO SIDENAV */
+/**/
+
+/**/
+/** Tabs verticales */
+/**/
+
+.mat-drawer-content-panel {
+  max-height: calc(100vh - #{$headerHeight} - #{$breadcrumHeight} - #{$footerHeight});
+}
+
+.mat-drawer-tabs {
+  min-height: calc(100vh - #{$headerHeight} - #{$breadcrumHeight});
+  max-height: calc(100vh - #{$headerHeight} - #{$breadcrumHeight});
+  .tabs {
+    background-color: map-get($palette-primary, 50);
+    border-right-width: 0;
+    min-width: 227px;
+    .opciones-menu {
+      padding: 0px;
+      .item-tab {
+        span {
+          font-size: mat-font-size($custom-typography, body-1);
+        }
+        text-decoration-line: none;
+        .mat-list-item-content {
+          flex-direction: row;
+          justify-content: space-between;
+        }
+        &.is-active {
+          background-color: map-get($custom-colors, white);
+          span {
+            font-weight: bold;
+          }
+        }
+        .warning-icon {
+          color: map-get($custom-colors, warning);
+        }
+        .danger-icon {
+          color: map-get($custom-colors, danger);
+        }
+      }
+    }
+    .enlaces-menu {
+      padding-left: 1em;
+      padding-right: 1em;
+      padding-top: 0.5em;
+      padding-bottom: 0.5em;
+      border-top-style: solid;
+      border-top-width: 1px;
+      border-top-color: #ebedf3;
+    }
+  }
+}
+
+/**/
+/** FIN Tabs verticales */
+/**/
+
+/**/
+/** TABLES */
+/**/
+
+table {
+  [mat-header-row] {
+    background-color: map-get($palette-primary, 50);
+  }
+  width: 100%;
+}
+
+/**/
+/** FIN TABLES */
+/**/
+
+/**/
+/** INPUT */
+/**/
+
+// todos los input al 100%
+mat-form-field {
+  width: 100%;
+}
+
+/**/
+/** FIN INPUT */
+/**/
+
+/**/
+/** MENSAJES */
+/**/
+
+// todos los input al 100%
+.info-message {
+  margin: 13px 0;
+  padding: 10px;
+  border-radius: 5px;
+  color: #156db4;
+  background-color: #bfe2ee;
+  text-align: center;
+  -webkit-box-shadow: 0 5px 6px -6px #999;
+   -moz-box-shadow: 0 5px 6px -6px #999;
+        box-shadow: 0 5px 6px -6px #999;
+}
+
+/**/
+/** FIN MENSAJES */
+/**/
+
+/**/
+/** BOTONES */
+/**/
+
+// Botones disabled
+.mat-raised-button.mat-accent[disabled] {
+  color: map-get($custom-colors, white);
+  background: map-get($palette-accent, 500);
+  opacity: 0.5;
+}
+
+.mat-raised-button.mat-primary[disabled] {
+  color: map-get($custom-colors, white);
+  background: map-get($palette-primary, 500);
+  opacity: 0.5;
+}
+
+// Link cancelar en el footer. Negrita y subrayado
+.link-cancelar {
+  cursor: pointer;
+  font-weight: bold;
+  color: map-get($custom-colors, black);
+  .underline{
+    text-decoration: underline;
+  }
+}
+
+.link-busqueda{
+  cursor: pointer;
+  font-weight: bold;
+  color: map-get($custom-colors, primary);
+  &.underline{
+    text-decoration: underline;
+  }
+}
+
+.separation-button {
+  padding-top: 15px;
+  padding-bottom: 15px;
+  button ~ button {
+     margin-left: 10px;
+  }
+  button.rounded {
+    border-radius: 1.5em;
+    padding-right: 1.2em;
+    mat-icon {
+      margin-left: -.2em;
+      padding-right: .1em;
+    }
+  }
+  // Boton verde terciario
+  .mat-three {
+    background-color: map-get($custom-colors, three-buton);
+    color: map-get($palette-grease, 900);
+    font-size: mat-font-size($custom-typography, body-1);
+    border-radius: 20px;
+    text-align: left;
+    padding-right: 35px;
+    min-width: 150px;
+  }
+  // Boton danger
+  .mat-danger {
+    background-color: map-get($palette-warn, 100);
+    color: map-get($palette-grease, 900);
+    font-size: mat-font-size($custom-typography, body-1);
+    border-radius: 20px;
+    text-align: left;
+    padding-right: 35px;
+    min-width: 150px;
+    mat-icon{
+      color: map-get($palette-warn, 500);
+      font-weight: bold;
+    }
+  }
+  // Boton primario con border y posibilidad icono
+  .mat-four {
+    background-color: map-get($palette-primary, 500);
+    color: map-get($custom-colors, white);
+    font-size: mat-font-size($custom-typography, body-1);
+    border-radius: 20px;
+    text-align: left;
+    padding-right: 35px;
+    min-width: 150px;
+    mat-icon {
+      float: right;
+      padding: 6px;
+    }
+  }
+}
+
+/**/
+/** FIN BOTONES */
+/**/
+
+/**/
+/** FORMULARIOS */
+/**/
+.fieldset-form{
+  padding-bottom: 5px;
+  font-size: mat-font-size($custom-typography, body-2);
+}
+/**/
+/** FIN FORMULARIOS */
+/**/
+
+/* Borrar la clase demo y este CSS una vez pasada la demo*/
+
+.demo a{
+  background-color: #f3f6f9!important;
+  span{
+  font-weight: normal!important;
+  }
+}

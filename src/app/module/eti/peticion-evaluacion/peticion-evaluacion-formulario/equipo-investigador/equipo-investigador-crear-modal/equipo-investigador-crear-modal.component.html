@@ -1,0 +1,50 @@
+<mat-dialog-content align="center">
+  <section>
+    <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+      [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+      <!-- Boton buscador personas -->
+      <sgi-buscar-persona (usuarioSeleccionado)="onSelectPersona($event)"></sgi-buscar-persona>
+
+      <div [fxLayout]="fxLayoutProperties.layout">
+        <mat-form-field fxFill>
+          <mat-label>{{'eti.peticionEvaluacion.formulario.equipoInvestigador.modal.numDocumento' | translate}}
+          </mat-label>
+          <input matInput formControlName="numDocumento" type="text" id="numDocumentoModal" />
+        </mat-form-field>
+      </div>
+
+      <div [fxLayout]="fxLayoutProperties.layout">
+        <mat-form-field fxFill>
+          <mat-label>{{'eti.peticionEvaluacion.formulario.equipoInvestigador.modal.nombreCompleto' | translate}}
+          </mat-label>
+          <input matInput formControlName="nombreCompleto" type="text" id="nombreCompletoModal" />
+        </mat-form-field>
+      </div>
+
+      <div [fxLayout]="fxLayoutProperties.layout">
+        <mat-form-field fxFill>
+          <mat-label>{{'eti.peticionEvaluacion.formulario.equipoInvestigador.modal.vinculacion' | translate}}
+          </mat-label>
+          <input matInput formControlName="vinculacion" type="text" id="vinculacionModal" />
+        </mat-form-field>
+      </div>
+
+      <div [fxLayout]="fxLayoutProperties.layout">
+        <mat-form-field fxFill>
+          <mat-label>{{'eti.peticionEvaluacion.formulario.equipoInvestigador.modal.nivelAcademico' | translate}}
+          </mat-label>
+          <input matInput formControlName="nivelAcademico" type="text" id="nivelAcademicoModal" />
+        </mat-form-field>
+      </div>
+
+    </form>
+  </section>
+</mat-dialog-content>
+
+
+<mat-dialog-actions align="center">
+  <button color="accent" (click)="addPersonaEquipoInvestigador()" md-button mat-raised-button
+    tabindex="-1">{{'botones.anadir' | translate}}</button>
+  <button class="link-cancelar" mat-button mat-dialog-close tabindex="-1">{{'botones.cancelar' | translate}}</button>
+</mat-dialog-actions>

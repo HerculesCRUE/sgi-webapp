@@ -1,0 +1,106 @@
+<!-- Memoria datos generales -->
+<section>
+  <h2>{{'eti.memoria.datosGenerales.title' | translate}}</h2>
+  <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+    [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+    <!-- Comité -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'eti.memoria.datosGenerales.comite.titulo' | translate}}</mat-label>
+        <input type="text" [placeholder]="'eti.memoria.datosGenerales.comite.titulo' | translate" arial-label="Number"
+          matInput formControlName="comite" [matAutocomplete]="autocompleteComite">
+        <mat-autocomplete #autocompleteComite="matAutocomplete" [displayWith]="getComite"
+          (optionSelected)="selectComite($event.option.value)">
+          <mat-option *ngFor="let comite of filteredComites | async" [value]="comite">
+            {{comite.comite}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="formGroup.controls.comite.errors?.vacio">
+          {{'eti.memoria.datosGenerales.comite.error.vacio' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Tipo de Memoria -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'eti.memoria.datosGenerales.tipoMemoria.titulo' | translate}}</mat-label>
+        <input type="text" [placeholder]="'eti.memoria.datosGenerales.tipoMemoria.titulo' | translate"
+          arial-label="Number" matInput formControlName="tipoMemoria" [matAutocomplete]="autocompleteTipoMemoria">
+        <mat-autocomplete #autocompleteTipoMemoria="matAutocomplete" [displayWith]="getTipoMemoria"
+          (optionSelected)="selectTipoMemoria($event.option.value)">
+          <mat-option *ngFor="let tipoMemoria of filteredTipoMemorias | async" [value]="tipoMemoria">
+            {{tipoMemoria.nombre}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="formGroup.controls.tipoMemoria.errors?.vacio">
+          {{'eti.memoria.datosGenerales.tipoMemoria.error.vacio' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- memoria original-->
+    <ng-container *ngIf="this.datosGeneralesFragment.showMemoriaOriginal">
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field>
+          <mat-label>{{'eti.memoria.datosGenerales.memoria.memoria.original' | translate}}</mat-label>
+          <input type="text" [placeholder]="'eti.memoria.datosGenerales.memoria.memoria.original' | translate"
+            arial-label="Number" matInput formControlName="memoriaOriginal" [matAutocomplete]="autocompleteMemoria">
+          <mat-autocomplete #autocompleteMemoria="matAutocomplete" [displayWith]="getMemoria">
+            <mat-option *ngFor="let memoria of filteredMemorias | async" [value]="memoria">
+              {{memoria.numReferencia}}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error
+            *ngIf="this.datosGeneralesFragment.showMemoriaOriginal && formGroup.controls.memoriaOriginal?.errors?.vacio">
+            {{'eti.memoria.datosGenerales.memoria.memoria.original.error.vacio' | translate}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </ng-container>
+
+    <!-- Título -->
+    <ng-container *ngIf="this.datosGeneralesFragment.showTitulo">
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field>
+          <mat-label>{{'eti.memoria.datosGenerales.titulo.titulo' | translate}}</mat-label>
+          <input type="text" [placeholder]="'eti.memoria.datosGenerales.titulo.titulo' | translate" arial-label="Number"
+            matInput formControlName="titulo">
+        </mat-form-field>
+      </div>
+    </ng-container>
+
+    <!-- Persona equipo trabajo -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field fxFill>
+        <mat-label>{{'eti.memoria.datosGenerales.responsable' | translate}}</mat-label>
+        <input type="text" [placeholder]="'eti.memoria.datosGenerales.responsable' | translate" arial-label="Number"
+          matInput formControlName="personaResponsable" [matAutocomplete]="autocompletePersonaResponsable">
+        <mat-autocomplete #autocompletePersonaResponsable="matAutocomplete" [displayWith]="getPersonaResponsable">
+          <mat-option *ngFor="let personaRes of datosGeneralesFragment.personasResponsable$ | async"
+            [value]="personaRes">
+            {{personaRes.nombre}} {{personaRes.primerApellido}} {{personaRes.segundoApellido}}
+            ({{personaRes.identificadorNumero}}{{personaRes.identificadorLetra}})
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+
+    <!-- Código órgano competente -->
+    <ng-container *ngIf="this.datosGeneralesFragment.showCodOrganoCompetente">
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field>
+          <mat-label>{{'eti.memoria.datosGenerales.codigo.organo.competente.titulo' | translate}}</mat-label>
+          <input type="text" [placeholder]="'eti.memoria.datosGenerales.codigo.organo.competente.titulo' | translate"
+            arial-label="Number" matInput formControlName="codOrganoCompetente">
+        </mat-form-field>
+      </div>
+    </ng-container>
+  </form>
+</section>

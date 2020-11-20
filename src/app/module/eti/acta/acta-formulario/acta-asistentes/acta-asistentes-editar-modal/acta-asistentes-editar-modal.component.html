@@ -1,0 +1,40 @@
+<div class="modal-editar-asistentes">
+  <header class="modal-header-material">
+    <h3 mat-dialog-title>{{'eti.acta.asistentes.editar.titulo' | translate}}</h3>
+  </header>
+  <main>
+    <form [formGroup]="formGroup">
+      <div [fxLayout]="fxLayoutProperties.layout">
+        <mat-form-field fxFill>
+          <mat-label>{{'eti.acta.asistentes.editar.modal.asistente' | translate}}</mat-label>
+          <input matInput formControlName="asistente" type="text" id="asistente" />
+        </mat-form-field>
+      </div>
+      <div [fxLayout]="fxLayoutProperties.layout">
+        <mat-label>{{'eti.acta.asistentes.editar.modal.asistencia' | translate}}</mat-label>
+
+        <mat-radio-group class="radio-inline" name="opciones" formControlName="asistencia">
+          <mat-radio-button (change)="activarMotivo($event.value)" color="primary" class="radio"
+            *ngFor="let estado of estados" name="opciones" [value]="estado.value">
+            {{estado.label}}
+          </mat-radio-button>
+        </mat-radio-group>
+
+      </div>
+      <div [fxLayout]="fxLayoutProperties.layout">
+        <mat-form-field fxFill [ngClass]="ocultarMotivo ? 'ocultarCampo' : ''">
+          <mat-label>{{'eti.acta.asistentes.editar.modal.asistente.motivo' | translate}}</mat-label>
+          <textarea matInput formControlName="motivo" type="text" id="motivo"
+            placeholder="{{'eti.acta.asistentes.editar.modal.asistente.motivo' | translate}}" required></textarea>
+          <mat-error *ngIf="FormGroupUtil.checkError(formGroup, 'motivo') && formGroup.get('motivo').errors.required">
+            {{'eti.acta.asistentes.editar.modal.asistente.motivo.error.requerido' | translate}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </form>
+  </main>
+  <div id="modals-buttons" class="float-right" mat-dialog-actions>
+    <button color="accent" md-button mat-raised-button (click)="editComentario()" type="submit">Guardar</button>
+    <button class="link-cancelar" mat-button (click)="closeModal()" type="button">Cancelar</button>
+  </div>
+</div>
