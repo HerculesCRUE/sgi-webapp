@@ -10,10 +10,10 @@ import { TipoFaseService } from '@core/services/csp/tipo-fase.service';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
-import { SgiRestFilter, SgiRestFilterType, SgiRestListResult } from '@sgi/framework/http';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
-import { EMPTY, Observable, of, Subscription } from 'rxjs';
-import { catchError, switchMap, tap } from 'rxjs/operators';
+import { Observable, of, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { TipoFaseModalComponent } from '../tipo-fase-modal/tipo-fase-modal.component';
 
 const MSG_ERROR = marker('csp.tipo.fase.listado.error');
@@ -40,14 +40,13 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
   tiposFase$: Observable<ITipoFase[]>;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     private readonly tipoFaseService: TipoFaseService,
     private matDialog: MatDialog,
     private readonly dialogService: DialogService
   ) {
-    super(logger, snackBarService, MSG_ERROR);
-    this.logger.debug(TipoFaseListadoComponent.name, 'constructor()', 'start');
+    super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -58,56 +57,44 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-    this.logger.debug(TipoFaseListadoComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(TipoFaseListadoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.formGroup = new FormGroup({
       nombre: new FormControl(''),
       activo: new FormControl('true')
     });
-    this.filter = this.createFilters();
-    this.logger.debug(TipoFaseListadoComponent.name, 'ngOnInit()', 'end');
+    this.filter = this.createFilter();
   }
 
   protected createObservable(): Observable<SgiRestListResult<ITipoFase>> {
-    this.logger.debug(TipoFaseListadoComponent.name, `${this.createObservable.name}()`, 'start');
     const observable$ = this.tipoFaseService.findTodos(this.getFindOptions());
-    this.logger.debug(TipoFaseListadoComponent.name, `${this.createObservable.name}()`, 'end');
     return observable$;
   }
 
   protected initColumns(): void {
-    this.logger.debug(TipoFaseListadoComponent.name, `${this.initColumns.name}()`, 'start');
     this.columnas = ['nombre', 'descripcion', 'activo', 'acciones'];
-    this.logger.debug(TipoFaseListadoComponent.name, `${this.initColumns.name}()`, 'end');
   }
 
   protected loadTable(reset?: boolean): void {
-    this.logger.debug(TipoFaseListadoComponent.name, `${this.loadTable.name}(${reset})`, 'start');
     this.tiposFase$ = this.getObservableLoadTable(reset);
-    this.logger.debug(TipoFaseListadoComponent.name, `${this.loadTable.name}(${reset})`, 'end');
   }
 
-  protected createFilters(): SgiRestFilter[] {
-    this.logger.debug(TipoFaseListadoComponent.name, `${this.createFilters.name}()`, 'start');
-    const filtros = [];
-    this.addFiltro(filtros, 'nombre', SgiRestFilterType.LIKE, this.formGroup.controls.nombre.value);
-    if (this.formGroup.controls.activo.value !== 'todos') {
-      this.addFiltro(filtros, 'activo', SgiRestFilterType.EQUALS, this.formGroup.controls.activo.value);
+  protected createFilter(): SgiRestFilter {
+    const controls = this.formGroup.controls;
+    const filter = new RSQLSgiRestFilter('nombre', SgiRestFilterOperator.LIKE_ICASE, controls.nombre.value);
+    if (controls.activo.value !== 'todos') {
+      filter.and('activo', SgiRestFilterOperator.EQUALS, controls.activo.value);
     }
-    this.logger.debug(TipoFaseListadoComponent.name, `${this.createFilters.name}()`, 'end');
-    return filtros;
+
+    return filter;
   }
 
   onClearFilters() {
-    this.logger.debug(TipoFaseListadoComponent.name, `${this.onClearFilters.name}()`, 'start');
     this.formGroup.controls.activo.setValue('true');
     this.formGroup.controls.nombre.setValue('');
     this.onSearch();
-    this.logger.debug(TipoFaseListadoComponent.name, `${this.onClearFilters.name}()`, 'end');
   }
 
   /**
@@ -116,7 +103,6 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
    * @param tipoFase tipo de fase
    */
   openModal(tipoFase?: ITipoFase): void {
-    this.logger.debug(TipoFaseListadoComponent.name, `${this.openModal.name}(tipoFase?: ITipoFase)`, 'start');
     const config = {
       width: GLOBAL_CONSTANTS.widthModalCSP,
       maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
@@ -132,11 +118,10 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
               () => {
                 this.snackBarService.showSuccess(MSG_UPDATE);
                 this.loadTable();
-                this.logger.debug(TipoFaseListadoComponent.name, `${this.openModal.name}(tipoFase?: ITipoFase)`, 'end');
               },
-              () => {
+              (error) => {
+                this.logger.error(error);
                 this.snackBarService.showError(MSG_ERROR_UPDATE);
-                this.logger.error(TipoFaseListadoComponent.name, `${this.openModal.name}(tipoFase?: ITipoFase)`, 'error');
               }
             );
           } else {
@@ -144,11 +129,10 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
               () => {
                 this.snackBarService.showSuccess(MSG_SAVE);
                 this.loadTable();
-                this.logger.debug(TipoFaseListadoComponent.name, `${this.openModal.name}(tipoFase?: ITipoFase)`, 'end');
               },
-              () => {
+              (error) => {
+                this.logger.error(error);
                 this.snackBarService.showError(MSG_ERROR_SAVE);
-                this.logger.error(TipoFaseListadoComponent.name, `${this.openModal.name}(tipoFase?: ITipoFase)`, 'error');
               }
             );
           }
@@ -163,11 +147,10 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
    * @param tipoFase tipo de fase
    */
   deactivateTipoFase(tipoFase: ITipoFase): void {
-    this.logger.debug(TipoFaseListadoComponent.name, `${this.deactivateTipoFase.name}()`, 'start');
     const subcription = this.dialogService.showConfirmation(MSG_DEACTIVATE)
       .pipe(switchMap((accept) => {
         if (accept) {
-          return this.tipoFaseService.deleteById(tipoFase.id);
+          return this.tipoFaseService.desactivar(tipoFase.id);
         } else {
           return of();
         }
@@ -175,13 +158,10 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_DEACTIVATE);
           this.loadTable();
-          this.logger.debug(TipoFaseListadoComponent.name,
-            `${this.deactivateTipoFase.name}(tipoFase: ${tipoFase})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_DEACTIVATE);
-          this.logger.debug(TipoFaseListadoComponent.name,
-            `${this.deactivateTipoFase.name}(tipoFase: ${tipoFase})`, 'end');
         }
       );
     this.suscripciones.push(subcription);
@@ -193,14 +173,11 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
    * @param tipoFase tipo finalidad
    */
   activateTipoFase(tipoFase: ITipoFase): void {
-    this.logger.debug(TipoFaseListadoComponent.name,
-      `${this.activateTipoFase.name}(tipoFase: ${tipoFase})`, 'start');
-
     const subcription = this.dialogService.showConfirmation(MSG_REACTIVE)
       .pipe(switchMap((accept) => {
         if (accept) {
           tipoFase.activo = true;
-          return this.tipoFaseService.update(tipoFase.id, tipoFase);
+          return this.tipoFaseService.reactivar(tipoFase.id);
         } else {
           return of();
         }
@@ -208,14 +185,11 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_REACTIVE);
           this.loadTable();
-          this.logger.debug(TipoFaseListadoComponent.name,
-            `${this.activateTipoFase.name}(tipoFase: ${tipoFase})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           tipoFase.activo = false;
           this.snackBarService.showError(MSG_ERROR_REACTIVE);
-          this.logger.debug(TipoFaseListadoComponent.name,
-            `${this.activateTipoFase.name}(tipoFase: ${tipoFase})`, 'end');
         }
       );
     this.suscripciones.push(subcription);

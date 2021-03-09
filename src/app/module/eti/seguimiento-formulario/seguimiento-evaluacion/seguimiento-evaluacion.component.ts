@@ -1,19 +1,18 @@
-import { Component, ViewChild, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormFragmentComponent } from '@core/component/fragment.component';
+import { IDictamen } from '@core/models/eti/dictamen';
+import { IEvaluacion } from '@core/models/eti/evaluacion';
+import { IMemoria } from '@core/models/eti/memoria';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { NGXLogger } from 'ngx-logger';
-
-
-import { FormFragmentComponent } from '@core/component/fragment.component';
-
-import { IEvaluacion } from '@core/models/eti/evaluacion';
-import { Subscription, Observable } from 'rxjs';
-import { IDictamen } from '@core/models/eti/dictamen';
-import { IMemoria } from '@core/models/eti/memoria';
 import { TipoEvaluacionService } from '@core/services/eti/tipo-evaluacion.service';
-import { SeguimientoEvaluacionFragment } from './seguimiento-evaluacion.fragment';
-import { SeguimientoListadoAnteriorMemoriaComponent } from '../seguimiento-listado-anterior-memoria/seguimiento-listado-anterior-memoria.component';
+import { Observable, Subscription } from 'rxjs';
 import { SeguimientoFormularioActionService } from '../seguimiento-formulario.action.service';
+import { SeguimientoListadoAnteriorMemoriaComponent } from '../seguimiento-listado-anterior-memoria/seguimiento-listado-anterior-memoria.component';
+import { SeguimientoEvaluacionFragment } from './seguimiento-evaluacion.fragment';
+
+
+
 
 @Component({
   selector: 'sgi-seguimiento-evaluacion',
@@ -33,12 +32,10 @@ export class SeguimientoEvaluacionComponent extends FormFragmentComponent<IMemor
   suscriptions: Subscription[] = [];
 
   constructor(
-    protected readonly logger: NGXLogger,
     private actionService: SeguimientoFormularioActionService,
     private tipoEvaluacionService: TipoEvaluacionService
   ) {
     super(actionService.FRAGMENT.EVALUACIONES, actionService);
-    this.logger.debug(SeguimientoEvaluacionComponent.name, 'constructor()', 'start');
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -55,12 +52,9 @@ export class SeguimientoEvaluacionComponent extends FormFragmentComponent<IMemor
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-
-    this.logger.debug(SeguimientoEvaluacionComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit() {
-    this.logger.debug(SeguimientoEvaluacionComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.suscriptions.push(this.formGroup.controls.dictamen.valueChanges.subscribe((dictamen) => {
       this.actionService.setDictamen(dictamen);
@@ -70,15 +64,12 @@ export class SeguimientoEvaluacionComponent extends FormFragmentComponent<IMemor
         this.loadDictamenes(evaluacion);
       }
     }));
-    this.logger.debug(SeguimientoEvaluacionComponent.name, 'ngOnInit()', 'end');
   }
 
   ngAfterViewInit(): void {
-    this.logger.debug(SeguimientoEvaluacionComponent.name, 'ngAfterViewInit()', 'start');
     this.evaluaciones.memoriaId = this.actionService.getEvaluacion()?.memoria?.id;
     this.evaluaciones.evaluacionId = this.actionService.getEvaluacion()?.id;
     this.evaluaciones.ngAfterViewInit();
-    this.logger.debug(SeguimientoEvaluacionComponent.name, 'ngAfterViewInit()', 'end');
   }
 
   /**
@@ -94,10 +85,6 @@ export class SeguimientoEvaluacionComponent extends FormFragmentComponent<IMemor
    * Recupera un listado de los dictamenes que hay en el sistema.
    */
   loadDictamenes(evaluacion: IEvaluacion): void {
-    this.logger.debug(SeguimientoEvaluacionComponent.name,
-      'getDictamenes()',
-      'start');
-
     /**
      * Devuelve el listado de dictámenes dependiendo del tipo de Evaluación y si es de Revisión Mínima
      */
@@ -106,10 +93,6 @@ export class SeguimientoEvaluacionComponent extends FormFragmentComponent<IMemor
         (response) => {
           this.dictamenListado = response.items;
         }));
-
-    this.logger.debug(SeguimientoEvaluacionComponent.name,
-      'getDictamenes()',
-      'end');
   }
 
   ngOnDestroy(): void {

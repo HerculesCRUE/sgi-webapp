@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ConvocatoriaEditarComponent } from './convocatoria-editar.component';
 import { ConvocatoriaDatosGeneralesComponent } from '../convocatoria-formulario/convocatoria-datos-generales/convocatoria-datos-generales.component';
@@ -12,13 +12,13 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ConvocatoriaActionService } from '../convocatoria.action.service';
 import { LoggerTestingModule } from 'ngx-logger/testing';
-import { SgiAuthModule } from '@sgi/framework/auth';
+import { SgiAuthModule, SgiAuthService } from '@sgi/framework/auth';
 
 describe('ConvocatoriaEditarComponent', () => {
   let component: ConvocatoriaEditarComponent;
   let fixture: ComponentFixture<ConvocatoriaEditarComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ConvocatoriaEditarComponent,
         ConvocatoriaDatosGeneralesComponent,
@@ -37,7 +37,8 @@ describe('ConvocatoriaEditarComponent', () => {
         SgiAuthModule,
       ],
       providers: [
-        ConvocatoriaActionService
+        ConvocatoriaActionService,
+        SgiAuthService
       ],
     })
       .compileComponents();

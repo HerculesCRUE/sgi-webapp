@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NGXLogger } from 'ngx-logger';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActionComponent } from '@core/component/action.component';
-import { SnackBarService } from '@core/services/snack-bar.service';
 import { DialogService } from '@core/services/dialog.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import { NGXLogger } from 'ngx-logger';
+import { MEMORIA_ROUTE_NAMES } from '../memoria-route-names';
 import { MemoriaActionService } from '../memoria.action.service';
 
-import { MEMORIA_ROUTE_NAMES } from '../memoria-route-names';
 
 const MSG_BUTTON_SAVE = marker('botones.guardar');
 const MSG_SUCCESS = marker('eti.memoria.crear.correcto');
@@ -27,7 +27,7 @@ export class MemoriaCrearComponent extends ActionComponent {
   private from: string;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     router: Router,
     route: ActivatedRoute,
@@ -41,7 +41,8 @@ export class MemoriaCrearComponent extends ActionComponent {
   saveOrUpdate(): void {
     this.actionService.saveOrUpdate().subscribe(
       () => { },
-      () => {
+      (error) => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR);
       },
       () => {

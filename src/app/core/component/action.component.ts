@@ -3,7 +3,7 @@ import { IActionService } from '@core/services/action-service';
 import { Observable, of, Subscription } from 'rxjs';
 import { DialogService } from '@core/services/dialog.service';
 import { map } from 'rxjs/operators';
-import { OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { OnDestroy, OnInit, ViewChild, Directive } from '@angular/core';
 import { ActionFooterComponent } from '@shared/action-footer/action-footer.component';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -15,6 +15,8 @@ export interface SgiAllowNavigation {
   allowNavigation(): Observable<boolean>;
 }
 
+@Directive()
+// tslint:disable-next-line: directive-class-suffix
 export abstract class ActionComponent implements SgiAllowNavigation, OnInit, OnDestroy {
   @ViewChild(ActionFooterComponent, { static: true }) footer: ActionFooterComponent;
   // tslint:disable-next-line: variable-name

@@ -1,21 +1,21 @@
-import { Component, OnInit, ViewChild, Inject } from '@angular/core';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
-import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { FormGroupUtil } from '@core/utils/form-group-util';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { ITipoDocumento } from '@core/models/eti/tipo-documento';
-import { Observable, Subscription, of } from 'rxjs';
-import { NGXLogger } from 'ngx-logger';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { SnackBarService } from '@core/services/snack-bar.service';
-
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { IDocumentacionMemoria } from '@core/models/eti/documentacion-memoria';
-import { StatusWrapper } from '@core/utils/status-wrapper';
+import { ITipoDocumento } from '@core/models/eti/tipo-documento';
 import { IDocumento } from '@core/models/sgdoc/documento';
+import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
+import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { DocumentoService, FileModel } from '@core/services/sgdoc/documento.service';
-import { map, catchError } from 'rxjs/operators';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import { FormGroupUtil } from '@core/utils/form-group-util';
+import { StatusWrapper } from '@core/utils/status-wrapper';
+import { NGXLogger } from 'ngx-logger';
+import { Observable, of, Subscription } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+
 
 const MSG_ERROR_APORTAR_DOCUMENTACION = marker('eti.memoria.documentacion.error.aportar');
 const MSG_ERROR_FORM_GROUP = marker('form-group.error');
@@ -48,7 +48,6 @@ export class MemoriaDocumentacionSeguimientosModalComponent implements OnInit {
     private readonly documentoService: DocumentoService,
     @Inject(MAT_DIALOG_DATA) public documentacionesMemoria: StatusWrapper<IDocumentacionMemoria>[]) {
 
-    this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'constructor()', 'start');
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(100%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -71,60 +70,42 @@ export class MemoriaDocumentacionSeguimientosModalComponent implements OnInit {
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-    this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-
-
-    this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'ngOnInit()', 'start');
-
     this.initFormGroup();
-
-    this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'ngOnInit()', 'start');
   }
 
   /**
    * Inicializa formulario de añadir documentació.
    */
   private initFormGroup() {
-    this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'initFormGroup()', 'start');
     this.formGroup = new FormGroup({
       nombreDocumento: new FormControl(null),
       fileUpload: new FormControl(null),
     });
-    this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'initFormGroup()', 'end');
   }
-
-
-
 
   /**
    * Cierra la ventana modal y devuelve el documento aportado.
    *
    */
   closeModal(documentacionMemoria?: StatusWrapper<IDocumentacionMemoria>): void {
-    this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'closeModal()', 'start');
     this.matDialogRef.close(documentacionMemoria);
-    this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'closeModal()', 'end');
   }
 
-
   save(): void {
-    this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'save()', 'start');
     if (FormGroupUtil.valid(this.formGroup)) {
-
       let documentacionMemoria: IDocumentacionMemoria = {} as IDocumentacionMemoria;
       const fileModel = {
         file: FormGroupUtil.getValue(this.formGroup, 'fileUpload')
       } as FileModel;
       this.documentoService.uploadFichero(fileModel).pipe(
         map((documentoSgdoc: IDocumento) => {
-
           return documentoSgdoc.documentoRef;
-
         }),
-        catchError(() => {
+        catchError((error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_APORTAR_DOCUMENTACION);
           return of();
         })).subscribe((documentoRefGenerado: string) => {
@@ -137,19 +118,15 @@ export class MemoriaDocumentacionSeguimientosModalComponent implements OnInit {
             memoria: null,
             fichero: FormGroupUtil.getValue(this.formGroup, 'fileUpload')
           };
-
-
           const wrapperDocumentacion: StatusWrapper<IDocumentacionMemoria> =
             new StatusWrapper<IDocumentacionMemoria>(documentacionMemoria);
           wrapperDocumentacion.setCreated();
           this.documentacionesMemoria.push(wrapperDocumentacion);
-          this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'save()', 'end');
           this.closeModal(wrapperDocumentacion);
         });
     } else {
       this.snackBarService.showError(MSG_ERROR_FORM_GROUP);
     }
-    this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'save()', 'end');
   }
 
 
@@ -158,13 +135,10 @@ export class MemoriaDocumentacionSeguimientosModalComponent implements OnInit {
    * Rellena el campo del formulario con el fichero seleccionado.
    */
   onDocumentoSelect(event) {
-    this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'onDocumentoSelect()', 'start');
     if (event.target.files.length > 0) {
       const file = event.target.files[0];
       this.formGroup.get('fileUpload').setValue(file);
     }
-
-    this.logger.debug(MemoriaDocumentacionSeguimientosModalComponent.name, 'onDocumentoSelect()', 'end');
   }
 
 }

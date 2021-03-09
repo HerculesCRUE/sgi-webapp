@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ActionFooterComponent } from './action-footer.component';
 import TestUtils from '@core/utils/test-utils';
@@ -17,7 +17,7 @@ describe('ActionFooterComponent', () => {
     status$: behaviorSubject
   } as IActionService;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ActionFooterComponent],
       imports: [

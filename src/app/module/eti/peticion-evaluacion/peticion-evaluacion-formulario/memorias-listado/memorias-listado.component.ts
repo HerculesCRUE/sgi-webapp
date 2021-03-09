@@ -1,24 +1,25 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { FragmentComponent } from '@core/component/fragment.component';
+import { IMemoria } from '@core/models/eti/memoria';
+import { IMemoriaPeticionEvaluacion } from '@core/models/eti/memoriaPeticionEvaluacion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { NGXLogger } from 'ngx-logger';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
-import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
-import { SnackBarService } from '@core/services/snack-bar.service';
-import { IMemoria } from '@core/models/eti/memoria';
-import { Subscription, Observable, of, BehaviorSubject } from 'rxjs';
-import { MemoriaService } from '@core/services/eti/memoria.service';
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { DialogService } from '@core/services/dialog.service';
-import { MemoriasListadoFragment } from './memorias-listado.fragment';
-import { MatTableDataSource } from '@angular/material/table';
+import { MemoriaService } from '@core/services/eti/memoria.service';
+import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
+import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { FragmentComponent } from '@core/component/fragment.component';
-import { PeticionEvaluacionActionService } from '../../peticion-evaluacion.action.service';
-import { IMemoriaPeticionEvaluacion } from '@core/models/eti/memoriaPeticionEvaluacion';
+import { NGXLogger } from 'ngx-logger';
+import { of, Subscription } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { MEMORIAS_ROUTE } from '../../../memoria/memoria-route-names';
-import { map } from 'rxjs/operators';
-import { switchMap } from 'rxjs/operators';
+import { PeticionEvaluacionActionService } from '../../peticion-evaluacion.action.service';
+import { MemoriasListadoFragment } from './memorias-listado.fragment';
 
 const MSG_CONFIRM_DELETE = marker('eti.peticionEvaluacion.formulario.memorias.listado.eliminar');
 const MSG_ESTADO_ANTERIOR_OK = marker('eti.memoria.listado.volverEstadoAnterior.ok');
@@ -43,7 +44,8 @@ export class MemoriasListadoComponent extends FragmentComponent implements OnIni
   fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
 
-  displayedColumns: string[] = ['numReferencia', 'comite.id', 'estadoActual.id', 'fechaEvaluacion', 'fechaLimite', 'acciones'];
+  elementosPagina: number[] = [5, 10, 25, 100];
+  displayedColumns: string[] = ['numReferencia', 'comite', 'estadoActual', 'fechaEvaluacion', 'fechaLimite', 'acciones'];
   disableEnviarSecretaria = true;
 
   datasource: MatTableDataSource<StatusWrapper<IMemoria>> = new MatTableDataSource<StatusWrapper<IMemoria>>();
@@ -51,9 +53,12 @@ export class MemoriasListadoComponent extends FragmentComponent implements OnIni
   private subscriptions: Subscription[] = [];
   private listadoFragment: MemoriasListadoFragment;
 
+  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
+  @ViewChild(MatSort, { static: true }) sort: MatSort;
+
   constructor(
+    private readonly logger: NGXLogger,
     protected readonly dialogService: DialogService,
-    protected readonly logger: NGXLogger,
     protected readonly memoriaService: MemoriaService,
     protected readonly personaFisicaService: PersonaFisicaService,
     protected readonly peticionEvaluacionService: PeticionEvaluacionService,
@@ -66,6 +71,8 @@ export class MemoriasListadoComponent extends FragmentComponent implements OnIni
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.datasource.paginator = this.paginator;
+    this.datasource.sort = this.sort;
     this.subscriptions.push(this.listadoFragment.memorias$.subscribe((memorias) => {
       this.datasource.data = memorias;
     }));
@@ -74,6 +81,18 @@ export class MemoriasListadoComponent extends FragmentComponent implements OnIni
       this.disableEnviarSecretaria = status.changes;
     }
     ));
+
+    this.datasource.sortingDataAccessor =
+      (wrapper: StatusWrapper<IMemoria>, property: string) => {
+        switch (property) {
+          case 'comite':
+            return wrapper.value.comite?.comite;
+          case 'estadoActual':
+            return wrapper.value.estadoActual?.nombre;
+          default:
+            return wrapper.value[property];
+        }
+      };
   }
 
   /**
@@ -82,8 +101,6 @@ export class MemoriasListadoComponent extends FragmentComponent implements OnIni
    * @param wrappedMemoria la memoria a eliminar.
    */
   delete(wrappedMemoria: StatusWrapper<IMemoriaPeticionEvaluacion>): void {
-    this.logger.debug(MemoriasListadoComponent.name, 'delete(memoria: StatusWrapper<IMemoria>) - start');
-
     this.subscriptions.push(this.dialogService.showConfirmation(
       MSG_CONFIRM_DELETE
     ).subscribe((aceptado) => {
@@ -91,8 +108,6 @@ export class MemoriasListadoComponent extends FragmentComponent implements OnIni
         this.listadoFragment.deleteMemoria(wrappedMemoria);
       }
     }));
-
-    this.logger.debug(MemoriasListadoComponent.name, 'delete(memoria: StatusWrapper<IMemoria>) - end');
   }
 
   /**
@@ -126,8 +141,6 @@ export class MemoriasListadoComponent extends FragmentComponent implements OnIni
         if (aceptado) {
           this.recuperarEstadoAnteriorMemoria(memoria);
         }
-        this.logger.debug(MemoriasListadoComponent.name,
-          `${this.recuperarEstadoAnterior.name}(${memoria})`, 'end');
       })
     );
   }
@@ -148,8 +161,6 @@ export class MemoriasListadoComponent extends FragmentComponent implements OnIni
   }
 
   enviarSecretaria(memoria: IMemoriaPeticionEvaluacion) {
-    this.logger.debug(MemoriasListadoComponent.name, 'enviarSecretaria(memoria: IMemoriaPeticionEvaluacion) - start');
-
     this.dialogService.showConfirmation(MSG_CONFIRM_ENVIAR_SECRETARIA)
       .pipe(switchMap((aceptado) => {
         if (aceptado) {
@@ -161,16 +172,14 @@ export class MemoriasListadoComponent extends FragmentComponent implements OnIni
           this.listadoFragment.loadMemorias(this.listadoFragment.getKey() as number);
           this.snackBarService.showSuccess(MSG_SUCCESS_ENVIAR_SECRETARIA);
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_ENVIAR_SECRETARIA);
         }
       );
-
-    this.logger.debug(MemoriasListadoComponent.name, 'enviarSecretaria(memoria: IMemoriaPeticionEvaluacion) - end');
   }
 
   hasPermisoEnviarSecretariaRetrospectiva(memoria: IMemoria): boolean {
-
     // Si el estado es 'Completada', es de tipo CEEA y requiere retrospectiva se muestra el botón de enviar.
     // Si la retrospectiva ya está 'En secretaría' no se muestra el botón.
     if (memoria.estadoActual.id === 2 && memoria.comite.comite === 'CEEA' && memoria.requiereRetrospectiva
@@ -179,12 +188,9 @@ export class MemoriasListadoComponent extends FragmentComponent implements OnIni
     } else {
       return false;
     }
-
   }
 
   enviarSecretariaRetrospectiva(memoria: IMemoriaPeticionEvaluacion) {
-    this.logger.debug(MemoriasListadoComponent.name, 'enviarSecretariaRetrospectiva(memoria: IMemoriaPeticionEvaluacion) - start');
-
     this.dialogService.showConfirmation(MSG_CONFIRM_ENVIAR_SECRETARIA_RETROSPECTIVA)
       .pipe(switchMap((aceptado) => {
         if (aceptado) {
@@ -196,18 +202,21 @@ export class MemoriasListadoComponent extends FragmentComponent implements OnIni
           this.listadoFragment.loadMemorias(this.listadoFragment.getKey() as number);
           this.snackBarService.showSuccess(MSG_SUCCESS_ENVIAR_SECRETARIA_RETROSPECTIVA);
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_ENVIAR_SECRETARIA_RETROSPECTIVA);
         }
       );
+  }
 
-    this.logger.debug(MemoriasListadoComponent.name, 'enviarSecretariaRetrospectiva(memoria: IMemoriaPeticionEvaluacion) - end');
+
+  hasPermisoEliminar(estadoMemoriaId: number): boolean {
+    // Si el estado es 'En elaboración' o 'Completada'.
+    return (estadoMemoriaId === 1 || estadoMemoriaId === 2);
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(MemoriasListadoComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions?.forEach(x => x.unsubscribe());
-    this.logger.debug(MemoriasListadoComponent.name, 'ngOnDestroy()', 'end');
   }
 
 }

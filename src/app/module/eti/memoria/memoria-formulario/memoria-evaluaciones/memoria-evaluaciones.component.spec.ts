@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { MaterialDesignModule } from '@material/material-design.module';
@@ -43,7 +43,7 @@ describe('MemoriaEvaluacionesComponent', () => {
     } as IMemoria
   };
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
         MemoriaEvaluacionesComponent

@@ -1,27 +1,28 @@
-import { Component, Inject, OnDestroy, OnInit, AfterViewInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
 import { FormacionEspecifica } from '@core/models/eti/formacion-especifica';
 import { IMemoria } from '@core/models/eti/memoria';
 import { ITarea } from '@core/models/eti/tarea';
+import { TipoTarea } from '@core/models/eti/tipo-tarea';
 import { IPersona } from '@core/models/sgp/persona';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { EquipoTrabajoService } from '@core/services/eti/equipo-trabajo.service';
 import { FormacionEspecificaService } from '@core/services/eti/formacion-especifica.service';
 import { MemoriaService } from '@core/services/eti/memoria.service';
 import { TareaService } from '@core/services/eti/tarea.service';
+import { TipoTareaService } from '@core/services/eti/tipo-tarea.service';
 import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { FormGroupUtil } from '@core/utils/form-group-util';
 import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
-import { TipoTarea } from '@core/models/eti/tipo-tarea';
-import { TipoTareaService } from '@core/services/eti/tipo-tarea.service';
 
 const MSG_ERROR_FORM = marker('form-group.error');
+const MSG_ERROR = marker('eti.peticionEvaluacion.tareas.personas.no-encontrado');
 
 @Component({
   selector: 'sgi-peticion-evaluacion-tareas-modal',
@@ -82,14 +83,11 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
     protected readonly personaFisicaService: PersonaFisicaService,
     protected readonly tipoTareaService: TipoTareaService
   ) {
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'constructor()', 'start');
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.layout = 'column';
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'ngOnInit()', 'start');
     this.mostrarOrganismoYanioSubscription = this.mostrarOrganismoYanio$.subscribe(mostrar => {
       this.mostrarOrganismoYanio = mostrar;
     });
@@ -101,16 +99,12 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
     this.loadMemorias();
     this.loadEquiposTrabajo();
     this.loadTipoTareas();
-
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'ngOnInit()', 'end');
-
   }
 
   /**
    * Inicializa el formGroup
    */
   private initFormGroup() {
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'initFormGroup()', 'start');
     this.formGroup = new FormGroup({
       tarea: new FormControl(this.data.tarea?.tarea),
       tipoTarea: new FormControl(this.data.tarea?.tipoTarea),
@@ -122,7 +116,6 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
       equipoTrabajo: new FormControl(this.data.tarea?.equipoTrabajo == null ? '' : this.data.tarea?.equipoTrabajo, [Validators.required])
     });
     this.onClickMemoria(this.data.tarea?.memoria);
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'initFormGroup()', 'end');
   }
 
   /**
@@ -131,22 +124,18 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
    * @param tarea asistencia modificada
    */
   closeModal(tarea?: ITarea): void {
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'closeModal()', 'start');
     this.matDialogRef.close(tarea);
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'closeModal()', 'end');
   }
 
   /**
    * Comprueba el formulario y envia la tarea resultante
    */
   addTarea() {
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'editTarea()', 'start');
     if (FormGroupUtil.valid(this.formGroup)) {
       this.closeModal(this.getDatosForm());
     } else {
       this.snackBarService.showError(MSG_ERROR_FORM);
     }
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'editTarea()', 'end');
   }
 
   /**
@@ -155,19 +144,13 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
    * returns nombre de la formación específica
    */
   getFormacion(formacion: FormacionEspecifica): string {
-
     return formacion?.nombre;
-
   }
 
   /**
    * Recupera un listado de las formaciones escíficas que hay en el sistema.
    */
   loadFormaciones(): void {
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name,
-      'getFormaciones()',
-      'start');
-
     this.formacionesSubscription = this.formacionService.findAll().subscribe(
       (response) => {
         this.formacionListado = response.items;
@@ -178,10 +161,6 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
             map(value => this.filterFormacion(value))
           );
       });
-
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name,
-      'getFormaciones()',
-      'end');
   }
 
   /**
@@ -207,19 +186,13 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
    * returns título de la memoria
    */
   getMemoria(memoria: IMemoria): string {
-
-    return memoria?.titulo;
-
+    return memoria?.numReferencia;
   }
 
   /**
    * Recupera un listado de las memorias que hay en el sistema.
    */
   loadMemorias(): void {
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name,
-      'getMemorias()',
-      'start');
-
     this.memoriaListado = this.data.memorias;
 
     this.filteredMemorias = this.formGroup.controls.memoria.valueChanges
@@ -227,10 +200,6 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
         startWith(''),
         map(value => this.filterMemoria(value))
       );
-
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name,
-      'getMemorias()',
-      'end');
   }
 
   /**
@@ -269,7 +238,6 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
     this.formGroup.controls.organismo.updateValueAndValidity();
     this.formGroup.controls.tarea.updateValueAndValidity();
     this.formGroup.controls.tipoTarea.updateValueAndValidity();
-
   }
 
   /**
@@ -295,23 +263,16 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
    * returns persona del equipo de trabajo
    */
   getEquipoTrabajo(equipoTrabajo: IEquipoTrabajo): string {
-
     if (typeof equipoTrabajo === 'string') {
       return null;
     }
-
     return equipoTrabajo?.nombre + ' ' + equipoTrabajo?.primerApellido + ' ' + equipoTrabajo?.segundoApellido;
-
   }
 
   /**
    * Recupera un listado de los equipo de trabajo que hay en el sistema.
    */
   loadEquiposTrabajo(): void {
-
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name,
-      'getEquiposTrabajo()',
-      'start');
     this.equipoTrabajoListado = this.data.equiposTrabajo;
 
     this.filteredEquiposTrabajo = this.formGroup.controls.equipoTrabajo.valueChanges
@@ -319,10 +280,6 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
         startWith(''),
         map(value => this.filterEquipoTrabajo(value))
       );
-
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name,
-      'getEquiposTrabajo()',
-      'end');
   }
 
   onClickEquipoTrabajo(): void {
@@ -331,9 +288,6 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
         startWith(''),
         map(value => this.filterEquipoTrabajo(value))
       );
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name,
-      'getEquiposTrabajo()',
-      'end');
   }
 
   /**
@@ -342,19 +296,13 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
    * returns nombre del tipo de tarea
    */
   getTipoTarea(tipoTarea: TipoTarea): string {
-
     return tipoTarea?.nombre;
-
   }
 
   /**
    * Recupera un listado de los tipos de tareas que hay en el sistema.
    */
   loadTipoTareas(): void {
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name,
-      'getTipoTareas()',
-      'start');
-
     this.tipoTareasSubscription = this.tipoTareaService.findAll().subscribe(
       (response) => {
         this.tipoTareaListado = response.items;
@@ -365,10 +313,6 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
             map(value => this.filterTipoTarea(value))
           );
       });
-
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name,
-      'getTipoTareas()',
-      'end');
   }
 
   /**
@@ -407,13 +351,9 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
             equipoTrabajo.identificadorLetra = persona.identificadorLetra;
             this.equipoTrabajoListado.push(equipoTrabajo);
           },
-          () => {
-            this.snackBarService.showError('eti.peticionEvaluacion.tareas.personas.no-encontrado');
-            this.logger.debug(
-              PeticionEvaluacionTareasModalComponent.name,
-              'loadDatosUsuario()',
-              'end'
-            );
+          (error) => {
+            this.logger.error(error);
+            this.snackBarService.showError(MSG_ERROR);
           }
         );
     });
@@ -441,7 +381,6 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
    * Método para actualizar la entidad con los datos de un formGroup
    */
   private getDatosForm(): ITarea {
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'getDatosForm()', 'start');
     const tarea = this.data.tarea;
     if (this.mostrarOrganismoYanio) {
       tarea.organismo = FormGroupUtil.getValue(this.formGroup, 'organismo');
@@ -465,14 +404,11 @@ export class PeticionEvaluacionTareasModalComponent implements OnInit, OnDestroy
 
     tarea.memoria = FormGroupUtil.getValue(this.formGroup, 'memoria');
     tarea.equipoTrabajo = FormGroupUtil.getValue(this.formGroup, 'equipoTrabajo');
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'getDatosForm()', 'end');
     return tarea;
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'ngOnDestroy()', 'start');
     this.tareaSuscripcion?.unsubscribe();
     this.mostrarOrganismo$?.unsubscribe();
-    this.logger.debug(PeticionEvaluacionTareasModalComponent.name, 'ngOnDestroy()', 'end');
   }
 }

@@ -1,11 +1,9 @@
 <div class="modal-convocatoria-area-tematica">
-  <header class="modal-header-material">
-    <h3 mat-dialog-title *ngIf="!data.convocatoriaAreaTematica.value.areaTematica">
-      {{'csp.convocatoria.area.tematica.modal.titulo.añadir' | translate}}</h3>
-    <h3 mat-dialog-title *ngIf="data.convocatoriaAreaTematica.value.areaTematica">
-      {{'csp.convocatoria.area.tematica.modal.titulo.editar' | translate}}</h3>
+  <header mat-dialog-title class="modal-header-material">
+    <h3>
+      {{'csp.convocatoria.area.tematica.modal.titulo' | translate}}</h3>
   </header>
-  <main>
+  <mat-dialog-content>
     <form class="form-inline" [formGroup]="formGroup">
       <div>
         <div>
@@ -74,9 +72,11 @@
         </mat-form-field>
       </div>
     </form>
-  </main>
+  </mat-dialog-content>
 </div>
 <div id="modals-buttons" class="float-right" mat-dialog-actions>
-  <button color="accent" md-button mat-raised-button (click)="saveOrUpdate()" cdkFocusInitial>Guardar</button>
-  <button class="link-cancelar" mat-button (click)="closeModal()" type="button">Cancelar</button>
+  <button color="accent" md-button mat-raised-button (click)="saveOrUpdate()">{{textSaveOrUpdate |
+    translate}}</button>
+  <button class="link-cancelar" mat-button (click)="closeModal()">{{'botones.cancelar' |
+    translate}}</button>
 </div>

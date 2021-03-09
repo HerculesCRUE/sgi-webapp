@@ -1,8 +1,13 @@
-import { ValidatorFn, FormGroup, ValidationErrors } from '@angular/forms';
+import { AbstractControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 export interface IRange {
-  inicio: number;
-  fin: number;
+  inicio: number | Date;
+  fin: number | Date;
+}
+
+export interface IRangeDates {
+  inicio: Date;
+  fin: Date;
 }
 
 export class RangeValidator {
@@ -45,6 +50,26 @@ export class RangeValidator {
           finRangoControl.updateValueAndValidity({ onlySelf: true });
         }
       }
+    };
+  }
+
+  /**
+   * Comprueba que un número esta contenido en una lista
+   *
+   * @param values Lista de números para realizar la comprobación
+   */
+  static contains(values: number[]): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value || isNaN(control.value)
+        || !values || values.length === 0) {
+        return null;
+      }
+      for (const value of values) {
+        if (control.value >= value && control.value <= value) {
+          return { contains: true } as ValidationErrors;
+        }
+      }
+      return null;
     };
   }
 }

@@ -1,20 +1,26 @@
-import { Fragment } from '@core/services/action-service';
-import { BehaviorSubject, from, merge, Observable, of, zip } from 'rxjs';
-import { NGXLogger } from 'ngx-logger';
 import { FormGroup } from '@angular/forms';
+import { IApartado } from '@core/models/eti/apartado';
 import { IBloque } from '@core/models/eti/bloque';
-import { FormlyFieldConfig, FormlyFormOptions } from '@ngx-formly/core';
+import { IComentario } from '@core/models/eti/comentario';
+import { IComite } from '@core/models/eti/comite';
+import { IEvaluacion } from '@core/models/eti/evaluacion';
+import { IMemoria, isFormularioEditable } from '@core/models/eti/memoria';
+import { IPeticionEvaluacion } from '@core/models/eti/peticion-evaluacion';
+import { IRespuesta } from '@core/models/eti/respuesta';
+import { TIPO_EVALUACION } from '@core/models/eti/tipo-evaluacion';
+import { Fragment, Group } from '@core/services/action-service';
+import { ApartadoService } from '@core/services/eti/apartado.service';
+import { BloqueService } from '@core/services/eti/bloque.service';
+import { EvaluacionService } from '@core/services/eti/evaluacion.service';
+import { FormularioService } from '@core/services/eti/formulario.service';
+import { MemoriaService } from '@core/services/eti/memoria.service';
+import { RespuestaService } from '@core/services/eti/respuesta.service';
+import { SgiFormlyFieldConfig } from '@formly-forms/formly-field-config';
+import { FormlyFormOptions } from '@ngx-formly/core';
+import { NGXLogger } from 'ngx-logger';
+import { BehaviorSubject, from, merge, Observable, of, zip } from 'rxjs';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { endWith, map, mergeMap, switchMap, takeLast } from 'rxjs/operators';
-import { IApartado } from '@core/models/eti/apartado';
-import { FormularioService } from '@core/services/eti/formulario.service';
-import { IComite } from '@core/models/eti/comite';
-import { IMemoria } from '@core/models/eti/memoria';
-import { IPeticionEvaluacion } from '@core/models/eti/peticion-evaluacion';
-import { BloqueService } from '@core/services/eti/bloque.service';
-import { RespuestaService } from '@core/services/eti/respuesta.service';
-import { ApartadoService } from '@core/services/eti/apartado.service';
-import { IRespuesta } from '@core/models/eti/respuesta';
 
 export interface IBlock {
   bloque: IBloque;
@@ -25,44 +31,50 @@ export interface IBlock {
 }
 
 interface IQuestion {
-  apartado: IApartadoWithRespuesta;
+  apartado: IApartadoWithRespuestaAndComentario;
   childs: IQuestion[];
 }
 
 interface IFormlyData {
   formGroup: FormGroup;
-  fields: FormlyFieldConfig[];
+  fields: SgiFormlyFieldConfig[];
   options: FormlyFormOptions;
   model: any;
 }
 
-interface IApartadoWithRespuesta extends IApartado {
+interface IApartadoWithRespuestaAndComentario extends IApartado {
   respuesta: IRespuesta;
+  comentario: IComentario;
 }
 
 export class MemoriaFormularioFragment extends Fragment {
-
-  private subscriptions: Subscription[] = [];
 
   public blocks$: BehaviorSubject<IBlock[]> = new BehaviorSubject<IBlock[]>([]);
   public selectedIndex$: BehaviorSubject<number> = new BehaviorSubject<number>(undefined);
   private memoria: IMemoria;
   private comite: IComite;
+  private comentarios: Map<number, IComentario>;
+
+  private readonly = false;
+
+  isReadonly(): boolean {
+    return this.readonly;
+  }
 
   constructor(
-    private logger: NGXLogger,
+    private readonly logger: NGXLogger,
     key: number,
     comite: IComite,
     private formularioService: FormularioService,
     private bloqueService: BloqueService,
     private apartadoService: ApartadoService,
-    private respuestaService: RespuestaService
+    private respuestaService: RespuestaService,
+    private memoriaService: MemoriaService,
+    private evaluacionService: EvaluacionService
   ) {
     super(key);
     this.memoria = {} as IMemoria;
     this.comite = comite;
-    //TODO: Remove when change detection works
-    this.setChanges(true);
     this.subscriptions.push(this.selectedIndex$.subscribe(
       (index) => {
         if (index !== undefined) {
@@ -79,6 +91,18 @@ export class MemoriaFormularioFragment extends Fragment {
     }
   }
 
+  public performChecks(markAllTouched?: boolean) {
+    this.blocks$.value.forEach((block) => {
+      if (block.loaded) {
+        block.formlyData.fields.forEach((field) => {
+          if (field.group) {
+            field.group.forceUpdate(markAllTouched);
+          }
+        });
+      }
+    });
+  }
+
   public setPeticionEvaluacion(peticionEvaluacion: IPeticionEvaluacion) {
     if (!this.memoria.peticionEvaluacion) {
       this.memoria.peticionEvaluacion = peticionEvaluacion;
@@ -87,7 +111,24 @@ export class MemoriaFormularioFragment extends Fragment {
 
   protected onInitialize(): void {
     if (this.getKey() && this.comite) {
-      this.loadFormulario(this.comite);
+      this.subscriptions.push(
+        this.memoriaService.findById(this.getKey() as number).pipe(
+          map((memoria) => {
+            this.memoria = memoria;
+            if (!isFormularioEditable(this.memoria)) {
+              this.readonly = true;
+            }
+            return memoria;
+          }),
+          switchMap((memoria) => {
+            return this.loadComentarios(memoria.id);
+          })
+        ).subscribe(
+          (comentarios) => {
+            this.comentarios = comentarios;
+            this.loadFormulario(this.comite);
+          }
+        ));
     }
   }
 
@@ -98,7 +139,7 @@ export class MemoriaFormularioFragment extends Fragment {
       }),
       map((response) => {
         return this.toBlocks(response.items);
-      })
+      }),
     ).subscribe(
       (res) => {
         this.blocks$.next(res);
@@ -108,6 +149,32 @@ export class MemoriaFormularioFragment extends Fragment {
         this.logger.error(error);
       }
     )
+    );
+  }
+
+  private loadComentarios(idMemoria: number): Observable<Map<number, IComentario>> {
+    return this.memoriaService.getEvaluacionesMemoria(idMemoria).pipe(
+      map((response) => {
+        return response.items.
+          filter(e => (e.tipoEvaluacion.id as TIPO_EVALUACION) === TIPO_EVALUACION.MEMORIA).
+          reduce((prev, current) => {
+            if (prev.version <= current.version) {
+              return current;
+            }
+            return prev;
+          }, { version: -1 } as IEvaluacion);
+      }),
+      switchMap((value) => {
+        if (!value.id) {
+          return of([] as IComentario[]);
+        }
+        return this.evaluacionService.getComentariosGestor(value.id).pipe(map(response => response.items));
+      }),
+      map((comentarios) => {
+        const apartadoComentario = new Map<number, IComentario>();
+        comentarios.forEach((comentario) => apartadoComentario.set(comentario.apartado.id, comentario));
+        return apartadoComentario;
+      })
     );
   }
 
@@ -217,11 +284,14 @@ export class MemoriaFormularioFragment extends Fragment {
     if (block && !block.loaded) {
       this.bloqueService.getApartados(block.bloque.id).pipe(
         map((apartados) => {
-          const withResponse: IApartadoWithRespuesta[] = apartados.items.map((ap) => ap as IApartadoWithRespuesta);
-          return withResponse;
+          return apartados.items.map((ap) => ap as IApartadoWithRespuestaAndComentario);
+        }),
+        map((apartadosRespuestas) => {
+          apartadosRespuestas.forEach((apartado) => apartado.comentario = this.comentarios.get(apartado.id));
+          return apartadosRespuestas;
         }),
         switchMap((apartadosRespuesta) => {
-          const respuestasApartados: Observable<IApartadoWithRespuesta>[] = [];
+          const respuestasApartados: Observable<IApartadoWithRespuestaAndComentario>[] = [];
           apartadosRespuesta.forEach(apartado => {
             respuestasApartados.push(this.respuestaService.findByMemoriaIdAndApartadoId(this.getKey() as number, apartado.id).pipe(
               map((respuesta) => {
@@ -240,12 +310,34 @@ export class MemoriaFormularioFragment extends Fragment {
           block.loaded = true;
           block.selected = true;
           this.fillFormlyData(true, value.formlyData.model, value.formlyData.options.formState, value.formlyData.fields, value.questions);
+          value.formlyData.fields.forEach((f) => {
+            if (f.group) {
+              this.subscriptions.push(f.group.status$.subscribe((status) => {
+                this.evalStatusChange();
+              }));
+            }
+          });
         }
       );
     }
     else if (block) {
       block.selected = true;
     }
+  }
+
+  private evalStatusChange(): void {
+    let changes = false;
+    let errors = false;
+    this.blocks$.value.forEach((block) => {
+      block.formlyData.fields.forEach((f) => {
+        if (f.group) {
+          changes = changes || f.group.hasChanges();
+          errors = errors || f.group.hasErrors();
+        }
+      });
+    });
+    this.setChanges(changes);
+    this.setErrors(errors);
   }
 
   /**
@@ -255,7 +347,7 @@ export class MemoriaFormularioFragment extends Fragment {
    *
    * @param apartados The list of parent apartado  of the block
    */
-  private fillBlock(block: IBlock, apartados: IApartadoWithRespuesta[]): Observable<IBlock> {
+  private fillBlock(block: IBlock, apartados: IApartadoWithRespuestaAndComentario[]): Observable<IBlock> {
     const firstLevel = apartados
       .sort((a, b) => a.orden - b.orden)
       .map((apartadoRespuesta) => {
@@ -286,11 +378,14 @@ export class MemoriaFormularioFragment extends Fragment {
   private getQuestionChilds(question: IQuestion): Observable<IQuestion[]> {
     return this.apartadoService.getHijos(question.apartado.id).pipe(
       map((apartados) => {
-        const withResponse: IApartadoWithRespuesta[] = apartados.items.map((ap) => ap as IApartadoWithRespuesta);
-        return withResponse;
+        return apartados.items.map((ap) => ap as IApartadoWithRespuestaAndComentario);
+      }),
+      map((apartadosRespuestas) => {
+        apartadosRespuestas.forEach((apartado) => apartado.comentario = this.comentarios.get(apartado.id));
+        return apartadosRespuestas;
       }),
       switchMap((apartadosRespuesta) => {
-        const respuestasApartados: Observable<IApartadoWithRespuesta>[] = [];
+        const respuestasApartados: Observable<IApartadoWithRespuestaAndComentario>[] = [];
         apartadosRespuesta.forEach(apartado => {
           respuestasApartados.push(this.respuestaService.findByMemoriaIdAndApartadoId(this.getKey() as number, apartado.id).pipe(
             map((respuesta) => {
@@ -336,16 +431,38 @@ export class MemoriaFormularioFragment extends Fragment {
    * @param formlyFieldConfig The Formly field config onto load questions
    * @param questions  The questions to load
    */
-  private fillFormlyData(firstLevel: boolean, model: any, formState: any, formlyFieldConfig: FormlyFieldConfig[], questions: IQuestion[]): void {
+  private fillFormlyData(firstLevel: boolean, model: any, formState: any, formlyFieldConfig: SgiFormlyFieldConfig[],
+    questions: IQuestion[]): void {
     questions.forEach(question => {
-      const key = question.apartado.esquema ? question.apartado.esquema[0].key as string : undefined;
-      const fieldConfig = question.apartado.esquema ? question.apartado.esquema[0]?.fieldGroup : undefined;
+      const firstFieldConfig = question.apartado.esquema ? question.apartado.esquema[0] : {};
+      const key = firstFieldConfig.key as string;
+      const fieldConfig = firstFieldConfig.fieldGroup;
       if (firstLevel && key) {
         model[key] = question.apartado.respuesta.valor;
         this.evalExpressionModelValue(question.apartado.esquema, model[key], formState);
       }
       else {
         model = Object.assign(model, question.apartado.respuesta.valor);
+      }
+      if (!firstFieldConfig.templateOptions) {
+        firstFieldConfig.templateOptions = {};
+      }
+      firstFieldConfig.templateOptions.comentario = question.apartado.comentario;
+      firstFieldConfig.group = new Group();
+      if (this.readonly || (!this.readonly && this.comentarios.size && !question.apartado.comentario)) {
+        firstFieldConfig.templateOptions.locked = true;
+        if (firstFieldConfig.fieldGroup) {
+          firstFieldConfig.fieldGroup.forEach((esquema) => {
+            if (esquema.templateOptions) {
+              esquema.templateOptions.disabled = true;
+            }
+            else {
+              esquema.templateOptions = {
+                disabled: true
+              };
+            }
+          });
+        }
       }
       formlyFieldConfig.push(...question.apartado.esquema);
       if (question.childs.length) {
@@ -354,7 +471,7 @@ export class MemoriaFormularioFragment extends Fragment {
     });
   }
 
-  private evalExpressionModelValue(fieldConfig: FormlyFieldConfig[], model: any, formState: any) {
+  private evalExpressionModelValue(fieldConfig: SgiFormlyFieldConfig[], model: any, formState: any) {
     fieldConfig.forEach(fg => {
       if (fg.key && fg.templateOptions?.expressionModelValue) {
         const f = this.evalStringExpression(fg.templateOptions.expressionModelValue, ['model', 'formState', 'field']);
@@ -370,7 +487,7 @@ export class MemoriaFormularioFragment extends Fragment {
     try {
       return Function(...argNames, `return ${expression};`) as any;
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
     }
   }
 

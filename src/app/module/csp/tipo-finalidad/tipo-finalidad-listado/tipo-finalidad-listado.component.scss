@@ -1,17 +1,11 @@
 .tipo-finalidad-listado {
   .formulario {
-    box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14),
-      0px 3px 14px 2px rgba(0, 0, 0, 0.12);
     padding: 10px 20px 10px 20px;
     .col {
       padding-right: 15px;
     }
     .buttons-final {
       padding: 10px 0px 10px 0px;
-      @media only screen and (min-width: 1300px) {
-        right: 0;
-        position: absolute;
-      }
       .filter-button {
         button {
           margin-right: 15px;

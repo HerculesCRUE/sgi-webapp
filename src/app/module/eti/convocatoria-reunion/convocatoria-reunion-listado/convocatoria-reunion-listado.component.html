@@ -1,59 +1,63 @@
 <!-- Convocatoria reunion listado -->
 <section class="convocatoria-reunion-listado">
   <!-- Buscador de convocatorias reunión -->
-  <form class="formulario" [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs"
+  <form class="formulario  mat-elevation-z8" [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs"
     [fxLayout]="fxLayoutProperties.layout" fxLayoutGap="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
 
-    <!-- Comité -->
-    <div class="col">
-      <mat-form-field class="input-form">
-        <mat-label>{{'eti.convocatoriaReunion.buscador.comite.titulo' | translate}}</mat-label>
-        <input type="text" [placeholder]="'eti.convocatoriaReunion.buscador.comite.titulo' | translate"
-          arial-label="Number" matInput formControlName="comite" [matAutocomplete]="autocompleteComite">
-        <mat-autocomplete #autocompleteComite="matAutocomplete" [displayWith]="getComite">
-          <mat-option *ngFor="let comite of filteredComites | async" [value]="comite">
-            {{comite.comite}}
-          </mat-option>
-        </mat-autocomplete>
-      </mat-form-field>
-    </div>
+    <div fxFlex="85%" fxFlex.sm="50%" fxFlex.md="73%" [fxLayout.xs]="fxLayoutProperties.xs"
+      [fxLayout]="fxLayoutProperties.layout" fxLayoutGap="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+      <!-- Comité -->
+      <div class="col">
+        <mat-form-field class="input-form">
+          <mat-label>{{'eti.convocatoriaReunion.buscador.comite.titulo' | translate}}</mat-label>
+          <input type="text" [placeholder]="'eti.convocatoriaReunion.buscador.comite.titulo' | translate"
+            arial-label="Number" matInput formControlName="comite" [matAutocomplete]="autocompleteComite">
+          <mat-autocomplete #autocompleteComite="matAutocomplete" [displayWith]="getComite">
+            <mat-option *ngFor="let comite of filteredComites | async" [value]="comite">
+              {{comite.comite}}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+      </div>
 
-    <!-- Fecha evaluación (desde - hasta)-->
-    <div class="col">
-      <mat-form-field>
-        <mat-label>{{'eti.convocatoriaReunion.buscador.fechaEvaluacionDesde.titulo' | translate}}</mat-label>
-        <input matInput formControlName="fechaEvaluacionDesde" [matDatepicker]="pickerFechaEvaluacionDesde"
-          [placeholder]="'eti.convocatoriaReunion.buscador.fechaEvaluacionDesde.titulo' | translate">
-        <mat-datepicker-toggle matSuffix [for]="pickerFechaEvaluacionDesde"></mat-datepicker-toggle>
-        <mat-datepicker #pickerFechaEvaluacionDesde></mat-datepicker>
-      </mat-form-field>
-    </div>
+      <!-- Fecha evaluación (desde - hasta)-->
+      <div class="col">
+        <mat-form-field>
+          <mat-label>{{'eti.convocatoriaReunion.buscador.fechaEvaluacionDesde.titulo' | translate}}</mat-label>
+          <input matInput formControlName="fechaEvaluacionDesde" [matDatepicker]="pickerFechaEvaluacionDesde"
+            [placeholder]="'eti.convocatoriaReunion.buscador.fechaEvaluacionDesde.titulo' | translate">
+          <mat-datepicker-toggle matSuffix [for]="pickerFechaEvaluacionDesde"></mat-datepicker-toggle>
+          <mat-datepicker #pickerFechaEvaluacionDesde></mat-datepicker>
+        </mat-form-field>
+      </div>
 
-    <div class="col">
-      <mat-form-field>
-        <mat-label>{{'eti.convocatoriaReunion.buscador.fechaEvaluacionHasta.titulo' | translate}}</mat-label>
-        <input matInput formControlName="fechaEvaluacionHasta" [matDatepicker]="pickerFechaEvaluacionHasta"
-          placeholder="{{'eti.convocatoriaReunion.buscador.fechaEvaluacionHasta.titulo' | translate}}">
-        <mat-datepicker-toggle matSuffix [for]="pickerFechaEvaluacionHasta"></mat-datepicker-toggle>
-        <mat-datepicker #pickerFechaEvaluacionHasta></mat-datepicker>
-      </mat-form-field>
-    </div>
+      <div class="col">
+        <mat-form-field>
+          <mat-label>{{'eti.convocatoriaReunion.buscador.fechaEvaluacionHasta.titulo' | translate}}</mat-label>
+          <input matInput formControlName="fechaEvaluacionHasta" [matDatepicker]="pickerFechaEvaluacionHasta"
+            placeholder="{{'eti.convocatoriaReunion.buscador.fechaEvaluacionHasta.titulo' | translate}}">
+          <mat-datepicker-toggle matSuffix [for]="pickerFechaEvaluacionHasta"></mat-datepicker-toggle>
+          <mat-datepicker #pickerFechaEvaluacionHasta></mat-datepicker>
+        </mat-form-field>
+      </div>
 
-    <!-- Convocatoria -->
-    <div class="col">
-      <mat-form-field class="input-form">
-        <mat-label>{{'eti.convocatoriaReunion.buscador.tipoConvocatoriaReunion.titulo' | translate}}</mat-label>
-        <input type="text" [placeholder]="'eti.convocatoriaReunion.buscador.tipoConvocatoriaReunion.titulo' | translate"
-          arial-label="Number" matInput formControlName="tipoConvocatoriaReunion"
-          [matAutocomplete]="autocompleteTipoConvocatoriaReunion">
-        <mat-autocomplete #autocompleteTipoConvocatoriaReunion="matAutocomplete"
-          [displayWith]="getTipoConvocatoriaReunion">
-          <mat-option *ngFor="let tipoConvocatoriaReunion of filteredTiposConvocatoriaReunion | async"
-            [value]="tipoConvocatoriaReunion">
-            {{tipoConvocatoriaReunion.nombre}}
-          </mat-option>
-        </mat-autocomplete>
-      </mat-form-field>
+      <!-- Convocatoria -->
+      <div class="col">
+        <mat-form-field class="input-form">
+          <mat-label>{{'eti.convocatoriaReunion.buscador.tipoConvocatoriaReunion.titulo' | translate}}</mat-label>
+          <input type="text"
+            [placeholder]="'eti.convocatoriaReunion.buscador.tipoConvocatoriaReunion.titulo' | translate"
+            arial-label="Number" matInput formControlName="tipoConvocatoriaReunion"
+            [matAutocomplete]="autocompleteTipoConvocatoriaReunion">
+          <mat-autocomplete #autocompleteTipoConvocatoriaReunion="matAutocomplete"
+            [displayWith]="getTipoConvocatoriaReunion">
+            <mat-option *ngFor="let tipoConvocatoriaReunion of filteredTiposConvocatoriaReunion | async"
+              [value]="tipoConvocatoriaReunion">
+              {{tipoConvocatoriaReunion.nombre}}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+      </div>
     </div>
 
     <div class="buttons-final">
@@ -81,7 +85,7 @@
     </ng-container>
 
     <!-- Fecha evaluacion Column -->
-    <ng-container matColumnDef="fecha-evaluacion">
+    <ng-container matColumnDef="fechaEvaluacion">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         {{'eti.convocatoriaReunion.listado.fechaEvaluacion' | translate}} </th>
       <td mat-cell *matCellDef="let convocatoriaReunion"> {{convocatoriaReunion.fechaEvaluacion | date:'dd/MM/yyyy'}}
@@ -90,13 +94,13 @@
 
     <!-- Codigo Column -->
     <ng-container matColumnDef="codigo">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.convocatoriaReunion.listado.codigo' | translate}}
+      <th mat-header-cell *matHeaderCellDef> {{'eti.convocatoriaReunion.listado.codigo' | translate}}
       </th>
       <td mat-cell *matCellDef="let convocatoriaReunion"> {{convocatoriaReunion.codigo}} </td>
     </ng-container>
 
     <!-- Hora Column -->
-    <ng-container matColumnDef="hora">
+    <ng-container matColumnDef="horaInicio">
       <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.convocatoriaReunion.listado.hora' | translate}}
       </th>
       <td mat-cell *matCellDef="let convocatoriaReunion">
@@ -134,10 +138,12 @@
           matTooltip="{{'botones.editar' | translate}}">
           <mat-icon color="primary">border_color</mat-icon>
         </button>
-        <button color="warn" mat-button *sgiHasAuthorityForAnyUO="'ETI-CNV-B'"
-          matTooltip="{{'botones.borrar' | translate}}" (click)="borrar(convocatoriaReunion.id, $event)">
-          <mat-icon>highlight_off</mat-icon>
-        </button>
+        <span *ngIf="convocatoriaReunion.activo ? true : false">
+          <button color="warn" mat-button *sgiHasAuthorityForAnyUO="'ETI-CNV-B'"
+            matTooltip="{{'botones.borrar' | translate}}" (click)="borrar(convocatoriaReunion.id, $event)">
+            <mat-icon>highlight_off</mat-icon>
+          </button>
+        </span>
         <ng-container *sgiHasAuthorityForAnyUO="'ETI-CNV-ENV'">
           <button color="accent" *ngIf="!convocatoriaReunion.fechaEnvio" mat-button
             matTooltip="{{'botones.enviar' | translate}}" (click)="enviar(convocatoriaReunion.id, $event)">

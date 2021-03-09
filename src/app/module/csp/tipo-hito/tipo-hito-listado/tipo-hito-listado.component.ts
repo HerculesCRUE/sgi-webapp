@@ -10,10 +10,10 @@ import { TipoHitoService } from '@core/services/csp/tipo-hito.service';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
-import { SgiRestFilter, SgiRestFilterType, SgiRestListResult } from '@sgi/framework/http';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
-import { EMPTY, Observable, of, Subscription } from 'rxjs';
-import { catchError, switchMap, tap } from 'rxjs/operators';
+import { Observable, of, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { TipoHitoModalComponent } from '../tipo-hito-modal/tipo-hito-modal.component';
 
 const MSG_ERROR = marker('csp.tipo.hito.listado.error');
@@ -40,14 +40,13 @@ export class TipoHitoListadoComponent extends AbstractTablePaginationComponent<I
   tipoHitos$: Observable<ITipoHito[]>;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     private readonly tipoHitoService: TipoHitoService,
     private matDialog: MatDialog,
     private readonly dialogService: DialogService
   ) {
-    super(logger, snackBarService, MSG_ERROR);
-    this.logger.debug(TipoHitoListadoComponent.name, 'constructor()', 'start');
+    super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -58,56 +57,44 @@ export class TipoHitoListadoComponent extends AbstractTablePaginationComponent<I
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-    this.logger.debug(TipoHitoListadoComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(TipoHitoListadoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.formGroup = new FormGroup({
       nombre: new FormControl(''),
       activo: new FormControl('true')
     });
-    this.filter = this.createFilters();
-    this.logger.debug(TipoHitoListadoComponent.name, 'ngOnInit()', 'end');
+    this.filter = this.createFilter();
   }
 
   protected createObservable(): Observable<SgiRestListResult<ITipoHito>> {
-    this.logger.debug(TipoHitoListadoComponent.name, `${this.createObservable.name}()`, 'start');
     const observable$ = this.tipoHitoService.findTodos(this.getFindOptions());
-    this.logger.debug(TipoHitoListadoComponent.name, `${this.createObservable.name}()`, 'end');
     return observable$;
   }
 
   protected initColumns(): void {
-    this.logger.debug(TipoHitoListadoComponent.name, `${this.initColumns.name}()`, 'start');
     this.columnas = ['nombre', 'descripcion', 'activo', 'acciones'];
-    this.logger.debug(TipoHitoListadoComponent.name, `${this.initColumns.name}()`, 'end');
   }
 
   protected loadTable(reset?: boolean): void {
-    this.logger.debug(TipoHitoListadoComponent.name, `${this.loadTable.name}(${reset})`, 'start');
     this.tipoHitos$ = this.getObservableLoadTable(reset);
-    this.logger.debug(TipoHitoListadoComponent.name, `${this.loadTable.name}(${reset})`, 'end');
   }
 
-  protected createFilters(): SgiRestFilter[] {
-    this.logger.debug(TipoHitoListadoComponent.name, `${this.createFilters.name}()`, 'start');
-    const filtros = [];
-    this.addFiltro(filtros, 'nombre', SgiRestFilterType.LIKE, this.formGroup.controls.nombre.value);
-    if (this.formGroup.controls.activo.value !== 'todos') {
-      this.addFiltro(filtros, 'activo', SgiRestFilterType.EQUALS, this.formGroup.controls.activo.value);
+  protected createFilter(): SgiRestFilter {
+    const controls = this.formGroup.controls;
+    const filter = new RSQLSgiRestFilter('nombre', SgiRestFilterOperator.LIKE_ICASE, controls.nombre.value);
+    if (controls.activo.value !== 'todos') {
+      filter.and('activo', SgiRestFilterOperator.EQUALS, controls.activo.value);
     }
-    this.logger.debug(TipoHitoListadoComponent.name, `${this.createFilters.name}()`, 'end');
-    return filtros;
+
+    return filter;
   }
 
   onClearFilters() {
-    this.logger.debug(TipoHitoListadoComponent.name, `${this.onClearFilters.name}()`, 'start');
     this.formGroup.controls.activo.setValue('true');
     this.formGroup.controls.nombre.setValue('');
     this.onSearch();
-    this.logger.debug(TipoHitoListadoComponent.name, `${this.onClearFilters.name}()`, 'end');
   }
 
   /**
@@ -116,7 +103,6 @@ export class TipoHitoListadoComponent extends AbstractTablePaginationComponent<I
    * @param tipoHito Tipo de finalidad
    */
   openModal(tipoHito?: ITipoHito): void {
-    this.logger.debug(TipoHitoListadoComponent.name, `${this.openModal.name}(tipoHito?: ITipoHito)`, 'start');
     const config = {
       width: GLOBAL_CONSTANTS.widthModalCSP,
       maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
@@ -132,11 +118,10 @@ export class TipoHitoListadoComponent extends AbstractTablePaginationComponent<I
               () => {
                 this.snackBarService.showSuccess(MSG_UPDATE);
                 this.loadTable();
-                this.logger.debug(TipoHitoListadoComponent.name, `${this.openModal.name}(tipoHito?: ITipoHito)`, 'end');
               },
-              () => {
+              (error) => {
+                this.logger.error(error);
                 this.snackBarService.showError(MSG_ERROR_UPDATE);
-                this.logger.error(TipoHitoListadoComponent.name, `${this.openModal.name}(tipoHito?: ITipoHito)`, 'error');
               }
             );
           } else {
@@ -144,11 +129,10 @@ export class TipoHitoListadoComponent extends AbstractTablePaginationComponent<I
               () => {
                 this.snackBarService.showSuccess(MSG_SAVE);
                 this.loadTable();
-                this.logger.debug(TipoHitoListadoComponent.name, `${this.openModal.name}(tipoHito?: ITipoHito)`, 'end');
               },
-              () => {
+              (error) => {
+                this.logger.error(error);
                 this.snackBarService.showError(MSG_ERROR_SAVE);
-                this.logger.error(TipoHitoListadoComponent.name, `${this.openModal.name}(tipoHito?: ITipoHito)`, 'error');
               }
             );
           }
@@ -163,11 +147,10 @@ export class TipoHitoListadoComponent extends AbstractTablePaginationComponent<I
    * @param tipoDocumento tipo hito
    */
   deactivateTipoHito(tipoHito: ITipoHito): void {
-    this.logger.debug(TipoHitoListadoComponent.name, `${this.deactivateTipoHito.name}()`, 'start');
     const subcription = this.dialogService.showConfirmation(MSG_DEACTIVATE)
       .pipe(switchMap((accept) => {
         if (accept) {
-          return this.tipoHitoService.deleteById(tipoHito.id);
+          return this.tipoHitoService.desactivar(tipoHito.id);
         } else {
           return of();
         }
@@ -175,13 +158,10 @@ export class TipoHitoListadoComponent extends AbstractTablePaginationComponent<I
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_DEACTIVATE);
           this.loadTable();
-          this.logger.debug(TipoHitoListadoComponent.name,
-            `${this.deactivateTipoHito.name}(tipoHito: ${tipoHito})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_DEACTIVATE);
-          this.logger.debug(TipoHitoListadoComponent.name,
-            `${this.deactivateTipoHito.name}(tipoHito: ${tipoHito})`, 'end');
         }
       );
     this.suscripciones.push(subcription);
@@ -192,14 +172,11 @@ export class TipoHitoListadoComponent extends AbstractTablePaginationComponent<I
    * @param tipoHito tipo hito
    */
   activateTipoHito(tipoHito: ITipoHito): void {
-    this.logger.debug(TipoHitoListadoComponent.name,
-      `${this.activateTipoHito.name}(tipoHito: ${tipoHito})`, 'start');
-
     const subcription = this.dialogService.showConfirmation(MSG_REACTIVE)
       .pipe(switchMap((accept) => {
         if (accept) {
           tipoHito.activo = true;
-          return this.tipoHitoService.update(tipoHito.id, tipoHito);
+          return this.tipoHitoService.reactivar(tipoHito.id);
         } else {
           return of();
         }
@@ -207,18 +184,14 @@ export class TipoHitoListadoComponent extends AbstractTablePaginationComponent<I
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_REACTIVE);
           this.loadTable();
-          this.logger.debug(TipoHitoListadoComponent.name,
-            `${this.activateTipoHito.name}(tipoHito: ${tipoHito})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           tipoHito.activo = false;
           this.snackBarService.showError(MSG_ERROR_REACTIVE);
-          this.logger.debug(TipoHitoListadoComponent.name,
-            `${this.activateTipoHito.name}(tipoHito: ${tipoHito})`, 'end');
         }
       );
     this.suscripciones.push(subcription);
   }
 
 }
-

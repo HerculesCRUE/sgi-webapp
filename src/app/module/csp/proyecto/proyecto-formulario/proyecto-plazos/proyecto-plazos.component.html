@@ -1,0 +1,69 @@
+<!-- Convocatoria enlace -->
+<section class="convocatoria-plazos-fases">
+
+  <h2>{{'csp.proyecto.plazos.titulo' | translate}}</h2>
+
+  <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8 table-plazos-fases">
+
+    <!-- Fecha inicio Column -->
+    <ng-container matColumnDef="fechaInicio">
+      <th mat-header-cell *matHeaderCellDef> {{'csp.proyecto.plazos.fechaInicio' | translate}} </th>
+      <td mat-cell *matCellDef="let plazo"> {{plazo.value.fechaInicio | date:'dd/MM/yyyy, HH:mm:ss'}}</td>
+    </ng-container>
+
+    <!-- Fecha fin Column -->
+    <ng-container matColumnDef="fechaFin">
+      <th mat-header-cell *matHeaderCellDef> {{'csp.proyecto.plazos.fechaFin' | translate}} </th>
+      <td mat-cell *matCellDef="let plazo"> {{plazo.value.fechaFin | date:'dd/MM/yyyy, HH:mm:ss'}}</td>
+    </ng-container>
+
+    <!-- Tipo de fase Column -->
+    <ng-container matColumnDef="tipoFase">
+      <th mat-header-cell *matHeaderCellDef> {{'csp.proyecto.plazos.tipoFase' | translate}} </th>
+      <td mat-cell *matCellDef="let plazo">{{plazo.value.tipoFase.nombre}}</td>
+    </ng-container>
+
+    <!-- Aviso Column -->
+    <ng-container matColumnDef="aviso">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.hitos.aviso' | translate}} </th>
+      <td mat-cell *matCellDef="let plazo">
+        {{plazo.value.generaAviso ? ('label.si' | translate) : 'label.no' | translate}} </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'csp.proyecto.plazos.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let plazo">
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" *ngIf="!formPart.readonly"
+            (click)="openModalPlazos(plazo)">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}" *ngIf="!formPart.readonly"
+            (click)="deleteFase(plazo)">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+  </table>
+
+
+  <mat-paginator [pageSizeOptions]="elementosPagina" showFirstLastButtons>
+  </mat-paginator>
+
+  <div class="separation-button">
+    <button color="three" aria-label="Center Align" md-button mat-raised-button *ngIf="!formPart.readonly"
+      (click)="openModalPlazos()">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.proyecto.plazos.anadir'| translate}}
+    </button>
+  </div>
+
+</section>

@@ -1,24 +1,20 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { MatTableDataSource } from '@angular/material/table';
+import { FragmentComponent } from '@core/component/fragment.component';
+import { IEvaluacion } from '@core/models/eti/evaluacion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { Subscription, BehaviorSubject, Observable, of } from 'rxjs';
-import { NGXLogger } from 'ngx-logger';
-import { EvaluacionService } from '@core/services/eti/evaluacion.service';
-import { MatDialog } from '@angular/material/dialog';
-import { ConvocatoriaReunionAsignacionMemoriasModalComponent } from '../convocatoria-reunion-asignacion-memorias-modal/convocatoria-reunion-asignacion-memorias-modal.component';
 import { DialogService } from '@core/services/dialog.service';
-import { SnackBarService } from '@core/services/snack-bar.service';
-import { IEvaluacion } from '@core/models/eti/evaluacion';
+import { EvaluacionService } from '@core/services/eti/evaluacion.service';
 import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
 import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { FragmentComponent } from '@core/component/fragment.component';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { ConvocatoriaReunionActionService } from '../../../convocatoria-reunion.action.service';
+import { ConvocatoriaReunionAsignacionMemoriasModalComponent } from '../convocatoria-reunion-asignacion-memorias-modal/convocatoria-reunion-asignacion-memorias-modal.component';
 import { ConvocatoriaReunionAsignacionMemoriasListadoFragment } from './convocatoria-reunion-asignacion-memorias-listado.fragment';
-import { MatTableDataSource } from '@angular/material/table';
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-
-const MSG_ERROR_ELIMINAR = marker('eti.convocatoriaReunion.formulario.asignacionMemorias.eliminar.imposible');
 
 @Component({
   selector: 'sgi-convocatoria-reunion-asignacion-memorias-listado',
@@ -33,14 +29,13 @@ export class ConvocatoriaReunionAsignacionMemoriasListadoComponent extends Fragm
   displayedColumns: string[];
 
   datasource: MatTableDataSource<StatusWrapper<IEvaluacion>> = new MatTableDataSource<StatusWrapper<IEvaluacion>>();
-  evaluaciones$: BehaviorSubject<StatusWrapper<IEvaluacion>[]> = new BehaviorSubject<StatusWrapper<IEvaluacion>[]>([]);
+  private evaluaciones$: BehaviorSubject<StatusWrapper<IEvaluacion>[]> = new BehaviorSubject<StatusWrapper<IEvaluacion>[]>([]);
 
   private listadoFragment: ConvocatoriaReunionAsignacionMemoriasListadoFragment;
   disableAsignarMemorias: boolean;
   private subscriptions: Subscription[] = [];
 
   constructor(
-    protected readonly logger: NGXLogger,
     private readonly matDialog: MatDialog,
     protected readonly evaluacionService: EvaluacionService,
     protected readonly dialogService: DialogService,
@@ -52,11 +47,10 @@ export class ConvocatoriaReunionAsignacionMemoriasListadoComponent extends Fragm
     this.listadoFragment = this.fragment as ConvocatoriaReunionAsignacionMemoriasListadoFragment;
     this.evaluaciones$ = (this.fragment as ConvocatoriaReunionAsignacionMemoriasListadoFragment).evaluaciones$;
 
-    this.displayedColumns = ['referencia', 'version', 'dictamen.nombre', 'acciones'];
+    this.displayedColumns = ['numReferencia', 'evaluador1', 'evaluador2', 'acciones'];
   }
 
   ngOnInit(): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasListadoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.evaluaciones$.subscribe((evaluaciones) => {
       this.datasource.data = evaluaciones;
@@ -67,14 +61,25 @@ export class ConvocatoriaReunionAsignacionMemoriasListadoComponent extends Fragm
         this.disableAsignarMemorias = value;
       }
     ));
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasListadoComponent.name, 'ngOnInit()', 'start');
+
+    this.datasource.sortingDataAccessor =
+      (wrapper: StatusWrapper<IEvaluacion>, property: string) => {
+        switch (property) {
+          case 'numReferencia':
+            return wrapper.value.memoria?.numReferencia;
+          case 'evaluador1':
+            return wrapper.value.evaluador1?.nombre + wrapper.value.evaluador1?.primerApellido + wrapper.value.evaluador1?.segundoApellido;
+          case 'evaluador2':
+            return wrapper.value.evaluador2?.nombre + wrapper.value.evaluador2?.primerApellido + wrapper.value.evaluador2?.segundoApellido;
+          default:
+            return wrapper.value[property];
+        }
+      };
   }
 
 
   ngOnDestroy() {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasListadoComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions?.forEach(x => x.unsubscribe());
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasListadoComponent.name, 'ngOnDestroy()', 'end');
   }
 
   /**
@@ -86,8 +91,6 @@ export class ConvocatoriaReunionAsignacionMemoriasListadoComponent extends Fragm
    *
    */
   openDialogAsignarMemoria(): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasListadoComponent.name, 'openDialogAsignarMemoria()', 'start');
-
     const evaluacion: IEvaluacion = {
       activo: true,
       comite: null,
@@ -129,9 +132,6 @@ export class ConvocatoriaReunionAsignacionMemoriasListadoComponent extends Fragm
           }
         }
       ));
-
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasListadoComponent.name, 'openDialogAsignarMemoria()', 'end');
-
   }
 
 
@@ -141,9 +141,6 @@ export class ConvocatoriaReunionAsignacionMemoriasListadoComponent extends Fragm
    * @param event evento lanzado.
    */
   borrar(wrappedEvaluacion: StatusWrapper<IEvaluacion>): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasListadoComponent.name,
-      'borrar(convocatoriaReunionId: number, $event: Event) - start');
-
     const dialogSubscription = this.dialogService.showConfirmation(
       'eti.convocatoriaReunion.listado.eliminar'
     ).subscribe((aceptado) => {
@@ -153,9 +150,6 @@ export class ConvocatoriaReunionAsignacionMemoriasListadoComponent extends Fragm
     });
 
     this.subscriptions.push(dialogSubscription);
-
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasListadoComponent.name,
-      'borrar(convocatoriaReunionId: number, $event: Event) - end');
   }
 
   /**
@@ -164,7 +158,6 @@ export class ConvocatoriaReunionAsignacionMemoriasListadoComponent extends Fragm
    * @param evaluacion evaluación a modificar
    */
   openUpdateModal(evaluacion: StatusWrapper<IEvaluacion>): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasListadoComponent.name, 'openUpdateModal()', 'start');
     const config = {
       width: GLOBAL_CONSTANTS.maxWidthModal,
       maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
@@ -188,7 +181,6 @@ export class ConvocatoriaReunionAsignacionMemoriasListadoComponent extends Fragm
           this.fragment.setChanges(true);
           this.fragment.setComplete(true);
         }
-        this.logger.debug(ConvocatoriaReunionAsignacionMemoriasListadoComponent.name, 'openUpdateModal()', 'end');
       }
     );
   }

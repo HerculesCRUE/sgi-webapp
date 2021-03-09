@@ -67,6 +67,6 @@
 </mat-dialog-content>
 <mat-dialog-actions align="center">
   <button color="accent" (click)="onAsignarmemoria()" md-button mat-raised-button
-    tabindex="-1">{{'botones.anadir' | translate}}</button>
+    tabindex="-1">{{isEdit ? ('botones.aceptar' | translate) : ('botones.aniadir'| translate)}}</button>
   <button class="link-cancelar" mat-button mat-dialog-close tabindex="-1">{{'botones.cancelar' | translate}}</button>
 </mat-dialog-actions>

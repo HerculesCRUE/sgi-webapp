@@ -1,4 +1,5 @@
 import { IMemoria } from './memoria';
+import { TipoEvaluacion } from './tipo-evaluacion';
 
 export interface IInforme {
   /** Id */
@@ -12,4 +13,7 @@ export interface IInforme {
 
   /** Version */
   version: number;
+
+  /** Tipo Evaluación */
+  tipoEvaluacion: TipoEvaluacion;
 }

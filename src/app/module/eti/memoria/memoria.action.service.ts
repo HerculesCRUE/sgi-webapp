@@ -23,7 +23,7 @@ import { ApartadoService } from '@core/services/eti/apartado.service';
 import { TipoEstadoMemoria } from '@core/models/eti/tipo-estado-memoria';
 import { IRetrospectiva } from '@core/models/eti/retrospectiva';
 import { DocumentoService } from '@core/services/sgdoc/documento.service';
-import { of } from 'rxjs';
+import { EvaluacionService } from '@core/services/eti/evaluacion.service';
 
 const MSG_PETICIONES_EVALUACION = marker('eti.memoria.link.peticionEvaluacion');
 
@@ -35,7 +35,7 @@ export class MemoriaActionService extends ActionService {
     FORMULARIO: 'formulario',
     DOCUMENTACION: 'documentacion',
     EVALUACIONES: 'evaluaciones',
-    INFORMES: 'informes'
+    VERSIONES: 'versiones'
   };
 
   private memoria: IMemoria;
@@ -45,20 +45,21 @@ export class MemoriaActionService extends ActionService {
   private formularios: MemoriaFormularioFragment;
   private documentacion: MemoriaDocumentacionFragment;
   private evaluaciones: MemoriaEvaluacionesFragment;
-  private informes: MemoriaInformesFragment;
+  private versiones: MemoriaInformesFragment;
 
   constructor(
+    private readonly logger: NGXLogger,
     fb: FormBuilder,
     route: ActivatedRoute,
     service: MemoriaService,
     private peticionEvaluacionService: PeticionEvaluacionService,
     personaFisicaService: PersonaFisicaService,
-    protected readonly logger: NGXLogger,
     documentoService: DocumentoService,
     formularioService: FormularioService,
     bloqueService: BloqueService,
     apartadoService: ApartadoService,
-    respuestaService: RespuestaService
+    respuestaService: RespuestaService,
+    evaluacionService: EvaluacionService
   ) {
     super();
     this.memoria = {} as IMemoria;
@@ -71,13 +72,13 @@ export class MemoriaActionService extends ActionService {
     else {
       this.loadPeticionEvaluacion(history.state.idPeticionEvaluacion);
     }
-    this.datosGenerales = new MemoriaDatosGeneralesFragment(fb, logger, this.readonly, this.memoria?.id, service, personaFisicaService,
+    this.datosGenerales = new MemoriaDatosGeneralesFragment(fb, this.readonly, this.memoria?.id, service, personaFisicaService,
       peticionEvaluacionService);
     this.formularios = new MemoriaFormularioFragment(logger, this.memoria?.id, this.memoria?.comite, formularioService,
-      bloqueService, apartadoService, respuestaService);
-    this.documentacion = new MemoriaDocumentacionFragment(logger, this.memoria?.id, service, documentoService);
-    this.evaluaciones = new MemoriaEvaluacionesFragment(logger, this.memoria?.id, service);
-    this.informes = new MemoriaInformesFragment(logger, this.memoria?.id, service);
+      bloqueService, apartadoService, respuestaService, service, evaluacionService);
+    this.documentacion = new MemoriaDocumentacionFragment(this.memoria?.id, service, documentoService);
+    this.evaluaciones = new MemoriaEvaluacionesFragment(this.memoria?.id, service);
+    this.versiones = new MemoriaInformesFragment(this.memoria?.id, service);
 
     this.addFragment(this.FRAGMENT.DATOS_GENERALES, this.datosGenerales);
     if (this.isEdit()) {
@@ -85,7 +86,7 @@ export class MemoriaActionService extends ActionService {
       this.addFragment(this.FRAGMENT.FORMULARIO, this.formularios);
       this.addFragment(this.FRAGMENT.DOCUMENTACION, this.documentacion);
       this.addFragment(this.FRAGMENT.EVALUACIONES, this.evaluaciones);
-      this.addFragment(this.FRAGMENT.INFORMES, this.informes);
+      this.addFragment(this.FRAGMENT.VERSIONES, this.versiones);
     }
 
   }

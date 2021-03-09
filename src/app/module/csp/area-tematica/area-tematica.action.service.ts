@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-
-import { ActionService } from '@core/services/action-service';
 import { ActivatedRoute } from '@angular/router';
-
-import { NGXLogger } from 'ngx-logger';
 import { IAreaTematica } from '@core/models/csp/area-tematica';
+import { ActionService } from '@core/services/action-service';
 import { AreaTematicaService } from '@core/services/csp/area-tematica.service';
-import { AreaTematicaDatosGeneralesFragment } from './area-tematica-formulario/area-tematica-datos-generales/area-tematica-datos-generales.fragment';
+import { NGXLogger } from 'ngx-logger';
 import { AreaTematicaArbolFragment } from './area-tematica-formulario/area-tematica-arbol/area-tematica-arbol.fragment';
+import { AreaTematicaDatosGeneralesFragment } from './area-tematica-formulario/area-tematica-datos-generales/area-tematica-datos-generales.fragment';
+
+
 
 @Injectable()
 export class AreaTematicaActionService extends ActionService {
@@ -26,7 +26,6 @@ export class AreaTematicaActionService extends ActionService {
     areaTematicaService: AreaTematicaService
   ) {
     super();
-    this.logger.debug(AreaTematicaActionService.name, 'constructor()', 'start');
     this.area = {} as IAreaTematica;
     if (route.snapshot.data.area) {
       this.area = route.snapshot.data.area;
@@ -41,9 +40,6 @@ export class AreaTematicaActionService extends ActionService {
 
     this.addFragment(this.FRAGMENT.DATOS_GENERALES, this.datosGenerales);
     this.addFragment(this.FRAGMENT.AREAS_ARBOL, this.areaTematicaArbol);
-
-    this.logger.debug(AreaTematicaActionService.name, 'constructor()', 'start');
-    this.logger.debug(AreaTematicaActionService.name, 'constructor()', 'end');
   }
 
   getArea(): IAreaTematica {

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
 import { IModeloEjecucion } from '@core/models/csp/tipos-configuracion';
@@ -9,7 +9,7 @@ import { ROUTE_NAMES } from '@core/route.names';
 import { ModeloEjecucionService } from '@core/services/csp/modelo-ejecucion.service';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { SgiRestListResult, SgiRestFilter, SgiRestFilterType } from '@sgi/framework/http';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -37,13 +37,12 @@ export class ModeloEjecucionListadoComponent extends AbstractTablePaginationComp
   modeloEjecucion$: Observable<IModeloEjecucion[]>;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     private readonly modeloEjecucionService: ModeloEjecucionService,
     private readonly dialogService: DialogService
   ) {
-    super(logger, snackBarService, MSG_ERROR);
-    this.logger.debug(ModeloEjecucionListadoComponent.name, 'constructor()', 'start');
+    super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -54,56 +53,44 @@ export class ModeloEjecucionListadoComponent extends AbstractTablePaginationComp
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-    this.logger.debug(ModeloEjecucionListadoComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(ModeloEjecucionListadoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.formGroup = new FormGroup({
       nombre: new FormControl(''),
       activo: new FormControl('true')
     });
-    this.filter = this.createFilters();
-    this.logger.debug(ModeloEjecucionListadoComponent.name, 'ngOnInit()', 'end');
+    this.filter = this.createFilter();
   }
 
   onClearFilters() {
-    this.logger.debug(ModeloEjecucionListadoComponent.name, `${this.onClearFilters.name}()`, 'start');
     this.formGroup.controls.activo.setValue('true');
     this.formGroup.controls.nombre.setValue('');
     this.onSearch();
-    this.logger.debug(ModeloEjecucionListadoComponent.name, `${this.onClearFilters.name}()`, 'end');
   }
 
   protected createObservable(): Observable<SgiRestListResult<IModeloEjecucion>> {
-    this.logger.debug(ModeloEjecucionListadoComponent.name, `${this.createObservable.name}()`, 'start');
-    const observable$ = this.modeloEjecucionService.findTodos(this.getFindOptions());
-    this.logger.debug(ModeloEjecucionListadoComponent.name, `${this.createObservable.name}()`, 'end');
+    const observable$ = this.modeloEjecucionService.findAllTodos(this.getFindOptions());
     return observable$;
   }
 
   protected initColumns(): void {
-    this.logger.debug(ModeloEjecucionListadoComponent.name, `${this.initColumns.name}()`, 'start');
     this.columnas = ['nombre', 'descripcion', 'activo', 'acciones'];
-    this.logger.debug(ModeloEjecucionListadoComponent.name, `${this.initColumns.name}()`, 'end');
   }
 
   protected loadTable(reset?: boolean): void {
-    this.logger.debug(ModeloEjecucionListadoComponent.name, `${this.loadTable.name}(${reset})`, 'start');
     this.modeloEjecucion$ = this.getObservableLoadTable(reset);
-    this.logger.debug(ModeloEjecucionListadoComponent.name, `${this.loadTable.name}(${reset})`, 'end');
   }
 
-  protected createFilters(): SgiRestFilter[] {
-    this.logger.debug(ModeloEjecucionListadoComponent.name, `${this.createFilters.name}()`, 'start');
-    const filtros = [];
-    this.addFiltro(filtros, 'nombre', SgiRestFilterType.LIKE, this.formGroup.controls.nombre.value);
-    if (this.formGroup.controls.activo.value !== 'todos') {
-      this.addFiltro(filtros, 'activo', SgiRestFilterType.EQUALS, this.formGroup.controls.activo.value);
+  protected createFilter(): SgiRestFilter {
+    const controls = this.formGroup.controls;
+    const filter = new RSQLSgiRestFilter('nombre', SgiRestFilterOperator.LIKE_ICASE, controls.nombre.value);
+    if (controls.activo.value !== 'todos') {
+      filter.and('activo', SgiRestFilterOperator.EQUALS, controls.activo.value);
     }
-    this.logger.debug(ModeloEjecucionListadoComponent.name, `${this.createFilters.name}()`, 'end');
-    return filtros;
+
+    return filter;
   }
 
   /**
@@ -111,11 +98,10 @@ export class ModeloEjecucionListadoComponent extends AbstractTablePaginationComp
    * @param modeloEjecucion modelo ejecucion
    */
   deactivateModeloEjecucion(modeloEjecucion: IModeloEjecucion): void {
-    this.logger.debug(ModeloEjecucionListadoComponent.name, `${this.deactivateModeloEjecucion.name}()`, 'start');
     const subcription = this.dialogService.showConfirmation(MSG_DEACTIVATE)
       .pipe(switchMap((accept) => {
         if (accept) {
-          return this.modeloEjecucionService.deleteById(modeloEjecucion.id);
+          return this.modeloEjecucionService.desactivar(modeloEjecucion.id);
         } else {
           return of();
         }
@@ -123,13 +109,10 @@ export class ModeloEjecucionListadoComponent extends AbstractTablePaginationComp
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_DEACTIVATE);
           this.loadTable();
-          this.logger.debug(ModeloEjecucionListadoComponent.name,
-            `${this.deactivateModeloEjecucion.name}(modeloEjecucion: ${modeloEjecucion})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_DEACTIVATE);
-          this.logger.debug(ModeloEjecucionListadoComponent.name,
-            `${this.deactivateModeloEjecucion.name}(modeloEjecucion: ${modeloEjecucion})`, 'end');
         }
       );
     this.suscripciones.push(subcription);
@@ -141,14 +124,11 @@ export class ModeloEjecucionListadoComponent extends AbstractTablePaginationComp
    * @param tipoDocumento modelo ejecucion
    */
   activateModeloEjecucion(modeloEjecucion: IModeloEjecucion): void {
-    this.logger.debug(ModeloEjecucionListadoComponent.name,
-      `${this.activateModeloEjecucion.name}(modeloEjecucion: ${modeloEjecucion})`, 'start');
-
     const subcription = this.dialogService.showConfirmation(MSG_REACTIVE)
       .pipe(switchMap((accept) => {
         if (accept) {
           modeloEjecucion.activo = true;
-          return this.modeloEjecucionService.update(modeloEjecucion.id, modeloEjecucion);
+          return this.modeloEjecucionService.reactivar(modeloEjecucion.id);
         } else {
           return of();
         }
@@ -156,14 +136,11 @@ export class ModeloEjecucionListadoComponent extends AbstractTablePaginationComp
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_REACTIVE);
           this.loadTable();
-          this.logger.debug(ModeloEjecucionListadoComponent.name,
-            `${this.activateModeloEjecucion.name}(modeloEjecucion: ${modeloEjecucion})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           modeloEjecucion.activo = false;
           this.snackBarService.showError(MSG_ERROR_REACTIVE);
-          this.logger.debug(ModeloEjecucionListadoComponent.name,
-            `${this.activateModeloEjecucion.name}(modeloEjecucion: ${modeloEjecucion})`, 'end');
         }
       );
     this.suscripciones.push(subcription);

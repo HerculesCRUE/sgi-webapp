@@ -1,23 +1,23 @@
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { Component, OnInit, ViewChild } from '@angular/core';
-
-import { NGXLogger } from 'ngx-logger';
-import { Observable, Subscription } from 'rxjs';
-
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
-import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-
-import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
-import { SnackBarService } from '@core/services/snack-bar.service';
-
-import { IConvocatoriaReunion } from '@core/models/eti/convocatoria-reunion';
-import { SgiRestListResult } from '@sgi/framework/http/types';
-import { startWith, map } from 'rxjs/operators';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { ActaActionService } from '../../acta.action.service';
+import { Router } from '@angular/router';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
 import { IActa } from '@core/models/eti/acta';
-import { Router } from '@angular/router';
+import { IConvocatoriaReunion } from '@core/models/eti/convocatoria-reunion';
+import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
+import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
+import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import { SgiRestListResult } from '@sgi/framework/http/types';
+import { NGXLogger } from 'ngx-logger';
+import { Observable, Subscription } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
+import { ActaActionService } from '../../acta.action.service';
+
+
+
+
 
 const MSG_ERROR_INIT = marker('eti.acta.crear.datosGenerales.convocatoriaReunion.error.cargar');
 
@@ -41,7 +41,7 @@ export class ActaDatosGeneralesComponent extends FormFragmentComponent<IActa> im
   readonly: boolean;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     private readonly convocatoriaReunionService: ConvocatoriaReunionService,
     private readonly snackBarService: SnackBarService,
     private actionService: ActaActionService,
@@ -69,7 +69,6 @@ export class ActaDatosGeneralesComponent extends FormFragmentComponent<IActa> im
 
   ngOnInit() {
     super.ngOnInit();
-    this.logger.debug(ActaDatosGeneralesComponent.name, 'ngOnInit()', 'start');
 
     this.readonly = this.actionService.readonly;
 
@@ -82,11 +81,10 @@ export class ActaDatosGeneralesComponent extends FormFragmentComponent<IActa> im
               startWith(''),
               map(value => this.filtro(value))
             );
-          this.logger.debug(ActaDatosGeneralesComponent.name, 'ngOnInit()', 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_INIT);
-          this.logger.debug(ActaDatosGeneralesComponent.name, 'ngOnInit()', 'end');
         }
       )
     );
@@ -123,9 +121,7 @@ export class ActaDatosGeneralesComponent extends FormFragmentComponent<IActa> im
    * @param convocatoriaReunion  convocatoria reunión seleccionada
    */
   selectConvocatoriaReunion(convocatoriaReunion: IConvocatoriaReunion | string) {
-    this.logger.debug(ActaDatosGeneralesComponent.name, 'selectConvocatoriaReunion(convocatoriaReunion: ConvocatoriaReunion)', 'start');
     this.actionService.setIdConvocatoria(convocatoriaReunion ? (convocatoriaReunion as IConvocatoriaReunion).id : null);
-    this.logger.debug(ActaDatosGeneralesComponent.name, 'selectConvocatoriaReunion(convocatoriaReunion: ConvocatoriaReunion)', 'end');
   }
 
 }

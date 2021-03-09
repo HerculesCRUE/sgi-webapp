@@ -1,0 +1,285 @@
+<!-- Convocatorias listado investigador -->
+<div class="scrollable-panel">
+  <section class="convocatoria-listado-inv">
+
+    <!-- Buscador de convocatorias -->
+    <div [ngClass]="busquedaAvanzada ? 'mat-elevation-z8 caja-busqueda-avanzada' : ''">
+      <form [ngClass]="busquedaAvanzada ? '' : 'formulario'" [formGroup]="formGroup"
+        [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+        fxLayoutGap="fxLayoutProperties.gap">
+
+        <div fxFlex="73%" fxFlex.sm="50%" fxFlex.md="53%" [fxLayout.xs]="fxLayoutProperties.xs"
+          [fxLayout]="fxLayoutProperties.layout" fxLayoutGap="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+          <!-- Aplicar Filtro -->
+          <div class="col">
+            <div class="checkbox">
+              <mat-checkbox color="primary" formControlName="aplicarFiltro" id="aplicarFiltro">
+                {{'csp.convocatoria.aplicar.filtro' | translate}}</mat-checkbox>
+            </div>
+          </div>
+
+          <!-- Abierto plazo -->
+          <div class="col">
+            <div class="checkbox">
+              <mat-checkbox color="primary" formControlName="abiertoPlazoPresentacionSolicitud"
+                id="abiertoPlazoPresentacionSolicitud">
+                {{'csp.convocatoria.plazo.abierto' | translate}}</mat-checkbox>
+            </div>
+          </div>
+        </div>
+
+        <div class="buttons-final" *ngIf="!busquedaAvanzada">
+          <div class="col filter-button">
+            <button color="primary" aria-label="Center Align" md-button mat-raised-button (click)="onSearch()">
+              <mat-icon>search</mat-icon> {{'botones.buscar'| translate}}
+            </button>
+            <button class="link-busqueda underline" aria-label="Center Align" md-button mat-button
+              (click)="toggleBusquedaAvanzada()">
+              {{'botones.busqueda.avanzada'| translate}}
+            </button>
+            <button color="warn" class="md-primary" aria-label="Center Align" md-button (click)="onClearFilters()"
+              mat-button>{{'botones.limpiar'| translate}}
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <form *ngIf="busquedaAvanzada" [ngClass]="busquedaAvanzada ? 'busqueda-avanzada' : ''" [formGroup]="formGroup">
+
+        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+          <!-- Titulo -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field>
+              <mat-label>{{'csp.convocatoria.listado.convocatoria.titulo' | translate}}</mat-label>
+              <input matInput type="text" placeholder="{{'csp.convocatoria.listado.convocatoria.titulo' | translate}}"
+                formControlName="titulo">
+            </mat-form-field>
+          </div>
+
+          <!-- Referencia -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field>
+              <mat-label>{{'csp.convocatoria.listado.referencia' | translate}}</mat-label>
+              <input matInput type="text" placeholder="{{'csp.convocatoria.listado.referencia' | translate}}"
+                formControlName="codigo">
+            </mat-form-field>
+          </div>
+
+
+        </div>
+
+        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+          <!-- Finalidades -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.convocatoria.finalidad' | translate}}</mat-label>
+              <input matInput formControlName="finalidad" type="text" id="finalidad"
+                placeholder="{{'csp.convocatoria.finalidad' | translate}}" [matAutocomplete]="autoFinalidad">
+              <mat-autocomplete #autoFinalidad="matAutocomplete" [displayWith]="getFinalidad">
+                <mat-option *ngFor="let finalidad of finalidades$ | async" [value]="finalidad">
+                  {{finalidad.nombre}}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+        </div>
+
+
+        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+          <!-- Año -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.convocatoria.anio' | translate}}</mat-label>
+              <input matInput formControlName="anio" type="number" id="anio" min="1900"
+                placeholder="{{'csp.convocatoria.anio' | translate}}">
+            </mat-form-field>
+          </div>
+
+        </div>
+
+        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+          <!-- Entidad convocantes -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.convocatoria.entidad.convocante' | translate}}</mat-label>
+              <sgi-select-empresa-economica placeholder="{{'csp.convocatoria.entidad.convocante' | translate}}"
+                formControlName="entidadConvocante"></sgi-select-empresa-economica>
+            </mat-form-field>
+          </div>
+
+        </div>
+
+        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+          <!-- Entidad financiadora -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.convocatoria.listado.entidad.financiadora' | translate}}</mat-label>
+              <sgi-select-empresa-economica
+                placeholder="{{'csp.convocatoria.listado.entidad.financiadora' | translate}}"
+                formControlName="entidadFinanciadora"></sgi-select-empresa-economica>
+            </mat-form-field>
+          </div>
+
+          <!-- Fuente financiacion -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.convocatoria.listado.fuente.financiacion' | translate}}</mat-label>
+              <input matInput formControlName="fuenteFinanciacion" type="text" id="fuente"
+                placeholder="{{'csp.convocatoria.listado.fuente.financiacion' | translate}}" maxlength="100"
+                [matAutocomplete]="fuente">
+              <mat-autocomplete #fuente="matAutocomplete" [displayWith]="getFuenteFinanciacion">
+                <mat-option *ngFor="let fuente of fuenteFinanciacion$ | async" [value]="fuente">
+                  {{fuente.nombre}}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+        </div>
+
+        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+          <!-- Tipo de ámbito geográfico -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.convocatoria.tipo.ambito.geografico' | translate}}</mat-label>
+              <input matInput formControlName="ambitoGeografico" type="text" id="ambitoGeografico"
+                placeholder="{{'csp.convocatoria.tipo.ambito.geografico' | translate}}"
+                [matAutocomplete]="autoTipoAmbitoGeografico">
+              <mat-autocomplete #autoTipoAmbitoGeografico="matAutocomplete" [displayWith]="getTipoAmbitoGeografico">
+                <mat-option *ngFor="let tipoAmbitoGeografico of tipoAmbitosGeograficos$ | async"
+                  [value]="tipoAmbitoGeografico">
+                  {{tipoAmbitoGeografico.nombre}}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+        </div>
+
+        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+          <!-- Area tematica -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.convocatoria.tipo.area.tematica' | translate}}</mat-label>
+              <input matInput formControlName="areaTematica" type="text" id="areaTematica"
+                placeholder="{{'csp.convocatoria.tipo.area.tematica' | translate}}"
+                [matAutocomplete]="autoAreaTematica">
+              <mat-autocomplete #autoAreaTematica="matAutocomplete" [displayWith]="getAreaTematica">
+                <mat-option *ngFor="let area of areaTematica$ | async" [value]="area">
+                  {{area.nombre}}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+        </div>
+
+        <div class="buttons-final">
+          <div class="col filter-button">
+            <button color="primary" aria-label="Center Align" md-button mat-raised-button (click)="onSearch()">
+              <mat-icon>search</mat-icon> {{'botones.buscar'| translate}}
+            </button>
+            <button class="link-busqueda underline" aria-label="Center Align" md-button mat-button
+              (click)="toggleBusquedaAvanzada()">
+              {{'botones.busqueda.simple'| translate}}
+            </button>
+            <button color="warn" class="md-primary" aria-label="Center Align" md-button (click)="onClearFilters()"
+              mat-button>{{'botones.limpiar'| translate}}
+            </button>
+          </div>
+        </div>
+
+      </form>
+
+
+    </div>
+
+    <table class="mat-elevation-z8 table-convocatoria-inv" mat-table [dataSource]="convocatorias$ | async" matSort
+      matSortActive="id" matSortDirection="asc" matSortDisableClear>
+
+      <!-- Referencia Column -->
+      <ng-container matColumnDef="codigo">
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.referencia' | translate}} </th>
+        <td mat-cell *matCellDef="let element"> {{element.convocatoria.codigo}}</td>
+      </ng-container>
+
+      <!-- Titulo Column -->
+      <ng-container matColumnDef="titulo">
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.convocatoria.titulo' | translate}} </th>
+        <td mat-cell *matCellDef="let element"> {{element.convocatoria.titulo}}</td>
+      </ng-container>
+
+      <!-- Fecha inicio solicitud Column -->
+      <ng-container matColumnDef="fechaInicioSolicitud">
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.fecha.inicio.solicitud' | translate}} </th>
+        <td mat-cell *matCellDef="let element">{{element.fase.fechaInicio | date:'dd/MM/yyyy'}}</td>
+      </ng-container>
+
+      <!-- Fecha fin solicitud Column -->
+      <ng-container matColumnDef="fechaFinSolicitud">
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.fecha.fin.solicitud' | translate}} </th>
+        <td mat-cell *matCellDef="let element">{{element.fase.fechaFin | date:'dd/MM/yyyy'}}</td>
+      </ng-container>
+
+      <!-- Estado convocante Column -->
+      <ng-container matColumnDef="entidadConvocante">
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.entidad.convocante' | translate}} </th>
+        <td mat-cell *matCellDef="let element">{{element.entidadConvocanteEmpresa.razonSocial}}</td>
+      </ng-container>
+
+      <!-- Entidad Financiadora Column -->
+      <ng-container matColumnDef="entidadFinanciadora">
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.entidad.financiadora' | translate}} </th>
+        <td mat-cell *matCellDef="let element">{{element.entidadFinanciadoraEmpresa.razonSocial}}</td>
+      </ng-container>
+
+      <!-- Fuente Financiacion Column -->
+      <ng-container matColumnDef="fuenteFinanciacion">
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.fuente.financiacion' | translate}} </th>
+        <td mat-cell *matCellDef="let element">{{element.entidadFinanciadora.fuenteFinanciacion?.nombre}}</td>
+      </ng-container>
+
+      <!-- Acciones Column -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.acciones' | translate}} </th>
+        <td mat-cell *matCellDef="let element;let i=index;">
+          <ng-container>
+            <button class="button-accion" mat-stroked-button color="primary"
+              [routerLink]="[element.convocatoria.id]">{{'botones.ver' | translate}}</button>
+          </ng-container>
+          <ng-container>
+            <button class="button-accion" mat-stroked-button color="primary">{{'botones.tramitar' | translate}}</button>
+          </ng-container>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+      <tr mat-row *matRowDef="let row; columns: columnas;"></tr>
+    </table>
+    <mat-paginator [pageSizeOptions]="elementosPagina" [length]="totalElementos" showFirstLastButtons>
+    </mat-paginator>
+  </section>
+</div>

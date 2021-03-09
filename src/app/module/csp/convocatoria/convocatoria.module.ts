@@ -8,6 +8,7 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { ConvocatoriaCrearComponent } from './convocatoria-crear/convocatoria-crear.component';
 import { ConvocatoriaResolver } from './convocatoria.resolver';
+import { ModeloEjecucionIdResolver } from './modelo-ejecucion-id.resolver';
 import { ConvocatoriaDatosGeneralesComponent } from './convocatoria-formulario/convocatoria-datos-generales/convocatoria-datos-generales.component';
 import { ConvocatoriaEditarComponent } from './convocatoria-editar/convocatoria-editar.component';
 import { ConvocatoriaPlazosFasesComponent } from './convocatoria-formulario/convocatoria-plazos-fases/convocatoria-plazos-fases.component';
@@ -19,7 +20,6 @@ import { ConvocatoriaEntidadesFinanciadorasComponent } from './convocatoria-form
 import { ConvocatoriaPeriodosJustificacionComponent } from './convocatoria-formulario/convocatoria-periodos-justificacion/convocatoria-periodos-justificacion.component';
 import { ConvocatoriaHitosModalComponent } from './modals/convocatoria-hitos-modal/convocatoria-hitos-modal.component';
 import { ConvocatoriaPeriodosJustificacionModalComponent } from './modals/convocatoria-periodos-justificacion-modal/convocatoria-periodos-justificacion-modal.component';
-import { ConvocatoriaEntidadFinanciadoraModalComponent } from './modals/convocatoria-entidad-financiadora-modal/convocatoria-entidad-financiadora-modal.component';
 import { ConvocatoriaEnlaceModalComponent } from './modals/convocatoria-enlace-modal/convocatoria-enlace-modal.component';
 import { ConvocatoriaEntidadConvocanteModalComponent } from './modals/convocatoria-entidad-convocante-modal/convocatoria-entidad-convocante-modal.component';
 import { ConvocatoriaPlazosFaseModalComponent } from './modals/convocatoria-plazos-fase-modal/convocatoria-plazos-fase-modal.component';
@@ -27,11 +27,15 @@ import { ConvocatoriaSeguimientoCientificoModalComponent } from './modals/convoc
 import { ConvocatoriaAreaTematicaModalComponent } from './modals/convocatoria-area-tematica-modal/convocatoria-area-tematica-modal.component';
 import { ConvocatoriaRequisitosIPComponent } from './convocatoria-formulario/convocatoria-requisitos-ip/convocatoria-requisitos-ip.component';
 import { ConvocatoriaConceptoGastoComponent } from './convocatoria-formulario/convocatoria-concepto-gasto/convocatoria-concepto-gasto.component';
-import { ConvocatoriaConceptoGastoModalComponent } from './modals/convocatoria-concepto-gasto-modal/convocatoria-concepto-gasto-modal.component';
 import { ConvocatoriaRequisitosEquipoComponent } from './convocatoria-formulario/convocatoria-requisitos-equipo/convocatoria-requisitos-equipo.component';
-import { ConvocatoriaConceptoGastoCodigoEcComponent } from './convocatoria-formulario/convocatoria-concepto-gasto-codigo-ec/convocatoria-concepto-gasto-codigo-ec.component';
-import { ConvocatoriaConceptoGastoCodigoEcModalComponent } from './modals/convocatoria-concepto-gasto-codigo-ec-modal/convocatoria-concepto-gasto-codigo-ec-modal.component';
 import { ConvocatoriaDocumentosComponent } from './convocatoria-formulario/convocatoria-documentos/convocatoria-documentos.component';
+import { ConvocatoriaConfiguracionSolicitudesComponent } from './convocatoria-formulario/convocatoria-configuracion-solicitudes/convocatoria-configuracion-solicitudes.component';
+import { ConvocatoriaConfiguracionSolicitudesModalComponent } from './modals/convocatoria-configuracion-solicitudes-modal/convocatoria-configuracion-solicitudes-modal.component';
+import { ConfiguracionSolicitudResolver } from './configuracion-solicitud.resolver';
+import { NgxMatDatetimePickerModule } from '@angular-material-components/datetime-picker';
+import { NgxMatMomentModule } from '@angular-material-components/moment-adapter';
+import { SgiAuthModule } from '@sgi/framework/auth';
+import { CspModalsModule } from '../modals/csp-modals.module';
 
 @NgModule({
   declarations: [
@@ -48,7 +52,6 @@ import { ConvocatoriaDocumentosComponent } from './convocatoria-formulario/convo
     ConvocatoriaEnlaceComponent,
     ConvocatoriaHitosModalComponent,
     ConvocatoriaPeriodosJustificacionModalComponent,
-    ConvocatoriaEntidadFinanciadoraModalComponent,
     ConvocatoriaEnlaceModalComponent,
     ConvocatoriaEntidadConvocanteModalComponent,
     ConvocatoriaPlazosFaseModalComponent,
@@ -56,11 +59,10 @@ import { ConvocatoriaDocumentosComponent } from './convocatoria-formulario/convo
     ConvocatoriaAreaTematicaModalComponent,
     ConvocatoriaRequisitosIPComponent,
     ConvocatoriaConceptoGastoComponent,
-    ConvocatoriaConceptoGastoModalComponent,
     ConvocatoriaRequisitosEquipoComponent,
-    ConvocatoriaConceptoGastoCodigoEcComponent,
-    ConvocatoriaConceptoGastoCodigoEcModalComponent,
-    ConvocatoriaDocumentosComponent
+    ConvocatoriaDocumentosComponent,
+    ConvocatoriaConfiguracionSolicitudesComponent,
+    ConvocatoriaConfiguracionSolicitudesModalComponent
   ],
   imports: [
     CommonModule,
@@ -69,10 +71,16 @@ import { ConvocatoriaDocumentosComponent } from './convocatoria-formulario/convo
     MaterialDesignModule,
     ReactiveFormsModule,
     TranslateModule,
-    FormsModule
+    FormsModule,
+    NgxMatDatetimePickerModule,
+    NgxMatMomentModule,
+    SgiAuthModule,
+    CspModalsModule
   ],
   providers: [
-    ConvocatoriaResolver
+    ConvocatoriaResolver,
+    ConfiguracionSolicitudResolver,
+    ModeloEjecucionIdResolver
   ]
 })
 export class ConvocatoriaModule { }

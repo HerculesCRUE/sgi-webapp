@@ -5,20 +5,17 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { IComentario } from '@core/models/eti/comentario';
+import { TipoComentario } from '@core/models/eti/tipo-comentario';
 import { DialogService } from '@core/services/dialog.service';
+import { TipoComentarioService } from '@core/services/eti/tipo-comentario.service';
 import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { NGXLogger } from 'ngx-logger';
-import { Subscription, Observable, of } from 'rxjs';
-
-import { FragmentComponent } from '@core/component/fragment.component';
+import { Subscription, Observable } from 'rxjs';
 import { EvaluacionComentarioFragment } from './evaluacion-comentarios.fragment';
 
-import { ComentarioCrearModalComponent } from '../../comentario/comentario-crear-modal/comentario-crear-modal.component';
-import { ComentarioEditarModalComponent } from '../../comentario/comentario-editar-modal/comentario-editar-modal.component';
+import { ComentarioModalComponent, ComentarioModalData } from '../../comentario/comentario-modal/comentario-modal.component';
 import { EvaluacionFormularioActionService, Gestion } from '../evaluacion-formulario.action.service';
-import { TipoComentario } from '@core/models/eti/tipo-comentario';
-import { TipoComentarioService } from '@core/services/eti/tipo-comentario.service';
+import { FragmentComponent } from '@core/component/fragment.component';
 
 const MSG_DELETE = marker('eti.comentario.listado.borrar.titulo');
 
@@ -42,7 +39,6 @@ export class EvaluacionComentariosComponent extends FragmentComponent implements
 
 
   constructor(
-    protected readonly logger: NGXLogger,
     private readonly dialogService: DialogService,
     private tipoComentarioService: TipoComentarioService,
     private matDialog: MatDialog,
@@ -50,43 +46,47 @@ export class EvaluacionComentariosComponent extends FragmentComponent implements
 
   ) {
     super(actionService.FRAGMENT.COMENTARIOS, actionService);
-    this.logger.debug(EvaluacionComentariosComponent.name, 'constructor()', 'start');
     this.formPart = this.fragment as EvaluacionComentarioFragment;
     this.elementosPagina = [5, 10, 25, 100];
     this.columnas = ['apartado.bloque', 'apartado.padre',
       'apartado', 'texto', 'acciones'];
-    this.logger.debug(EvaluacionComentariosComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit() {
     super.ngOnInit();
-    this.logger.debug(EvaluacionComentariosComponent.name, 'ngOnInit()', 'start');
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
     this.subscriptions.push(this.formPart.comentarios$.subscribe(elements => {
       this.dataSource.data = elements;
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-      this.logger.debug(EvaluacionComentariosComponent.name, 'ngOnInit()', 'end');
     }));
+
+    this.dataSource.sortingDataAccessor =
+      (wrapper: StatusWrapper<IComentario>, property: string) => {
+        switch (property) {
+          case 'apartado.bloque':
+            return wrapper.value.apartado?.bloque.nombre;
+          case 'apartado.padre':
+            return this.getApartadoNombre(wrapper.value);
+          case 'apartado':
+            return this.getSubApartadoNombre(wrapper.value);
+          default:
+            return wrapper.value[property];
+        }
+      };
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(EvaluacionComentariosComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
-    this.logger.debug(EvaluacionComentariosComponent.name, 'ngOnDestroy()', 'end');
   }
 
   getApartadoNombre(comentario: IComentario): string {
-    this.logger.debug(EvaluacionComentariosComponent.name, `getApartadoNombre(comentario: ${comentario})`, 'start');
     const nombre = comentario.apartado?.padre ?
       comentario.apartado?.padre?.nombre : comentario.apartado?.nombre;
-    this.logger.debug(EvaluacionComentariosComponent.name, `getApartadoNombre(comentario: ${comentario})`, 'start');
     return nombre;
   }
 
   getSubApartadoNombre(comentario: IComentario): string {
-    this.logger.debug(EvaluacionComentariosComponent.name, `getSubApartadoNombre(comentario: ${comentario})`, 'start');
     const nombre = comentario.apartado?.padre ? comentario.apartado?.nombre : '';
-    this.logger.debug(EvaluacionComentariosComponent.name, `getSubApartadoNombre(comentario: ${comentario})`, 'end');
     return nombre;
   }
 
@@ -94,21 +94,23 @@ export class EvaluacionComentariosComponent extends FragmentComponent implements
    * Abre la ventana modal para añadir un comentario
    */
   openCreateModal(): void {
-    this.logger.debug(EvaluacionComentariosComponent.name, 'abrirModalCrear()', 'start');
+    const evaluacionData: ComentarioModalData = {
+      evaluacion: this.actionService.getEvaluacion(),
+      comentario: undefined
+    };
 
     const config = {
       width: GLOBAL_CONSTANTS.maxWidthModal,
       maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-      data: this.actionService.getEvaluacion(),
+      data: evaluacionData,
       autoFocus: false
     };
-    const dialogRef = this.matDialog.open(ComentarioCrearModalComponent, config);
+    const dialogRef = this.matDialog.open(ComentarioModalComponent, config);
     dialogRef.afterClosed().subscribe(
       (comentario: IComentario) => {
         if (comentario) {
           this.formPart.addComentario(comentario);
         }
-        this.logger.debug(EvaluacionComentariosComponent.name, 'abrirModalCrear()', 'end');
       }
     );
   }
@@ -119,16 +121,20 @@ export class EvaluacionComentariosComponent extends FragmentComponent implements
    * @param comentario Comentario a modificar
    */
   openEditModal(comentario: StatusWrapper<IComentario>): void {
-    this.logger.debug(EvaluacionComentariosComponent.name, 'openEditModal()', 'start');
     const wrapperRef = comentario;
+
+    const evaluacionData: ComentarioModalData = {
+      evaluacion: this.actionService.getEvaluacion(),
+      comentario: wrapperRef.value
+    };
 
     const config = {
       width: GLOBAL_CONSTANTS.maxWidthModal,
       maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-      data: wrapperRef.value,
+      data: evaluacionData,
       autoFocus: false
     };
-    const dialogRef = this.matDialog.open(ComentarioEditarModalComponent, config);
+    const dialogRef = this.matDialog.open(ComentarioModalComponent, config);
     dialogRef.afterClosed().subscribe(
       (resultado: IComentario) => {
         if (resultado) {
@@ -142,7 +148,6 @@ export class EvaluacionComentariosComponent extends FragmentComponent implements
           }
           this.formPart.setChanges(true);
         }
-        this.logger.debug(EvaluacionComentariosComponent.name, 'openEditModal()', 'end');
       }
     );
   }
@@ -153,14 +158,12 @@ export class EvaluacionComentariosComponent extends FragmentComponent implements
    * @param comentario Comentario a eliminar
    */
   deleteComentario(comentario: StatusWrapper<IComentario>) {
-    this.logger.debug(EvaluacionComentariosComponent.name, `eliminarComentario(${comentario})`, 'start');
     this.subscriptions.push(
       this.dialogService.showConfirmation(MSG_DELETE).subscribe(
         (aceptado: boolean) => {
           if (aceptado) {
             this.formPart.deleteComentario(comentario);
           }
-          this.logger.debug(EvaluacionComentariosComponent.name, `eliminarComentario(${comentario})`, 'end');
         }
       )
     );

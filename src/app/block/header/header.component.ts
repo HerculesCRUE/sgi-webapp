@@ -1,8 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
-import { LayoutService } from '@core/services/layout.service';
-import { NGXLogger } from 'ngx-logger';
-import { Subscription } from 'rxjs';
 import { Module } from '@core/module';
+import { LayoutService } from '@core/services/layout.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'sgi-header',
@@ -17,7 +16,6 @@ export class HeaderComponent implements OnDestroy {
   private subscription: Subscription;
 
   constructor(
-    private readonly logger: NGXLogger,
     private readonly layout: LayoutService
   ) {
     this.anchoPantalla = window.innerWidth;
@@ -25,17 +23,6 @@ export class HeaderComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(HeaderComponent.name, 'ngOnDestroy()', 'start');
     this.subscription.unsubscribe();
-    this.logger.debug(HeaderComponent.name, 'ngOnDestroy()', 'end');
-  }
-
-  /**
-   * Cambiar el estado del menú acordeón
-   */
-  toggleSidenav(): void {
-    this.logger.debug(HeaderComponent.name, 'toggleSidenav()', 'start');
-    this.layout.toggleMenu();
-    this.logger.debug(HeaderComponent.name, 'toggleSidenav()', 'end');
   }
 }

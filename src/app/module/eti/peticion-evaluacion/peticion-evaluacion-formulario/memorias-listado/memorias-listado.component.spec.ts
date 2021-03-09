@@ -1,6 +1,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
@@ -14,7 +15,7 @@ describe('MemoriasListadoComponent', () => {
   let component: MemoriasListadoComponent;
   let fixture: ComponentFixture<MemoriasListadoComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [MemoriasListadoComponent],
       imports: [
@@ -25,6 +26,7 @@ describe('MemoriasListadoComponent', () => {
         ReactiveFormsModule,
         RouterTestingModule,
         SgiAuthModule,
+        BrowserAnimationsModule,
         TestUtils.getIdiomas()
       ],
       providers: [

@@ -3,6 +3,18 @@
   <h2>{{'eti.memoria.datosGenerales.title' | translate}}</h2>
   <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
     [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+    <!-- Referencia de la memoria -->
+    <ng-container *ngIf="this.formGroup.controls.numReferencia.value">
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field>
+          <mat-label>{{'eti.memoria.datosGenerales.numReferencia' | translate}}</mat-label>
+          <input type="text" [placeholder]="'eti.memoria.datosGenerales.numReferencia' | translate" arial-label="Number"
+            matInput formControlName="numReferencia">
+        </mat-form-field>
+      </div>
+    </ng-container>
+
     <!-- Comité -->
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
@@ -99,6 +111,9 @@
           <mat-label>{{'eti.memoria.datosGenerales.codigo.organo.competente.titulo' | translate}}</mat-label>
           <input type="text" [placeholder]="'eti.memoria.datosGenerales.codigo.organo.competente.titulo' | translate"
             arial-label="Number" matInput formControlName="codOrganoCompetente">
+          <mat-error *ngIf="formGroup.controls.codOrganoCompetente.hasError('maxlength')">
+            {{'eti.memoria.datosGenerales.codOrganoCompetente.error.maxLength' | translate}}
+          </mat-error>
         </mat-form-field>
       </div>
     </ng-container>

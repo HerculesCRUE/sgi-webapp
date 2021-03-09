@@ -1,0 +1,88 @@
+<div class="modal-proyecto-hitos">
+  <header class="modal-header-material">
+    <h3 mat-dialog-title>{{'csp.proyecto.hitos.modal.titulo' | translate}}</h3>
+  </header>
+  <main>
+
+    <form [formGroup]="formGroup">
+      <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+        [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+        <div [fxFlex.sm]="fxFlexProperties2.sm" [fxFlex.md]="fxFlexProperties2.md"
+          [fxFlex.gt-md]="fxFlexProperties2.gtMd" [fxFlexOrder]="fxFlexProperties2.order">
+          <mat-form-field>
+            <mat-label>{{'csp.proyecto.hitos.tipo.hito' | translate}}</mat-label>
+            <input matInput formControlName="tipoHito" type="text" id="tipoHito"
+              placeholder="{{'csp.proyecto.hitos.tipo.hito' | translate}}" required [matAutocomplete]="auto">
+            <mat-autocomplete #auto="matAutocomplete" [displayWith]="getTipoHito">
+              <mat-option *ngFor="let modeloTipoHito of modeloTiposHito$ | async" [value]="modeloTipoHito.tipoHito">
+                {{modeloTipoHito.tipoHito.nombre}}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="formGroup.controls.tipoHito.errors?.required">
+              {{'csp.proyecto.hitos.tipo.hito.error.vacio' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.tipoHito.errors?.invalid">
+              {{'csp.proyecto.hito.modal.error.invalido' | translate}}
+            </mat-error>
+          </mat-form-field>
+
+        </div>
+      </div>
+
+      <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+        [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+        <!-- Fecha -->
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field color="primary">
+            <mat-label>{{'csp.proyecto.hitos.fecha'| translate}}</mat-label>
+            <input matInput [matDatepicker]="pickerFecha" formControlName="fecha" required>
+            <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFecha"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFecha></mat-datepicker>
+            <mat-error *ngIf="formGroup.controls.fecha.errors?.required">
+              {{'csp.proyecto.hitos.fecha.error.vacio' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.fecha.errors?.notIn">
+              {{'csp.proyecto.hitos.modal.fecha.fechaExistente' | translate}}
+            </mat-error>
+
+          </mat-form-field>
+
+        </div>
+      </div>
+
+      <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+        [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+        <!-- Comentario -->
+        <div [fxFlex.sm]="fxFlexProperties3.sm" [fxFlex.md]="fxFlexProperties3.md"
+          [fxFlex.gt-md]="fxFlexProperties3.gtMd" [fxFlexOrder]="fxFlexProperties3.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.proyecto.hitos.comentario' | translate}}</mat-label>
+            <textarea matInput formControlName="comentario" type="text" id="comentario"
+              placeholder="{{'csp.proyecto.hitos.comentario' | translate}}">
+            </textarea>
+            <mat-error *ngIf="formGroup.get('comentario').errors?.maxlength">
+              {{'csp.proyecto.hitos.modal.comentario.maximo' | translate}}
+            </mat-error>
+          </mat-form-field>
+
+        </div>
+      </div>
+
+      <div [fxLayout]="fxLayoutProperties.layout" class="checkbox">
+        <mat-checkbox color="primary" formControlName="aviso" id="aviso">
+          {{'csp.proyecto.hitos.genera.aviso' | translate}}</mat-checkbox>
+      </div>
+
+    </form>
+  </main>
+
+  <div id="modals-buttons" class="float-right" mat-dialog-actions>
+    <button color="accent" (click)="saveOrUpdate()" md-button mat-raised-button *ngIf="!data.readonly"
+      type="submit">{{textSaveOrUpdate | translate}}</button>
+    <button class="link-cancelar" mat-button (click)="closeModal()" type="button">{{'botones.cancelar' |
+      translate}}</button>
+  </div>
+</div>

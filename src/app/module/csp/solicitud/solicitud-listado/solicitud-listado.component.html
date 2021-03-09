@@ -1,0 +1,368 @@
+<!-- Solicitudes listado -->
+<div class="scrollable-panel-with-footer">
+  <section class="solicitud-listado">
+
+    <!-- Buscador de solicitudes -->
+    <div [ngClass]="busquedaAvanzada ? 'mat-elevation-z8 caja-busqueda-avanzada' : ''">
+      <form [ngClass]="busquedaAvanzada ? '' : 'mat-elevation-z8 formulario'" [formGroup]="formGroup"
+        [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+        fxLayoutGap="fxLayoutProperties.gap">
+
+        <div fxFlex="73%" fxFlex.sm="50%" fxFlex.md="53%" [fxLayout.xs]="fxLayoutProperties.xs"
+          [fxLayout]="fxLayoutProperties.layout" fxLayoutGap="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+          <!-- Referencia convocatoria -->
+          <div class="col">
+            <mat-form-field>
+              <mat-label>{{'csp.solicitud.listado.buscador.referenciaConvocatoria' | translate}}</mat-label>
+              <input matInput type="text"
+                placeholder="{{'csp.solicitud.listado.buscador.referenciaConvocatoria' | translate}}"
+                formControlName="referenciaConvocatoria">
+            </mat-form-field>
+          </div>
+
+          <!-- Estado solicitud -->
+          <div class="col">
+            <mat-form-field>
+              <mat-label>{{'csp.solicitud.listado.buscador.estadoSolicitud' | translate}}</mat-label>
+              <mat-select matNativeControl formControlName="estadoSolicitud">
+                <mat-option [value]="undefined"></mat-option>
+                <mat-option *ngFor="let estado of ESTADO_MAP | keyvalue" [value]="estado.key">
+                  {{ estado.value | translate}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="buttons-final" *ngIf="!busquedaAvanzada">
+          <div class="col filter-button">
+            <button color="primary" aria-label="Center Align" md-button mat-raised-button (click)="onSearch()">
+              <mat-icon>search</mat-icon> {{'botones.buscar'| translate}}
+            </button>
+            <button class="link-busqueda underline" aria-label="Center Align" md-button mat-button
+              (click)="toggleBusquedaAvanzada()">
+              {{'botones.busqueda.avanzada'| translate}}
+            </button>
+            <button color="warn" class="md-primary" aria-label="Center Align" md-button (click)="onClearFilters()"
+              mat-button>{{'botones.limpiar'| translate}}
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <form *ngIf="busquedaAvanzada" [ngClass]="busquedaAvanzada ? 'busqueda-avanzada' : ''" [formGroup]="formGroup">
+        <div class="mat-form-field-wrapper ml-10" [fxLayout.xs]="fxLayoutProperties.xs"
+          [fxLayout]="fxLayoutProperties.layout" [fxLayoutGap]="fxLayoutProperties.gap">
+
+          <!-- plazoAbierto -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-checkbox color="primary" formControlName="plazoAbierto">{{'csp.solicitud.plazo.abierto' | translate}}
+            </mat-checkbox>
+          </div>
+
+        </div>
+
+
+        <div class="fieldset-form" *ngIf="formGroup.controls.plazoAbierto.value">
+          {{'csp.solicitud.plazo.presentacion.solicitudes' | translate}}
+        </div>
+
+        <div class="ml-10" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" *ngIf="formGroup.controls.plazoAbierto.value">
+
+          <!-- fechaInicioDesde -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class=" input-form">
+              <mat-label>{{'csp.solicitud.fecha.inicio.desde' | translate}}</mat-label>
+              <input matInput formControlName="fechaInicioDesde" [matDatepicker]="fechaInicioDesde">
+              <mat-datepicker-toggle matSuffix [for]="fechaInicioDesde"></mat-datepicker-toggle>
+              <mat-datepicker #fechaInicioDesde></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <!-- fechaInicioHasta -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.solicitud.fecha.inicio.hasta' | translate}}</mat-label>
+              <input matInput formControlName="fechaInicioHasta" [matDatepicker]="fechaInicioHasta">
+              <mat-datepicker-toggle matSuffix [for]="fechaInicioHasta"></mat-datepicker-toggle>
+              <mat-datepicker #fechaInicioHasta></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <!-- fechaFinDesde -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.solicitud.fecha.fin.desde' | translate}}</mat-label>
+              <input matInput formControlName="fechaFinDesde" [matDatepicker]="fechaFinDesde">
+              <mat-datepicker-toggle matSuffix [for]="fechaFinDesde"></mat-datepicker-toggle>
+              <mat-datepicker #fechaFinDesde></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <!-- fechaFinHasta -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.solicitud.fecha.fin.hasta' | translate}}</mat-label>
+              <input matInput formControlName="fechaFinHasta" [matDatepicker]="fechaFinHasta">
+              <mat-datepicker-toggle matSuffix [for]="fechaFinHasta"></mat-datepicker-toggle>
+              <mat-datepicker #fechaFinHasta></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+        </div>
+
+        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+          <!-- solicitante -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field fxFill>
+              <mat-label>{{'csp.solicitud.solicitante' | translate}}</mat-label>
+              <sgi-select-persona placeholder="{{'csp.solicitud.solicitante' | translate}}"
+                formControlName="solicitante">
+              </sgi-select-persona>
+            </mat-form-field>
+          </div>
+
+          <!-- activo -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field>
+              <mat-label>{{'csp.solicitud.activo' | translate}}</mat-label>
+              <mat-select matNativeControl formControlName="activo">
+                <mat-option value="{{undefined}}">{{'label.todos' | translate}}</mat-option>
+                <mat-option value="{{true}}">{{'label.si' | translate}}</mat-option>
+                <mat-option value="{{false}}">{{'label.no' | translate}}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+        </div>
+
+        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+          <!-- añoConvocatoria -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.solicitud.año.convocatoria' | translate}}</mat-label>
+              <input matInput formControlName="añoConvocatoria" type="number" id="añoConvocatoria" min="1900"
+                placeholder="{{'csp.solicitud.año.convocatoria' | translate}}">
+            </mat-form-field>
+          </div>
+
+          <!-- tituloConvocatoria -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.solicitud.titulo.convocatoria' | translate}}</mat-label>
+              <input matInput formControlName="tituloConvocatoria" type="text" id="tituloConvocatoria"
+                placeholder="{{'csp.solicitud.titulo.convocatoria' | translate}}">
+            </mat-form-field>
+          </div>
+
+        </div>
+
+        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+          <!-- Entidad convocantes -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.solicitud.entidad.convocante' | translate}}</mat-label>
+              <sgi-select-empresa-economica placeholder="{{'csp.solicitud.entidad.convocante' | translate}}"
+                formControlName="entidadConvocante">
+              </sgi-select-empresa-economica>
+            </mat-form-field>
+          </div>
+
+          <!-- Plan de investigacion -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.solicitud.plan.investigacion' | translate}}</mat-label>
+              <input matInput formControlName="planInvestigacion" type="text" id="planInvestigacion"
+                placeholder="{{'csp.solicitud.plan.investigacion' | translate}}" [matAutocomplete]="planInvestigacion">
+              <mat-autocomplete #planInvestigacion="matAutocomplete" [displayWith]="getPlanInvestigacion">
+                <mat-option *ngFor="let planInvestigacion of planInvestigaciones$ | async" [value]="planInvestigacion">
+                  {{planInvestigacion.nombre}}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+        </div>
+
+        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+          <!-- Entidad financiadora -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.solicitud.entidad.financiadora' | translate}}</mat-label>
+              <sgi-select-empresa-economica placeholder="{{'csp.solicitud.entidad.financiadora' | translate}}"
+                formControlName="entidadFinanciadora">
+              </sgi-select-empresa-economica>
+            </mat-form-field>
+          </div>
+
+          <!-- Fuente financiacion -->
+          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
+            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
+            <mat-form-field class="input-form">
+              <mat-label>{{'csp.solicitud.fuente.financiacion' | translate}}</mat-label>
+              <input matInput formControlName="fuenteFinanciacion" type="text" id="fuente"
+                placeholder="{{'csp.solicitud.fuente.financiacion' | translate}}" [matAutocomplete]="fuente">
+              <mat-autocomplete #fuente="matAutocomplete" [displayWith]="getFuenteFinanciacion">
+                <mat-option *ngFor="let fuente of fuenteFinanciacion$ | async" [value]="fuente">
+                  {{fuente.nombre}}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="buttons-final">
+          <div class="col filter-button">
+            <button color="primary" aria-label="Center Align" md-button mat-raised-button (click)="onSearch()">
+              <mat-icon>search</mat-icon> {{'botones.buscar'| translate}}
+            </button>
+            <button class="link-busqueda underline" aria-label="Center Align" md-button mat-button
+              (click)="toggleBusquedaAvanzada()">
+              {{'botones.busqueda.simple'| translate}}
+            </button>
+            <button color="warn" class="md-primary" aria-label="Center Align" md-button (click)="onClearFilters()"
+              mat-button>{{'botones.limpiar'| translate}}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tabla solicitudes -->
+    <table class="mat-elevation-z8 table-solicitud" mat-table [dataSource]="solicitudes$ | async" matSort
+      matSortActive="id" matSortDirection="asc" matSortDisableClear>
+
+      <!-- Referencia convocatoria Column -->
+      <ng-container matColumnDef="referencia">
+        <th mat-header-cell *matHeaderCellDef>
+          {{'csp.solicitud.listado.referencia' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.convocatoria ? element.convocatoria.codigo : element.convocatoriaExterna}}
+        </td>
+      </ng-container>
+
+      <!-- Titulo convocatoria Column -->
+      <ng-container matColumnDef="convocatoria.titulo">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'csp.solicitud.listado.convocatoriaTitulo' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.convocatoria?.titulo}}
+        </td>
+      </ng-container>
+
+      <!-- Codigo solicitud Column -->
+      <ng-container matColumnDef="codigoRegistroInterno">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'csp.solicitud.listado.codigoSolicitud' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.codigoRegistroInterno}}
+        </td>
+      </ng-container>
+
+      <!-- Solicitante Column -->
+      <ng-container matColumnDef="solicitante">
+        <th mat-header-cell *matHeaderCellDef>
+          {{'csp.solicitud.listado.solicitante' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.solicitante?.nombre }} {{ element.solicitante?.primerApellido }}
+          {{ element.solicitante?.segundoApellido }}
+        </td>
+      </ng-container>
+
+      <!-- Estado solicitud Column -->
+      <ng-container matColumnDef="estado.estado">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'csp.solicitud.listado.estadoSolicitud' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let element">
+          {{ESTADO_MAP.get(element.estado.estado) | translate}}
+        </td>
+      </ng-container>
+
+      <!-- Fecha estado Column -->
+      <ng-container matColumnDef="estado.fechaEstado">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'csp.solicitud.listado.fechaEstado' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.estado?.fechaEstado | date:'dd/MM/yyyy HH:mm' }}
+        </td>
+      </ng-container>
+
+      <!-- Activo Column -->
+      <ng-container matColumnDef="activo">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'csp.solicitud.listado.activo' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let element">
+          {{element.activo ? ('label.si' | translate) : 'label.no' | translate }}
+        </td>
+      </ng-container>
+
+
+      <!-- Acciones Column -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef> {{'csp.solicitud.listado.acciones' | translate}} </th>
+        <td mat-cell *matCellDef="let element">
+          <ng-container>
+            <button mat-button matTooltip="{{'botones.ver' | translate}}" *ngIf="!mapModificable.get(element.id)"
+              [routerLink]="[element.id]">
+              <mat-icon color="primary">visibility</mat-icon>
+            </button>
+            <button *ngIf="mapModificable.get(element.id)" mat-button matTooltip="{{'botones.editar' | translate}}"
+              [routerLink]="[element.id]">
+              <mat-icon color="primary">border_color</mat-icon>
+            </button>
+            <button *ngIf="mapModificable.get(element.id) && element.activo === true" mat-button
+              matTooltip="{{'botones.borrar' | translate}}" (click)="deactivateSolicitud(element)">
+              <mat-icon color="warn">highlight_off</mat-icon>
+            </button>
+            <button *ngIf="element.activo === false" mat-button matTooltip="{{'botones.reactivar' | translate}}"
+              (click)="activateSolicitud(element)">
+              <mat-icon color="accent">add_circle_outline</mat-icon>
+            </button>
+            <button color="primary" aria-label="Center Align" md-button mat-raised-button
+              *ngIf="mapCrearProyecto.get(element.id)" (click)="crearProyectoModal(element)">
+              {{'csp.solicitud.listado.crear.proyecto' | translate}}
+            </button>
+          </ng-container>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+      <tr mat-row *matRowDef="let row; columns: columnas;"></tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="elementosPagina" [length]="totalElementos" showFirstLastButtons>
+    </mat-paginator>
+  </section>
+
+</div>
+
+<sgi-footer-crear [texto]="textoCrear" [route]="ROUTE_NAMES.NEW">
+</sgi-footer-crear>

@@ -5,15 +5,15 @@
       matSortDisableClear>
 
       <!-- Memoria -->
-      <ng-container matColumnDef="referencia">
-        <th mat-header-cell *matHeaderCellDef>
+      <ng-container matColumnDef="numReferencia">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
           {{'eti.convocatoriaReunion.formulario.asignacionMemorias.memoria' | translate}} </th>
         <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.memoria.numReferencia}} </td>
       </ng-container>
 
       <!-- Evaluador 1 -->
-      <ng-container matColumnDef="version">
-        <th mat-header-cell *matHeaderCellDef>
+      <ng-container matColumnDef="evaluador1">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
           {{'eti.convocatoriaReunion.formulario.asignacionMemorias.evaluador1' | translate}}
         </th>
         <td mat-cell *matCellDef="let wrapper">
@@ -23,8 +23,8 @@
       </ng-container>
 
       <!-- Evaluador 2 -->
-      <ng-container matColumnDef="dictamen.nombre">
-        <th mat-header-cell *matHeaderCellDef>
+      <ng-container matColumnDef="evaluador2">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
           {{'eti.convocatoriaReunion.formulario.asignacionMemorias.evaluador2' | translate}}
         </th>
         <td mat-cell *matCellDef="let wrapper">
@@ -54,8 +54,7 @@
     </table>
     <!-- Botón asignacion memoria -->
     <div class="separation-button">
-      <button mat-button color="three" [disabled]="disableAsignarMemorias" (click)="openDialogAsignarMemoria()"
-        mat-button>
+      <button mat-raised-button color="three" [disabled]="disableAsignarMemorias" (click)="openDialogAsignarMemoria()">
         <mat-icon>add_box</mat-icon>
         {{'eti.convocatoriaReunion.formulario.asignacionMemorias.nuevaMemoria' | translate}}
       </button>

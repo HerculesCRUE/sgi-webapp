@@ -1,5 +1,5 @@
 import { NestedTreeControl } from '@angular/cdk/tree';
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -19,7 +19,8 @@ import { catchError, map, mergeMap, switchMap, takeLast, tap } from 'rxjs/operat
 import { AreaTematicaData } from '../../convocatoria-formulario/convocatoria-datos-generales/convocatoria-datos-generales.fragment';
 
 const MSG_ERROR_AREA_TEMATICA = marker('csp.convocatoria.area.tematica.modal.error.areas');
-
+const MSG_ANADIR = marker('botones.aniadir');
+const MSG_ACEPTAR = marker('botones.aceptar');
 class NodeAreaTematica {
   parent: NodeAreaTematica;
   areaTematica: StatusWrapper<IAreaTematica>;
@@ -77,18 +78,19 @@ export class ConvocatoriaAreaTematicaModalComponent extends
   dataSource = new MatTreeNestedDataSource<NodeAreaTematica>();
   private nodeMap = new Map<number, NodeAreaTematica>();
 
+  textSaveOrUpdate: string;
+
   checkedNode: NodeAreaTematica;
   hasChild = (_: number, node: NodeAreaTematica) => node.childs.length > 0;
 
   constructor(
-    protected logger: NGXLogger,
+    private readonly logger: NGXLogger,
     protected snackBarService: SnackBarService,
     public matDialogRef: MatDialogRef<ConvocatoriaAreaTematicaModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: AreaTematicaData,
     private areaTematicaService: AreaTematicaService
   ) {
-    super(logger, snackBarService, matDialogRef, data);
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name, 'constructor()', 'start');
+    super(snackBarService, matDialogRef, data);
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(100%-10px)';
     this.fxFlexProperties.md = '0 1 calc(100%-10px)';
@@ -98,53 +100,42 @@ export class ConvocatoriaAreaTematicaModalComponent extends
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row';
     this.fxLayoutProperties.xs = 'row';
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.loadAreasTematicas();
     this.loadTreeAreaTematica();
     const subscription = this.formGroup.get('padre').valueChanges.pipe(
       tap(() => this.loadTreeAreaTematica())
     ).subscribe();
+    this.textSaveOrUpdate = this.data.convocatoriaAreaTematica.value.areaTematica?.padre ? MSG_ACEPTAR : MSG_ANADIR;
     this.subscriptions.push(subscription);
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name, 'ngOnInit()', 'end');
   }
 
   protected getFormGroup(): FormGroup {
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name, `getFormGroup()`, 'start');
     const formGroup = new FormGroup({
       padre: new FormControl(this.data.padre, [Validators.required, IsEntityValidator.isValid()]),
       observaciones: new FormControl(this.data.observaciones, Validators.maxLength(2000))
     });
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name, `getFormGroup()`, 'end');
     return formGroup;
   }
 
   protected getDatosForm(): AreaTematicaData {
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name, `getDatosForm()`, 'start');
     const data = this.data.convocatoriaAreaTematica.value;
     const padre = this.formGroup.get('padre').value;
     const areaTematica = this.checkedNode?.areaTematica?.value;
     data.areaTematica = areaTematica ? areaTematica : padre;
     data.observaciones = this.formGroup.get('observaciones').value;
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name, `getDatosForm()`, 'end');
     return this.data;
   }
 
   private loadAreasTematicas(): void {
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name,
-      `loadAreasTematicas()`, 'start');
     this.areasTematicas$ = this.areaTematicaService.findAllGrupo().pipe(
       map(res => res.items),
-      tap(() => this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name,
-        `loadAreasTematicas()`, 'end')),
       catchError(error => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR_AREA_TEMATICA);
-        this.logger.error(ConvocatoriaAreaTematicaModalComponent.name,
-          `loadAreasTematicas()`, error);
         return of([]);
       })
     );
@@ -155,8 +146,6 @@ export class ConvocatoriaAreaTematicaModalComponent extends
   }
 
   private loadTreeAreaTematica() {
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name,
-      `loadTreeAreaTematica()`, 'start');
     this.areaTematicaTree$.next([]);
     this.nodeMap.clear();
     const padre = this.formGroup.get('padre').value;
@@ -182,12 +171,9 @@ export class ConvocatoriaAreaTematicaModalComponent extends
             if (this.checkedNode) {
               this.expandNodes(this.checkedNode);
             }
-            this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name,
-              `loadTreeAreaTematica()`, 'end');
           },
           (error) => {
-            this.logger.error(ConvocatoriaAreaTematicaModalComponent.name,
-              `loadTreeAreaTematica()`, error);
+            this.logger.error(error);
           }
         );
         this.subscriptions.push(susbcription);
@@ -196,19 +182,13 @@ export class ConvocatoriaAreaTematicaModalComponent extends
   }
 
   private expandNodes(node: NodeAreaTematica) {
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name,
-      `expandNodes(node: ${node})`, 'start');
     if (node && node.parent) {
       this.treeControl.expand(node.parent);
       this.expandNodes(node.parent);
     }
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name,
-      `expandNodes(node: ${node})`, 'start');
   }
 
   private getChilds(parent: NodeAreaTematica): Observable<NodeAreaTematica[]> {
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name,
-      `getChilds(parent: ${parent})`, 'start');
     return this.areaTematicaService.findAllHijosArea(parent.areaTematica.value.id).pipe(
       map((result) => {
         const childs: NodeAreaTematica[] = result.items.map(
@@ -234,14 +214,11 @@ export class ConvocatoriaAreaTematicaModalComponent extends
           return of([]);
         }
       }),
-      takeLast(1),
-      tap(() => this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name,
-        `getChilds(parent: ${parent})`, 'end'))
+      takeLast(1)
     );
   }
 
   private publishNodes(rootNodes?: NodeAreaTematica[]) {
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name, `publishNodes()`, 'start');
     let nodes = rootNodes ? rootNodes : this.areaTematicaTree$.value;
     nodes = sortByName(nodes);
     this.areaTematicaTree$.next(nodes);
@@ -250,14 +227,9 @@ export class ConvocatoriaAreaTematicaModalComponent extends
         this.dataSource.data = areaTematicas;
       }
     );
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name, `publishNodes()`, 'end');
   }
 
   onCheckNode(node: NodeAreaTematica, $event: MatCheckboxChange): void {
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name,
-      `onCheckNode(node: ${node}, $event: ${$event})`, 'start');
     this.checkedNode = $event.checked ? node : undefined;
-    this.logger.debug(ConvocatoriaAreaTematicaModalComponent.name,
-      `onCheckNode(node: ${node}, $event: ${$event})`, 'end');
   }
 }

@@ -1,5 +1,5 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { ConceptoGastoListadoComponent } from './concepto-gasto-listado.component';
 import { LoggerTestingModule } from 'ngx-logger/testing';
 import { MaterialDesignModule } from '@material/material-design.module';
@@ -13,7 +13,7 @@ describe('ConceptoGastoListadoComponent', () => {
   let component: ConceptoGastoListadoComponent;
   let fixture: ComponentFixture<ConceptoGastoListadoComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         LoggerTestingModule,

@@ -3,8 +3,9 @@
     matSortActive="id" matSortDirection="asc" matSortDisableClear>
 
     <!-- Persona nombre y apellidos -->
-    <ng-container matColumnDef="equipoTrabajo.nombre">
-      <th mat-header-cell *matHeaderCellDef> {{'eti.peticionEvaluacion.tareas.listado.persona' | translate}}
+    <ng-container matColumnDef="nombreCompleto">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'eti.peticionEvaluacion.tareas.listado.persona' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.equipoTrabajo.nombre}}
         {{wrapper.value.equipoTrabajo.primerApellido}}
@@ -12,8 +13,9 @@
     </ng-container>
 
     <!-- Referencia memoria Column -->
-    <ng-container matColumnDef="memoria.numRerecencia">
-      <th mat-header-cell *matHeaderCellDef> {{'eti.peticionEvaluacion.tareas.listado.refMemoria' | translate}}
+    <ng-container matColumnDef="numReferencia">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'eti.peticionEvaluacion.tareas.listado.refMemoria' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.memoria.numReferencia}} </td>
     </ng-container>
@@ -28,7 +30,7 @@
     </ng-container>
 
     <!-- Formacion específica Column -->
-    <ng-container matColumnDef="formacionEspecifica.nombre">
+    <ng-container matColumnDef="formacionEspecifica">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         {{'eti.peticionEvaluacion.tareas.listado.formacionEspecifica' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper">
@@ -66,10 +68,12 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
+  <mat-paginator [pageSizeOptions]="elementosPagina" showFirstLastButtons>
+  </mat-paginator>
   <!-- Botón añadir petición de evaluación -->
   <div class="separation-button">
     <button color="three" *sgiHasAnyAuthorityForAnyUO="['ETI-PEV-C-INV', 'ETI-PEV-ER-INV']"
-      (click)="openModalAddTarea()" mat-button>
+      (click)="openModalAddTarea()" mat-raised-button>
       <mat-icon>add_box</mat-icon>
       {{'eti.peticionEvaluacion.formulario.tareas.listado.nuevaTarea' | translate}}
     </button>

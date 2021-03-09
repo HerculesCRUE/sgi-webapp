@@ -1,17 +1,17 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-
-import { NGXLogger } from 'ngx-logger';
-
-import { ActionComponent } from '@core/component/action.component';
+import { ActivatedRoute, Router } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-
-import { ConvocatoriaActionService } from '../convocatoria.action.service';
-
-import { CONVOCATORIA_ROUTE_NAMES } from '../convocatoria-route-names';
-
+import { ActionComponent } from '@core/component/action.component';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
+import { NGXLogger } from 'ngx-logger';
+import { CONVOCATORIA_ROUTE_NAMES } from '../convocatoria-route-names';
+import { ConvocatoriaActionService } from '../convocatoria.action.service';
+
+
+
+
+
 
 
 const MSG_BUTTON_SAVE = marker('botones.guardar');
@@ -48,7 +48,8 @@ export class ConvocatoriaCrearComponent extends ActionComponent implements OnIni
   saveOrUpdate(): void {
     this.actionService.saveOrUpdate().subscribe(
       () => { },
-      () => {
+      (error) => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR);
       },
       () => {

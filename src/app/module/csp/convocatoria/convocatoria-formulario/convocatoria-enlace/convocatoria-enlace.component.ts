@@ -1,19 +1,18 @@
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
-import { MatSort } from '@angular/material/sort';
-import { MatPaginator } from '@angular/material/paginator';
-import { NGXLogger } from 'ngx-logger';
-import { IConvocatoriaEnlace } from '@core/models/csp/convocatoria-enlace';
-import { ConvocatoriaActionService } from '../../convocatoria.action.service';
-import { FragmentComponent } from '@core/component/fragment.component';
-import { StatusWrapper } from '@core/utils/status-wrapper';
-import { ConvocatoriaEnlaceFragment } from './convocatoria-enlace.fragment';
-import { Subscription } from 'rxjs';
-import { MatTableDataSource } from '@angular/material/table';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
-import { ConvocatoriaEnlaceModalComponent, ConvocatoriaEnlaceModalComponentData } from '../../modals/convocatoria-enlace-modal/convocatoria-enlace-modal.component';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { DialogService } from '@core/services/dialog.service';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { FragmentComponent } from '@core/component/fragment.component';
+import { IConvocatoriaEnlace } from '@core/models/csp/convocatoria-enlace';
+import { DialogService } from '@core/services/dialog.service';
+import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
+import { StatusWrapper } from '@core/utils/status-wrapper';
+import { Subscription } from 'rxjs';
+import { ConvocatoriaActionService } from '../../convocatoria.action.service';
+import { ConvocatoriaEnlaceModalComponent, ConvocatoriaEnlaceModalComponentData } from '../../modals/convocatoria-enlace-modal/convocatoria-enlace-modal.component';
+import { ConvocatoriaEnlaceFragment } from './convocatoria-enlace.fragment';
 
 const MSG_DELETE = marker('csp.convocatoria.enlace.listado.borrar');
 
@@ -23,35 +22,28 @@ const MSG_DELETE = marker('csp.convocatoria.enlace.listado.borrar');
   styleUrls: ['./convocatoria-enlace.component.scss']
 })
 export class ConvocatoriaEnlaceComponent extends FragmentComponent implements OnInit, OnDestroy {
-
-  private formPart: ConvocatoriaEnlaceFragment;
+  formPart: ConvocatoriaEnlaceFragment;
   private subscriptions: Subscription[] = [];
-  public disableAddEnlace = true;
+  disableAddEnlace = true;
 
-  totalElementos: number;
-  elementosPagina: number[] = [5, 10, 25, 100];
-  displayedColumns: string[] = ['url', 'descripcion', 'tipoEnlace', 'acciones'];
+  elementosPagina = [5, 10, 25, 100];
+  displayedColumns = ['url', 'descripcion', 'tipoEnlace', 'acciones'];
 
-  dataSource: MatTableDataSource<StatusWrapper<IConvocatoriaEnlace>> = new MatTableDataSource<StatusWrapper<IConvocatoriaEnlace>>();
+  dataSource = new MatTableDataSource<StatusWrapper<IConvocatoriaEnlace>>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
-    protected readonly logger: NGXLogger,
     private actionService: ConvocatoriaActionService,
     private matDialog: MatDialog,
-    private readonly dialogService: DialogService
+    private dialogService: DialogService,
   ) {
     super(actionService.FRAGMENT.ENLACES, actionService);
-    this.logger.debug(ConvocatoriaEnlaceComponent.name, 'constructor()', 'start');
     this.formPart = this.fragment as ConvocatoriaEnlaceFragment;
-    this.logger.debug(ConvocatoriaEnlaceComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(ConvocatoriaEnlaceComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
-    this.totalElementos = 0;
     this.dataSource.paginator = this.paginator;
     this.dataSource.sortingDataAccessor =
       (wrapper: StatusWrapper<IConvocatoriaEnlace>, property: string) => {
@@ -70,7 +62,6 @@ export class ConvocatoriaEnlaceComponent extends FragmentComponent implements On
     this.dataSource.sort = this.sort;
     this.subscriptions.push(this.formPart.enlace$.subscribe(elements => {
       this.dataSource.data = elements;
-      this.logger.debug(ConvocatoriaEnlaceComponent.name, 'ngOnInit()', 'end');
     }));
   }
 
@@ -79,30 +70,38 @@ export class ConvocatoriaEnlaceComponent extends FragmentComponent implements On
    * @param wrapper convocatoria enlace
    */
   openModal(wrapper?: StatusWrapper<IConvocatoriaEnlace>): void {
-    this.logger.debug(ConvocatoriaEnlaceComponent.name, `${this.openModal.name}()`, 'start');
-    const datosEnlace = {
-      enlace: wrapper ? wrapper.value : {} as IConvocatoriaEnlace,
-      idModeloEjecucion: this.actionService.modeloEjecucionId
-    } as ConvocatoriaEnlaceModalComponentData;
+    const enlace: IConvocatoriaEnlace = {
+      activo: true,
+      convocatoria: undefined,
+      descripcion: undefined,
+      id: undefined,
+      tipoEnlace: undefined,
+      url: undefined
+    };
+    const data: ConvocatoriaEnlaceModalComponentData = {
+      enlace: wrapper ? wrapper.value : enlace,
+      idModeloEjecucion: this.actionService.modeloEjecucionId,
+      selectedUrls: this.formPart.getSelectedUrls(),
+      readonly: this.formPart.readonly
+    };
     const config = {
       width: GLOBAL_CONSTANTS.widthModalCSP,
       maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-      data: datosEnlace
+      data
     };
     const dialogRef = this.matDialog.open(ConvocatoriaEnlaceModalComponent, config);
     dialogRef.afterClosed().subscribe(
-      (convocatoriaEnlace: IConvocatoriaEnlace) => {
-        if (convocatoriaEnlace) {
+      (result: ConvocatoriaEnlaceModalComponentData) => {
+        if (result) {
           if (wrapper) {
             if (!wrapper.created) {
               wrapper.setEdited();
             }
             this.formPart.setChanges(true);
           } else {
-            this.formPart.addEnlace(convocatoriaEnlace);
+            this.formPart.addEnlace(result.enlace);
           }
         }
-        this.logger.debug(ConvocatoriaEnlaceModalComponent.name, `${this.openModal.name}()`, 'end');
       }
     );
   }
@@ -111,25 +110,19 @@ export class ConvocatoriaEnlaceComponent extends FragmentComponent implements On
    * Desactivar convocatoria enlace
    */
   deleteEnlace(wrapper: StatusWrapper<IConvocatoriaEnlace>) {
-    this.logger.debug(ConvocatoriaEnlaceModalComponent.name,
-      `${this.deleteEnlace.name}(${wrapper})`, 'start');
     this.subscriptions.push(
       this.dialogService.showConfirmation(MSG_DELETE).subscribe(
-        (aceptado: boolean) => {
+        (aceptado) => {
           if (aceptado) {
             this.formPart.deleteEnlace(wrapper);
           }
-          this.logger.debug(ConvocatoriaEnlaceModalComponent.name,
-            `${this.deleteEnlace.name}(${wrapper})`, 'end');
         }
       )
     );
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(ConvocatoriaEnlaceComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
-    this.logger.debug(ConvocatoriaEnlaceComponent.name, 'ngOnDestroy()', 'end');
   }
 
 }

@@ -12,7 +12,6 @@ import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-pro
 import { DialogService } from '@core/services/dialog.service';
 import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { NGXLogger } from 'ngx-logger';
 import { Subscription } from 'rxjs';
 import { ModeloEjecucionTipoHitoModalComponent, ModeloEjecucionTipoHitoModalData } from '../../modals/modelo-ejecucion-tipo-hito-modal/modelo-ejecucion-tipo-hito-modal.component';
 import { ModeloEjecucionActionService } from '../../modelo-ejecucion.action.service';
@@ -41,13 +40,11 @@ export class ModeloEjecucionTipoHitoComponent extends FragmentComponent implemen
   fxLayoutProperties: FxLayoutProperties;
 
   constructor(
-    protected readonly logger: NGXLogger,
     private readonly dialogService: DialogService,
     private matDialog: MatDialog,
     actionService: ModeloEjecucionActionService
   ) {
     super(actionService.FRAGMENT.TIPO_HITOS, actionService);
-    this.logger.debug(ModeloEjecucionTipoHitoComponent.name, 'constructor()', 'start');
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -59,12 +56,10 @@ export class ModeloEjecucionTipoHitoComponent extends FragmentComponent implemen
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
     this.formPart = this.fragment as ModeloEjecucionTipoHitoFragment;
-    this.logger.debug(ModeloEjecucionTipoHitoComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
     super.ngOnInit();
-    this.logger.debug(ModeloEjecucionTipoHitoComponent.name, 'ngOnInit()', 'start');
     const subscription = this.formPart.modeloTipoHito$.subscribe(
       (wrappers: StatusWrapper<IModeloTipoHito>[]) => {
         this.modelosTipoHitos.data = wrappers;
@@ -79,22 +74,23 @@ export class ModeloEjecucionTipoHitoComponent extends FragmentComponent implemen
             return wrapper.value.tipoHito.nombre;
           case 'descripcion':
             return wrapper.value.tipoHito.descripcion;
-          case 'activo':
-            return wrapper.value.tipoHito.activo;
+          case 'convocatorias':
+            return wrapper.value.convocatoria;
+          case 'solicitudes':
+            return wrapper.value.solicitud;
+          case 'proyectos':
+            return wrapper.value.proyecto;
           default:
             return wrapper[property];
         }
       };
     this.modelosTipoHitos.sort = this.sort;
-    this.logger.debug(ModeloEjecucionTipoHitoComponent.name, 'ngOnInit()', 'end');
   }
 
   /**
    * Abre el modal para crear/modificar
    */
   openModal(statusWrapper?: StatusWrapper<IModeloTipoHito>): void {
-    this.logger.debug(ModeloEjecucionTipoHitoComponent.name,
-      `${this.openModal.name}(modeloTipoHito?: ${JSON.stringify(statusWrapper)})`, 'start');
     const modeloTipoHito = {
       activo: true,
       convocatoria: false,
@@ -127,32 +123,24 @@ export class ModeloEjecucionTipoHitoComponent extends FragmentComponent implemen
             this.formPart.addModeloTipoHito(result);
           }
         }
-        this.logger.debug(ModeloEjecucionTipoHitoComponent.name,
-          `${this.openModal.name}(modeloTipoHito?: ${JSON.stringify(statusWrapper)})`, 'end');
       }
     );
   }
 
   deleteModeloTipoHito(wrapper: StatusWrapper<IModeloTipoHito>) {
-    this.logger.debug(ModeloEjecucionTipoHitoComponent.name,
-      `${this.deleteModeloTipoHito.name}(${wrapper})`, 'start');
     this.subscriptions.push(
       this.dialogService.showConfirmation(MSG_DELETE).subscribe(
         (aceptado: boolean) => {
           if (aceptado) {
             this.formPart.deleteModeloTipoHito(wrapper);
           }
-          this.logger.debug(ModeloEjecucionTipoHitoComponent.name,
-            `${this.deleteModeloTipoHito.name}(${wrapper})`, 'end');
         }
       )
     );
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(ModeloEjecucionTipoHitoComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
-    this.logger.debug(ModeloEjecucionTipoHitoComponent.name, 'ngOnDestroy()', 'end');
   }
 
 }

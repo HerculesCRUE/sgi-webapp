@@ -1,0 +1,69 @@
+<section class="solicitud-equipo-proyecto">
+  <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSource" matSort matSortActive="id"
+    matSortDirection="asc" matSortDisableClear>
+
+    <!-- Persona Column -->
+    <ng-container matColumnDef="persona">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.solicitud.proyecto.socio.equipo.listado.persona' |
+        translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.persona.personaRef}} </td>
+    </ng-container>
+
+    <!-- Nombre Column -->
+    <ng-container matColumnDef="nombre">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.solicitud.proyecto.socio.equipo.listado.nombre' |
+        translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.persona.nombre}} </td>
+    </ng-container>
+
+    <!-- Apellidos Column -->
+    <ng-container matColumnDef="apellidos">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.solicitud.proyecto.socio.equipo.listado.apellidos' |
+        translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.persona.primerApellido}}
+        {{wrapper.value.persona.segundoApellido}}</td>
+    </ng-container>
+
+    <!-- Rol de proyecto Column -->
+    <ng-container matColumnDef="rolProyecto">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.solicitud.proyecto.socio.equipo.listado.rolProyecto'
+        | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.rolProyecto.nombre | translate}}
+      </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'csp.solicitud.proyecto.socio.equipo.listado.acciones' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.ver' | translate}}" (click)="openModal(wrapper)"
+            *ngIf="this.formPart.readonly">
+            <mat-icon color="primary">visibility</mat-icon>
+          </button>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModal(wrapper)"
+            *ngIf="!this.formPart.readonly">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deleteProyectoEquipo(wrapper)"
+            *ngIf="!this.formPart.readonly">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+  <div class="separation-button" *ngIf="!this.formPart.readonly">
+    <button color="three" mat-button mat-raised-button (click)="openModal()">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.solicitud.proyecto.socio.equipo.añadir' | translate}}
+    </button>
+  </div>
+</section>

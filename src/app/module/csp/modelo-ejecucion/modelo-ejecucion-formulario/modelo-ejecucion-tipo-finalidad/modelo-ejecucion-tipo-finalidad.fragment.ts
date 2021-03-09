@@ -5,7 +5,6 @@ import { ModeloEjecucionService } from '@core/services/csp/modelo-ejecucion.serv
 import { ModeloTipoFinalidadService } from '@core/services/csp/modelo-tipo-finalidad.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { SgiRestListResult } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
 import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
 import { ModeloEjecucionActionService } from '../../modelo-ejecucion.action.service';
@@ -15,20 +14,16 @@ export class ModeloEjecucionTipoFinalidadFragment extends Fragment {
   modeloTipoFinalidadEliminados: StatusWrapper<IModeloTipoFinalidad>[] = [];
 
   constructor(
-    private readonly logger: NGXLogger,
     key: number,
     private modeloEjecucionService: ModeloEjecucionService,
     private modeloTipoFinalidadService: ModeloTipoFinalidadService,
     actionService: ModeloEjecucionActionService,
   ) {
     super(key);
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name, 'constructor()', 'start');
     this.setComplete(true);
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name, 'constructor()', 'end');
   }
 
   protected onInitialize(): void {
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name, `${this.onInitialize.name}()`, 'start');
     if (this.getKey()) {
       this.modeloEjecucionService.findModeloTipoFinalidad(this.getKey() as number).pipe(
         map((response: SgiRestListResult<IModeloTipoFinalidad>) => response.items)
@@ -42,25 +37,18 @@ export class ModeloEjecucionTipoFinalidadFragment extends Fragment {
         }
       );
     }
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name, `${this.onInitialize.name}()`, 'end');
   }
 
   public addModeloTipoFinalidad(modeloTipoFinalidad: IModeloTipoFinalidad) {
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name,
-      `${this.addModeloTipoFinalidad.name}(modeloTipoEnlace: ${modeloTipoFinalidad})`, 'start');
     const wrapped = new StatusWrapper<IModeloTipoFinalidad>(modeloTipoFinalidad);
     wrapped.setCreated();
     const current = this.modeloTipoFinalidad$.value;
     current.push(wrapped);
     this.modeloTipoFinalidad$.next(current);
     this.setChanges(true);
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name,
-      `${this.addModeloTipoFinalidad.name}(modeloTipoEnlace: ${modeloTipoFinalidad})`, 'end');
   }
 
   public deleteModeloTipoFinalidad(wrapper: StatusWrapper<IModeloTipoFinalidad>) {
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name,
-      `${this.deleteModeloTipoFinalidad.name}(wrapper: ${wrapper})`, 'start');
     const current = this.modeloTipoFinalidad$.value;
     const index = current.findIndex(
       (value: StatusWrapper<IModeloTipoFinalidad>) => value === wrapper
@@ -73,12 +61,9 @@ export class ModeloEjecucionTipoFinalidadFragment extends Fragment {
       this.modeloTipoFinalidad$.next(current);
       this.setChanges(true);
     }
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name,
-      `${this.deleteModeloTipoFinalidad.name}(wrapper: ${wrapper})`, 'end');
   }
 
   saveOrUpdate(): Observable<void> {
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name, `${this.saveOrUpdate.name}()`, 'start');
     return merge(
       this.deleteModeloTipoFinalidades(),
       this.createModeloTipoFinalidades()
@@ -88,15 +73,12 @@ export class ModeloEjecucionTipoFinalidadFragment extends Fragment {
         if (this.isSaveOrUpdateComplete()) {
           this.setChanges(false);
         }
-      }),
-      tap(() => this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name, `${this.saveOrUpdate.name}()`, 'end'))
+      })
     );
   }
 
   private deleteModeloTipoFinalidades(): Observable<void> {
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name, `${this.deleteModeloTipoFinalidades.name}()`, 'start');
     if (this.modeloTipoFinalidadEliminados.length === 0) {
-      this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name, `${this.deleteModeloTipoFinalidades.name}()`, 'end');
       return of(void 0);
     }
     return from(this.modeloTipoFinalidadEliminados).pipe(
@@ -106,18 +88,14 @@ export class ModeloEjecucionTipoFinalidadFragment extends Fragment {
             tap(() => {
               this.modeloTipoFinalidadEliminados = this.modeloTipoFinalidadEliminados.filter(deletedFinalidad =>
                 deletedFinalidad.value.id !== wrapped.value.id);
-            }),
-            tap(() => this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name,
-              `${this.deleteModeloTipoFinalidades.name}()`, 'end'))
+            })
           );
       }));
   }
 
   private createModeloTipoFinalidades(): Observable<void> {
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name, `${this.createModeloTipoFinalidades.name}()`, 'start');
     const createdModelos = this.modeloTipoFinalidad$.value.filter((modeloTipoEnlace) => modeloTipoEnlace.created);
     if (createdModelos.length === 0) {
-      this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name, `${this.createModeloTipoFinalidades.name}()`, 'end');
       return of(void 0);
     }
     createdModelos.forEach(
@@ -132,17 +110,13 @@ export class ModeloEjecucionTipoFinalidadFragment extends Fragment {
           map((updatedFinalidad) => {
             const index = this.modeloTipoFinalidad$.value.findIndex((currentTarea) => currentTarea === wrapped);
             this.modeloTipoFinalidad$[index] = new StatusWrapper<IModeloTipoFinalidad>(updatedFinalidad);
-          }),
-          tap(() => this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name,
-            `${this.createModeloTipoFinalidades.name}()`, 'end'))
+          })
         );
       }));
   }
 
   private isSaveOrUpdateComplete(): boolean {
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name, `${this.isSaveOrUpdateComplete.name}()`, 'start');
     const touched = this.modeloTipoFinalidad$.value.some((wrapper) => wrapper.touched);
-    this.logger.debug(ModeloEjecucionTipoFinalidadFragment.name, `${this.isSaveOrUpdateComplete.name}()`, 'end');
     return (this.modeloTipoFinalidadEliminados.length > 0 || touched);
   }
 

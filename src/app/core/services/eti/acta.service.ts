@@ -1,16 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-
-import { environment } from '@env';
-import { NGXLogger } from 'ngx-logger';
-
-import { tap } from 'rxjs/operators';
-
-import { SgiRestFindOptions, SgiRestService } from '@sgi/framework/http';
-
 import { IActa } from '@core/models/eti/acta';
 import { IActaEvaluaciones } from '@core/models/eti/acta-evaluaciones';
+import { environment } from '@env';
+import { SgiRestFindOptions, SgiRestService } from '@sgi/framework/http';
 import { Observable } from 'rxjs';
+
+
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -19,10 +17,9 @@ export class ActaService extends SgiRestService<number, IActa> {
   private static readonly MAPPING = '/actas';
 
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
+  constructor(protected http: HttpClient) {
     super(
       ActaService.name,
-      logger,
       `${environment.serviceServers.eti}${ActaService.MAPPING}`,
       http
     );
@@ -34,10 +31,7 @@ export class ActaService extends SgiRestService<number, IActa> {
    * @returns listado de actas.
    */
   findActivasWithEvaluaciones(options?: SgiRestFindOptions) {
-    this.logger.debug(ActaService.name, `findActivasWithEvaluaciones(${options ? JSON.stringify(options) : ''})`, '-', 'START');
-    return this.find<IActaEvaluaciones, IActaEvaluaciones>(`${this.endpointUrl}`, options).pipe(
-      tap(() => this.logger.debug(ActaService.name, `findActivasWithEvaluaciones(${options ? JSON.stringify(options) : ''})`, '-', 'END'))
-    );
+    return this.find<IActaEvaluaciones, IActaEvaluaciones>(`${this.endpointUrl}`, options);
   }
 
 
@@ -46,10 +40,7 @@ export class ActaService extends SgiRestService<number, IActa> {
    * @param actaId id de acta.
    */
   finishActa(actaId: number): Observable<IActa[]> {
-    this.logger.debug(ActaService.name, `findActivasWithEvaluaciones(${actaId})`, '-', 'START');
-    return this.http.put<IActa[]>(`${this.endpointUrl}/${actaId}/finalizar`, null).pipe(
-      tap(() => this.logger.debug(ActaService.name, `updateComentarios(${actaId})`, '-', 'end'))
-    );
+    return this.http.put<IActa[]>(`${this.endpointUrl}/${actaId}/finalizar`, null);
   }
 
 

@@ -1,18 +1,17 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { FragmentComponent } from '@core/component/fragment.component';
+import { IAsistente } from '@core/models/eti/asistente';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
-import { NGXLogger } from 'ngx-logger';
-import { BehaviorSubject } from 'rxjs';
-import { IAsistente } from '@core/models/eti/asistente';
-import { ActaAsistentesEditarModalComponent } from '../acta-asistentes-editar-modal/acta-asistentes-editar-modal.component';
-import { MatDialog } from '@angular/material/dialog';
 import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
+import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
 import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
-import { FragmentComponent } from '@core/component/fragment.component';
-import { ActaActionService } from '../../../acta.action.service';
-import { ActaAsistentesFragment } from './acta-asistentes-listado.fragment';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { BehaviorSubject } from 'rxjs';
+import { ActaActionService } from '../../../acta.action.service';
+import { ActaAsistentesEditarModalComponent } from '../acta-asistentes-editar-modal/acta-asistentes-editar-modal.component';
+import { ActaAsistentesFragment } from './acta-asistentes-listado.fragment';
 
 @Component({
   selector: 'sgi-acta-asistentes',
@@ -31,7 +30,6 @@ export class ActaAsistentesListadoComponent extends FragmentComponent implements
   readonly: boolean;
 
   constructor(
-    protected readonly logger: NGXLogger,
     protected readonly convocatoriaReunionService: ConvocatoriaReunionService,
     protected readonly personaFisicaService: PersonaFisicaService,
     protected matDialog: MatDialog,
@@ -41,15 +39,11 @@ export class ActaAsistentesListadoComponent extends FragmentComponent implements
     this.asistentes$ = (this.fragment as ActaAsistentesFragment).asistentes$;
 
     this.displayedColumns = ['evaluador.identificadorNumero', 'evaluador.nombre', 'asistencia', 'motivo', 'acciones'];
-
   }
 
   ngOnInit() {
-    this.logger.debug(ActaAsistentesListadoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.readonly = this.actionService.readonly;
-
-    this.logger.debug(ActaAsistentesListadoComponent.name, 'ngOnInit()', 'end');
   }
 
   /**
@@ -58,7 +52,6 @@ export class ActaAsistentesListadoComponent extends FragmentComponent implements
    * @param asistente asistente a modificar
    */
   openUpdateModal(asistente: StatusWrapper<IAsistente>): void {
-    this.logger.debug(ActaAsistentesListadoComponent.name, 'openUpdateModal()', 'start');
     const config = {
       width: GLOBAL_CONSTANTS.minWidthModal,
       maxHeight: GLOBAL_CONSTANTS.minHeightModal,
@@ -72,7 +65,6 @@ export class ActaAsistentesListadoComponent extends FragmentComponent implements
           this.fragment.setChanges(true);
           this.fragment.setComplete(true);
         }
-        this.logger.debug(ActaAsistentesListadoComponent.name, 'openUpdateModal()', 'end');
       }
     );
   }

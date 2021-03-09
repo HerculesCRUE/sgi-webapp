@@ -1,10 +1,9 @@
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { NGXLogger } from 'ngx-logger';
-import { DialogComponent, DialogData } from '../../block/dialog/dialog.component';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { DialogComponent, DialogData } from '../../block/dialog/dialog.component';
 
 const MSG_BUTTON_OK = marker('botones.aceptar');
 const MSG_BUTTON_CANCEL = marker('botones.cancelar');
@@ -14,9 +13,7 @@ const MSG_BUTTON_CANCEL = marker('botones.cancelar');
 })
 export class DialogService {
 
-  constructor(protected logger: NGXLogger, private dialog: MatDialog) {
-    this.logger.debug(DialogService.name, 'constructor(protected logger: NGXLogger, private dialog: MatDialog)', 'start');
-    this.logger.debug(DialogService.name, 'constructor(protected logger: NGXLogger, private dialog: MatDialog)', 'end');
+  constructor(private dialog: MatDialog) {
   }
 
   showConfirmation(

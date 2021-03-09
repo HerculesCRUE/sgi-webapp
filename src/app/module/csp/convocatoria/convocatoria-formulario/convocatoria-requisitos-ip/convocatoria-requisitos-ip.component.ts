@@ -1,12 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormFragmentComponent } from '@core/component/fragment.component';
-import { NGXLogger } from 'ngx-logger';
-import { ConvocatoriaActionService } from '../../convocatoria.action.service';
+import { IConvocatoriaRequisitoIP } from '@core/models/csp/convocatoria-requisito-ip';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { ConvocatoriaRequisitosIPFragment } from './convocatoria-requisitos-ip.fragment';
 import { TranslateService } from '@ngx-translate/core';
-import { IConvocatoriaRequisitoIP } from '@core/models/csp/convocatoria-requisito-ip';
+import { ConvocatoriaActionService } from '../../convocatoria.action.service';
+import { ConvocatoriaRequisitosIPFragment } from './convocatoria-requisitos-ip.fragment';
 
 @Component({
   selector: 'sgi-convocatoria-requisitos-ip',
@@ -23,12 +22,10 @@ export class ConvocatoriaRequisitosIPComponent extends FormFragmentComponent<ICo
   fxFlexPropertiesEntidad: FxFlexProperties;
 
   constructor(
-    protected readonly logger: NGXLogger,
     protected actionService: ConvocatoriaActionService,
     public translate: TranslateService
   ) {
     super(actionService.FRAGMENT.REQUISITOS_IP, actionService);
-    this.logger.debug(ConvocatoriaRequisitosIPComponent.name, 'constructor()', 'start');
     this.formPart = this.fragment as ConvocatoriaRequisitosIPFragment;
 
     this.fxFlexProperties = new FxFlexProperties();
@@ -47,14 +44,10 @@ export class ConvocatoriaRequisitosIPComponent extends FormFragmentComponent<ICo
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-
-    this.logger.debug(ConvocatoriaRequisitosIPComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit() {
-    this.logger.debug(ConvocatoriaRequisitosIPComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
-    this.logger.debug(ConvocatoriaRequisitosIPComponent.name, 'ngOnInit()', 'end');
   }
 
 }

@@ -5,19 +5,16 @@ import { BaseModalComponent } from '@core/component/base-modal.component';
 import { IModeloTipoDocumento } from '@core/models/csp/modelo-tipo-documento';
 import { IModeloTipoFase } from '@core/models/csp/modelo-tipo-fase';
 import { ITipoDocumento, ITipoFase } from '@core/models/csp/tipos-configuracion';
-import { ModeloEjecucionService } from '@core/services/csp/modelo-ejecucion.service';
 import { TipoDocumentoService } from '@core/services/csp/tipo-documento.service';
-import { TipoFaseService } from '@core/services/csp/tipo-fase.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { SgiRestListResult } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 export interface ModeloTipoDocumentoModalData {
   modeloTipoDocumento: IModeloTipoDocumento;
   tipoDocumentos: ITipoDocumento[];
   tipoFases: ITipoFase[];
+  modeloTipoDocumentos: IModeloTipoDocumento[],
   id: number;
 }
 
@@ -29,106 +26,88 @@ export interface ModeloTipoDocumentoModalData {
 export class ModeloEjecucionTipoDocumentoModalComponent extends
   BaseModalComponent<IModeloTipoDocumento, ModeloEjecucionTipoDocumentoModalComponent> implements OnInit {
   tipoDocumentos$: Observable<ITipoDocumento[]>;
+  tipoFases$: Observable<ITipoFase[]>;
+  isFaseRequired: boolean = false;
 
   constructor(
-    protected logger: NGXLogger,
     protected snackBarService: SnackBarService,
     public matDialogRef: MatDialogRef<ModeloEjecucionTipoDocumentoModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ModeloTipoDocumentoModalData,
-    private tipoDocumentoService: TipoDocumentoService,
-    private modeloEjecucionService: ModeloEjecucionService
-  ) {
-    super(logger, snackBarService, matDialogRef, data.modeloTipoDocumento);
-    this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, 'constructor()', 'start');
-    this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, 'constructor()', 'end');
+    private tipoDocumentoService: TipoDocumentoService) {
+    super(snackBarService, matDialogRef, data.modeloTipoDocumento);
   }
 
   ngOnInit(): void {
-    this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, `ngOnInit()`, 'start');
     super.ngOnInit();
-    this.loadTipoDocumentos();
-    this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, `ngOnInit()`, 'end');
-  }
 
-  private loadTipoDocumentos(): void {
-    this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, `loadTipoDocumentos()`, 'start');
-    if (this.data.id) {
-      this.tipoDocumentos$ = this.getUpdateTipoDocumentos();
-    } else {
-      this.tipoDocumentos$ = this.getNewTipoDocumentos();
-    }
-    this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, `loadTipoDocumentos()`, 'end');
-  }
+    this.tipoDocumentos$ = this.loadTipoDocumentos();
 
-  private getNewTipoDocumentos(): Observable<ITipoDocumento[]> {
-    this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, `getNewTipoDocumentos()`, 'start');
-    return this.tipoDocumentoService.findAll().pipe(
-      switchMap(
-        (result) =>
-          of(this.filterExistingTipoDocumentos(result.items, this.data.tipoDocumentos))
-      ),
-      tap(() => this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, `getNewTipoDocumentos()`, 'end'))
-    );
-  }
+    this.subscriptions.push(this.formGroup.controls.tipoDocumento.valueChanges.subscribe((value: ITipoDocumento) => {
+      // Actualizar el selector de fases disponibles al cambiar el tipoDocumento seleccionado
+      this.tipoFases$ = (value) ? of(this.getTipoFaseDisponibles(value)) : of([]);
 
-  private getUpdateTipoDocumentos(): Observable<ITipoDocumento[]> {
-    this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, `getUpdateTipoDocumentos()`, 'start');
-    let tiposDocumento = [] as ITipoDocumento[];
-    return this.tipoDocumentoService.findAll().pipe(
-      switchMap(
-        (result) => {
-          tiposDocumento = this.filterExistingTipoDocumentos(result.items, this.data.tipoDocumentos);
-          return this.modeloEjecucionService.findModeloTipoDocumento(this.data.id).pipe(
-            map((listResult: SgiRestListResult<IModeloTipoDocumento>) => {
-              return listResult.items.filter(modelo => !modelo.activo || modelo.activo && modelo.modeloTipoFase);
-            })
-          );
-        }
-      ),
-      switchMap((modelosTipoDocumento: IModeloTipoDocumento[]) => {
-        let filteredTipoDocumento = modelosTipoDocumento.map(modelo => modelo.tipoDocumento);
-        filteredTipoDocumento = this.filterExistingTipoDocumentos(filteredTipoDocumento, this.data.tipoDocumentos);
-        filteredTipoDocumento = this.filterExistingTipoDocumentos(filteredTipoDocumento, tiposDocumento);
-        return of(filteredTipoDocumento.concat(tiposDocumento).sort(
-          (a, b) => {
-            if (a.nombre > b.nombre) {
-              return 1;
-            }
-            if (a.nombre < b.nombre) {
-              return -1;
-            }
-            return 0;
-          })
-        );
-      }),
-      tap(() => this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, `getUpdateTipoDocumentos()`, 'end'))
-    );
-  }
-
-  private filterExistingTipoDocumentos(result: ITipoDocumento[], filters: ITipoDocumento[]): ITipoDocumento[] {
-    return result.filter((tipoEnlace) => {
-      return !filters.find((currentTipo) => currentTipo.id === tipoEnlace.id);
-    });
+      // Se establece la fase como requerida si el documento ya está añadido
+      const documentoSinAsignar = !this.data.modeloTipoDocumentos.find((modeloTipoDocumento) => {
+        return (modeloTipoDocumento.tipoDocumento.id === value.id);
+      });
+      this.isFaseRequired = !documentoSinAsignar;
+    }));
   }
 
   protected getFormGroup(): FormGroup {
-    this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, `getFormGroup()`, 'start');
     const formGroup = new FormGroup({
       tipoDocumento: new FormControl(this.data.modeloTipoDocumento?.tipoDocumento),
       tipoFase: new FormControl(this.data.modeloTipoDocumento?.modeloTipoFase)
     });
-    this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, `getFormGroup()`, 'end');
     return formGroup;
   }
 
   protected getDatosForm(): IModeloTipoDocumento {
-    this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, `getDatosForm()`, 'start');
     const modeloTipoDocumento = this.data.modeloTipoDocumento;
     modeloTipoDocumento.tipoDocumento = this.formGroup.get('tipoDocumento').value;
     modeloTipoDocumento.modeloTipoFase = {
       tipoFase: this.formGroup.get('tipoFase').value
     } as IModeloTipoFase;
-    this.logger.debug(ModeloEjecucionTipoDocumentoModalComponent.name, `getDatosForm}()`, 'end');
     return modeloTipoDocumento;
+  }
+
+  private loadTipoDocumentos(): Observable<ITipoDocumento[]> {
+    return this.tipoDocumentoService.findAll().pipe(
+      map(
+        (result) => {
+          // Se quitan de la lista los documentos que no pueden ser asignados
+
+          const tipoDocumentoDisponibles = result.items.filter(
+            (tipoDocumento) => {
+
+              // Se filtra para quitar de la lista aquellos ya asignados sin ModeloTipoFase
+              let isSeleccionable = !this.data.modeloTipoDocumentos.find((modeloTipoDocumento) => {
+                return (modeloTipoDocumento.tipoDocumento.id === tipoDocumento.id)
+                  && !modeloTipoDocumento.modeloTipoFase?.tipoFase?.id;
+              });
+
+              // Se filtra para quitar de la lista aquellos que ya tienen todas las fases asignadas
+              if (isSeleccionable && this.data.tipoFases.length > 0) {
+                const fasesDisponibles = this.getTipoFaseDisponibles(tipoDocumento);
+                isSeleccionable = fasesDisponibles.length > 0;
+              }
+              return isSeleccionable;
+            });
+
+          return tipoDocumentoDisponibles;
+        })
+    );
+  }
+
+  private getTipoFaseDisponibles(tipoDocumento: ITipoDocumento): ITipoFase[] {
+    const tipoFaseDisponibles: ITipoFase[] = this.data.tipoFases.filter(
+      (modeloTipofase) => {
+        return !this.data.modeloTipoDocumentos.find((modeloTipoDocumento) => {
+          return (modeloTipoDocumento.tipoDocumento.id === tipoDocumento.id)
+            && modeloTipoDocumento.modeloTipoFase &&
+            (modeloTipofase.id === modeloTipoDocumento.modeloTipoFase.tipoFase.id);
+        });
+      });
+    return tipoFaseDisponibles;
   }
 }

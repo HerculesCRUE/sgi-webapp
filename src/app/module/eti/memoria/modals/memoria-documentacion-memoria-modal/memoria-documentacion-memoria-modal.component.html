@@ -47,7 +47,9 @@
   </main>
 
   <div id="modals-buttons" class="float-right" mat-dialog-actions>
-    <button color="accent" md-button mat-raised-button type="submit" (click)="save()">Guardar</button>
-    <button class="link-cancelar" mat-button (click)="closeModal()" type="button">Cancelar</button>
+    <button color="accent" md-button mat-raised-button type="submit"
+      (click)="save()">{{'botones.aniadir' | translate}}</button>
+    <button class="link-cancelar" mat-button (click)="closeModal()"
+      type="button">{{'botones.cancelar' | translate}}</button>
   </div>
 </div>

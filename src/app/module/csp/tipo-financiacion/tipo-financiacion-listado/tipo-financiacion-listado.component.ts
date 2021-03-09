@@ -10,7 +10,7 @@ import { TipoFinanciacionService } from '@core/services/csp/tipo-financiacion.se
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
-import { SgiRestFilter, SgiRestFilterType, SgiRestListResult } from '@sgi/framework/http';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -40,14 +40,13 @@ export class TipoFinanciacionListadoComponent extends AbstractTablePaginationCom
   tipoFinanciaciones$: Observable<ITipoFinanciacion[]>;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     private readonly tipoFinanciacionService: TipoFinanciacionService,
     private matDialog: MatDialog,
     private readonly dialogService: DialogService
   ) {
-    super(logger, snackBarService, MSG_ERROR);
-    this.logger.debug(TipoFinanciacionListadoComponent.name, 'constructor()', 'start');
+    super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -58,53 +57,42 @@ export class TipoFinanciacionListadoComponent extends AbstractTablePaginationCom
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-    this.logger.debug(TipoFinanciacionListadoComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(TipoFinanciacionListadoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.formGroup = new FormGroup({
       activo: new FormControl('true')
     });
-    this.filter = this.createFilters();
-    this.logger.debug(TipoFinanciacionListadoComponent.name, 'ngOnInit()', 'end');
+    this.filter = this.createFilter();
   }
 
   protected createObservable(): Observable<SgiRestListResult<ITipoFinanciacion>> {
-    this.logger.debug(TipoFinanciacionListadoComponent.name, `${this.createObservable.name}()`, 'start');
     const observable$ = this.tipoFinanciacionService.findTodos(this.getFindOptions());
-    this.logger.debug(TipoFinanciacionListadoComponent.name, `${this.createObservable.name}()`, 'end');
     return observable$;
   }
 
   protected initColumns(): void {
-    this.logger.debug(TipoFinanciacionListadoComponent.name, `${this.initColumns.name}()`, 'start');
     this.columnas = ['nombre', 'descripcion', 'activo', 'acciones'];
-    this.logger.debug(TipoFinanciacionListadoComponent.name, `${this.initColumns.name}()`, 'end');
   }
 
   protected loadTable(reset?: boolean): void {
-    this.logger.debug(TipoFinanciacionListadoComponent.name, `${this.loadTable.name}(${reset})`, 'start');
     this.tipoFinanciaciones$ = this.getObservableLoadTable(reset);
-    this.logger.debug(TipoFinanciacionListadoComponent.name, `${this.loadTable.name}(${reset})`, 'end');
   }
 
-  protected createFilters(): SgiRestFilter[] {
-    this.logger.debug(TipoFinanciacionListadoComponent.name, `${this.createFilters.name}()`, 'start');
-    const filtros = [];
-    if (this.formGroup.controls.activo.value !== 'todos') {
-      this.addFiltro(filtros, 'activo', SgiRestFilterType.EQUALS, this.formGroup.controls.activo.value);
+  protected createFilter(): SgiRestFilter {
+    const controls = this.formGroup.controls;
+
+    if (controls.activo.value !== 'todos') {
+      return new RSQLSgiRestFilter('activo', SgiRestFilterOperator.EQUALS, controls.activo.value);
     }
-    this.logger.debug(TipoFinanciacionListadoComponent.name, `${this.createFilters.name}()`, 'end');
-    return filtros;
+
+    return undefined;
   }
 
   onClearFilters() {
-    this.logger.debug(TipoFinanciacionListadoComponent.name, `${this.onClearFilters.name}()`, 'start');
-    this.formGroup.controls.activo.setValue('');
+    this.formGroup.controls.activo.setValue('true');
     this.onSearch();
-    this.logger.debug(TipoFinanciacionListadoComponent.name, `${this.onClearFilters.name}()`, 'end');
   }
 
   /**
@@ -113,11 +101,10 @@ export class TipoFinanciacionListadoComponent extends AbstractTablePaginationCom
    * @param tipoFinanciacion Tipo de financiacion
    */
   openModal(tipoFinanciacion?: ITipoFinanciacion): void {
-    this.logger.debug(TipoFinanciacionListadoComponent.name, `${this.openModal.name}(tipoFinanciacion?: ITipoFinanciacion)`, 'start');
     const config = {
       width: GLOBAL_CONSTANTS.widthModalCSP,
       maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-      data: tipoFinanciacion
+      data: tipoFinanciacion ? Object.assign({}, tipoFinanciacion) : { activo: true } as ITipoFinanciacion
     };
     const dialogRef = this.matDialog.open(TipoFinanciacionModalComponent, config);
     dialogRef.afterClosed().subscribe(
@@ -131,12 +118,11 @@ export class TipoFinanciacionListadoComponent extends AbstractTablePaginationCom
               this.snackBarService.showSuccess(tipoFinanciacion ? MSG_UPDATE : MSG_SAVE);
               this.loadTable();
             },
-            () => {
+            (error) => {
+              this.logger.error(error);
               this.snackBarService.showError(tipoFinanciacion ? MSG_ERROR_UPDATE : MSG_ERROR_SAVE);
-            },
-            () => {
-              this.logger.debug(TipoFinanciacionModalComponent.name, `${this.openModal.name}(tipoFinanciacion?: IFuenteFinanciacion)`, 'end');
-            });
+            }
+          );
         }
       }
     );
@@ -147,7 +133,6 @@ export class TipoFinanciacionListadoComponent extends AbstractTablePaginationCom
    * @param tipoFinanciacion tipo financiacion
    */
   deactivateTipoFinanciacion(tipoFinanciacion: ITipoFinanciacion): void {
-    this.logger.debug(TipoFinanciacionListadoComponent.name, `${this.deactivateTipoFinanciacion.name}()`, 'start');
     const subcription = this.dialogService.showConfirmation(MSG_DEACTIVATE)
       .pipe(switchMap((accept) => {
         if (accept) {
@@ -159,13 +144,10 @@ export class TipoFinanciacionListadoComponent extends AbstractTablePaginationCom
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_DEACTIVATE);
           this.loadTable();
-          this.logger.debug(TipoFinanciacionListadoComponent.name,
-            `${this.deactivateTipoFinanciacion.name}(tipoFinanciacion: ${tipoFinanciacion})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_DEACTIVATE);
-          this.logger.debug(TipoFinanciacionListadoComponent.name,
-            `${this.deactivateTipoFinanciacion.name}(tipoFinanciacion: ${tipoFinanciacion})`, 'end');
         }
       );
     this.suscripciones.push(subcription);
@@ -176,9 +158,6 @@ export class TipoFinanciacionListadoComponent extends AbstractTablePaginationCom
    * @param tipoFinanciacion tipo financiacion
    */
   activateTipoFinanciacion(tipoFinanciacion: ITipoFinanciacion): void {
-    this.logger.debug(TipoFinanciacionListadoComponent.name,
-      `${this.activateTipoFinanciacion.name}(tipoFinanciacion: ${tipoFinanciacion})`, 'start');
-
     const subcription = this.dialogService.showConfirmation(MSG_REACTIVE)
       .pipe(switchMap((accept) => {
         if (accept) {
@@ -191,18 +170,14 @@ export class TipoFinanciacionListadoComponent extends AbstractTablePaginationCom
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_REACTIVE);
           this.loadTable();
-          this.logger.debug(TipoFinanciacionListadoComponent.name,
-            `${this.activateTipoFinanciacion.name}(tipoFinanciacion: ${tipoFinanciacion})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           tipoFinanciacion.activo = false;
           this.snackBarService.showError(MSG_ERROR_REACTIVE);
-          this.logger.debug(TipoFinanciacionListadoComponent.name,
-            `${this.activateTipoFinanciacion.name}(tipoFinanciacion: ${tipoFinanciacion})`, 'end');
         }
       );
     this.suscripciones.push(subcription);
   }
 
 }
-

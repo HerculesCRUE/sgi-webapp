@@ -10,7 +10,6 @@ import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-propert
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { DialogService } from '@core/services/dialog.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { NGXLogger } from 'ngx-logger';
 import { Subscription } from 'rxjs';
 import { PlanInvestigacionActionService } from '../../plan-investigacion.action.service';
 import { NodePrograma, PlanInvestigacionProgramaFragment } from './plan-investigacion-programas.fragment';
@@ -49,12 +48,10 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
   hasChild = (_: number, node: NodePrograma) => node.childs.length > 0;
 
   constructor(
-    protected readonly logger: NGXLogger,
     private readonly dialogService: DialogService,
     public actionService: PlanInvestigacionActionService
   ) {
     super(actionService.FRAGMENT.PROGRAMAS, actionService);
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, 'constructor()', 'start');
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -67,41 +64,32 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
     this.fxLayoutProperties.xs = 'column';
 
     this.formPart = this.fragment as PlanInvestigacionProgramaFragment;
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit() {
     super.ngOnInit();
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, 'ngOnInit()', 'start');
     this.formPart.programas$.subscribe((programas) => {
       this.dataSource.data = programas;
     });
     this.formGroup = new FormGroup({
-      nombre: new FormControl('', Validators.required),
-      descripcion: new FormControl('')
+      nombre: new FormControl('', [Validators.required, Validators.maxLength(50)]),
+      descripcion: new FormControl('', [Validators.maxLength(250)]),
     });
     this.switchToNone();
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, 'ngOnInit()', 'end');
   }
 
   ngOnDestroy() {
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, 'ngOnDestroy()', 'end');
   }
 
   showNodeDetails(node: NodePrograma) {
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.showNodeDetails.name}(node: ${node})`, 'start');
     this.viewingNode = node;
     this.switchToView();
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.showNodeDetails.name}(node: ${node})`, 'end');
   }
 
   hideNodeDetails() {
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.hideNodeDetails.name}()`, 'start');
     this.viewMode = VIEW_MODE.NONE;
     this.viewingNode = undefined;
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.hideNodeDetails.name}()`, 'end');
   }
 
   onCheckNode(node: NodePrograma, $event: MatCheckboxChange) {
@@ -114,28 +102,22 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
   }
 
   switchToNew() {
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.switchToNew.name}()`, 'start');
     const newNode = new NodePrograma(new StatusWrapper<IPrograma>({
       padre: {} as IPrograma
     } as IPrograma));
     this.viewMode = VIEW_MODE.NEW;
     this.viewingNode = newNode;
     this.loadDetails(this.viewingNode);
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.switchToNew.name}()`, 'end');
   }
 
   switchToEdit() {
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.switchToEdit.name}()`, 'start');
     this.viewMode = VIEW_MODE.EDIT;
     this.loadDetails(this.viewingNode);
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.switchToEdit.name}()`, 'end');
   }
 
   switchToView() {
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.switchToView.name}()`, 'start');
     this.viewMode = VIEW_MODE.VIEW;
     this.loadDetails(this.viewingNode);
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.switchToView.name}()`, 'end');
   }
 
   private switchToNone() {
@@ -146,8 +128,6 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
   }
 
   private loadDetails(node: NodePrograma) {
-    this.logger.debug(PlanInvestigacionProgramasComponent.name,
-      `${this.loadDetails.name}()`, 'start');
     if (this.viewMode === VIEW_MODE.NEW || this.viewMode === VIEW_MODE.EDIT) {
       this.formGroup.get('nombre').enable();
       this.formGroup.get('descripcion').enable();
@@ -159,9 +139,6 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
     this.formGroup.reset();
     this.formGroup.get('nombre').patchValue(node?.programa?.value?.nombre);
     this.formGroup.get('descripcion').patchValue(node?.programa?.value?.descripcion);
-
-    this.logger.debug(PlanInvestigacionProgramasComponent.name,
-      `${this.loadDetails.name}()`, 'start');
   }
 
   cancelDetail() {
@@ -201,8 +178,6 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
   }
 
   private addNode(node: NodePrograma) {
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.addNode.name}()`, 'start');
-
     node.programa.setCreated();
     if (this.checkedNode) {
       this.checkedNode.addChild(node);
@@ -215,12 +190,9 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
     }
     this.formPart.setChanges(true);
     this.switchToNone();
-
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.addNode.name}()`, 'end');
   }
 
   private updateNode(node: NodePrograma) {
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.updateNode.name}()`, 'start');
     if (!node.programa.created) {
       node.programa.setEdited();
     }
@@ -233,13 +205,9 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
     this.refreshTree(this.formPart.programas$.value);
     this.formPart.setChanges(true);
     this.switchToView();
-
-    this.logger.debug(PlanInvestigacionProgramasComponent.name, `${this.updateNode.name}()`, 'end');
   }
 
   deleteDetail() {
-    this.logger.debug(PlanInvestigacionProgramasComponent.name,
-      `${this.deleteDetail.name}()`, 'start');
     this.subscriptions.push(
       this.dialogService.showConfirmation(MSG_DELETE).subscribe(
         (aceptado: boolean) => {
@@ -259,7 +227,5 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
         }
       )
     );
-    this.logger.debug(PlanInvestigacionProgramasComponent.name,
-      `${this.deleteDetail.name}()`, 'end');
   }
 }

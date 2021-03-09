@@ -1,10 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '@env';
-import { SgiMutableRestService } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
 import { IEmpresaEconomica, TipoEmpresaEconomica } from '@core/models/sgp/empresa-economica';
+import { environment } from '@env';
 import { SgiBaseConverter } from '@sgi/framework/core';
+import { SgiMutableRestService } from '@sgi/framework/http';
 
 interface IEmpresaEconomicaService {
 
@@ -63,8 +62,8 @@ export class EmpresaEconomicaService extends SgiMutableRestService<string, IEmpr
     }
   }();
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
-    super(EmpresaEconomicaService.name, logger,
+  constructor(protected http: HttpClient) {
+    super(EmpresaEconomicaService.name,
       `${environment.serviceServers.sgp}${EmpresaEconomicaService.MAPPING}`, http, EmpresaEconomicaService.CONVERTER);
   }
 }

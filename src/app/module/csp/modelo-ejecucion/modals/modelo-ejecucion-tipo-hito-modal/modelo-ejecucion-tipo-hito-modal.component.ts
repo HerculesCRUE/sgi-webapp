@@ -1,6 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { BaseModalComponent } from '@core/component/base-modal.component';
 import { IModeloTipoHito } from '@core/models/csp/modelo-tipo-hito';
 import { ITipoHito } from '@core/models/csp/tipos-configuracion';
@@ -9,14 +10,16 @@ import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { requiredChecked } from '@core/validators/checkbox-validator';
 import { SgiRestListResult } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import { switchMap } from 'rxjs/operators';
 
 export interface ModeloEjecucionTipoHitoModalData {
   modeloTipoHito: IModeloTipoHito;
   tipoHitos: ITipoHito[];
 }
+
+const MSG_ANADIR = marker('botones.aniadir');
+const MSG_ACEPTAR = marker('botones.aceptar');
 
 @Component({
   selector: 'sgi-modelo-ejecucion-tipo-hito-modal',
@@ -27,37 +30,35 @@ export class ModeloEjecucionTipoHitoModalComponent extends
   BaseModalComponent<IModeloTipoHito, ModeloEjecucionTipoHitoModalComponent> implements OnInit {
   tipoHitos$: Observable<ITipoHito[]>;
 
+  textSaveOrUpdate: string;
+
   constructor(
-    protected logger: NGXLogger,
     protected snackBarService: SnackBarService,
     public matDialogRef: MatDialogRef<ModeloEjecucionTipoHitoModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ModeloEjecucionTipoHitoModalData,
     private tipoHitoService: TipoHitoService,
     protected dialogService: DialogService
   ) {
-    super(logger, snackBarService, matDialogRef, data.modeloTipoHito);
-    this.logger.debug(ModeloEjecucionTipoHitoModalComponent.name, 'constructor()', 'start');
-    this.logger.debug(ModeloEjecucionTipoHitoModalComponent.name, 'constructor()', 'end');
+    super(snackBarService, matDialogRef, data.modeloTipoHito);
   }
 
   ngOnInit(): void {
-    this.logger.debug(ModeloEjecucionTipoHitoModalComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     if (!this.data.modeloTipoHito.tipoHito) {
       this.tipoHitos$ = this.tipoHitoService.findTodos().pipe(
         switchMap((result) => {
           const list = this.filterExistingTipoHito(result);
           return of(list);
-        }),
-        tap(() => this.logger.debug(ModeloEjecucionTipoHitoModalComponent.name, 'ngOnInit()', 'end'))
+        })
       );
+      this.textSaveOrUpdate = MSG_ANADIR;
     } else {
       this.tipoHitos$ = this.tipoHitoService.findTodos().pipe(
         switchMap((result) => {
           return of(result.items);
-        }),
-        tap(() => this.logger.debug(ModeloEjecucionTipoHitoModalComponent.name, 'ngOnInit()', 'end'))
+        })
       );
+      this.textSaveOrUpdate = MSG_ACEPTAR;
     }
   }
 
@@ -73,19 +74,16 @@ export class ModeloEjecucionTipoHitoModalComponent extends
   }
 
   protected getDatosForm(): IModeloTipoHito {
-    this.logger.debug(ModeloEjecucionTipoHitoModalComponent.name, `getDatosForm()`, 'start');
     const modeloTipoHito = this.data.modeloTipoHito;
     const disponible = this.formGroup.controls.disponible as FormGroup;
     modeloTipoHito.tipoHito = this.formGroup.get('tipoHito').value;
     modeloTipoHito.convocatoria = disponible.get('convocatoria').value;
     modeloTipoHito.proyecto = disponible.get('proyecto').value;
     modeloTipoHito.solicitud = disponible.get('solicitud').value;
-    this.logger.debug(ModeloEjecucionTipoHitoModalComponent.name, `getDatosForm()`, 'end');
     return modeloTipoHito;
   }
 
   protected getFormGroup(): FormGroup {
-    this.logger.debug(ModeloEjecucionTipoHitoModalComponent.name, `getFormGroup()`, 'start');
     const formGroup = new FormGroup({
       tipoHito: new FormControl({
         value: this.data.modeloTipoHito?.tipoHito,
@@ -97,7 +95,6 @@ export class ModeloEjecucionTipoHitoModalComponent extends
         solicitud: new FormControl(this.data.modeloTipoHito?.solicitud)
       }, [requiredChecked(1)]),
     });
-    this.logger.debug(ModeloEjecucionTipoHitoModalComponent.name, `getFormGroup()`, 'end');
     return formGroup;
   }
 

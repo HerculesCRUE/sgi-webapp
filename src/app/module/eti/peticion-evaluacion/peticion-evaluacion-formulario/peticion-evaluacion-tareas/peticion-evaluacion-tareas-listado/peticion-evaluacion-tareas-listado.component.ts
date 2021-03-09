@@ -1,27 +1,27 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
-import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
-import { NGXLogger } from 'ngx-logger';
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { ITarea } from '@core/models/eti/tarea';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
-import { FragmentComponent } from '@core/component/fragment.component';
-import { PeticionEvaluacionActionService } from '../../../peticion-evaluacion.action.service';
-import { PeticionEvaluacionTareasFragment } from './peticion-evaluacion-tareas-listado.fragment';
-import { StatusWrapper } from '@core/utils/status-wrapper';
-import { SnackBarService } from '@core/services/snack-bar.service';
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { PeticionEvaluacionTareasModalComponent } from '../peticion-evaluacion-tareas-modal/peticion-evaluacion-tareas-modal.component';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { DialogService } from '@core/services/dialog.service';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { FragmentComponent } from '@core/component/fragment.component';
 import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
 import { IMemoria } from '@core/models/eti/memoria';
+import { ITarea } from '@core/models/eti/tarea';
+import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
+import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
+import { DialogService } from '@core/services/dialog.service';
+import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
+import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
+import { StatusWrapper } from '@core/utils/status-wrapper';
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { PeticionEvaluacionActionService } from '../../../peticion-evaluacion.action.service';
+import { PeticionEvaluacionTareasModalComponent } from '../peticion-evaluacion-tareas-modal/peticion-evaluacion-tareas-modal.component';
+import { PeticionEvaluacionTareasFragment } from './peticion-evaluacion-tareas-listado.fragment';
 
 const MSG_CONFIRM_DELETE = marker('eti.peticionEvaluacion.tareas.listado.eliminar');
-const MSG_ERROR_TAREA_REPETIDA = marker('eti.peticionEvaluacion.formulario.equipoInvestigador.listado.investigadorRepetido');
 
 @Component({
   selector: 'sgi-peticion-evaluacion-tareas',
@@ -38,12 +38,14 @@ export class PeticionEvaluacionTareasListadoComponent extends FragmentComponent 
   tareas$: BehaviorSubject<StatusWrapper<ITarea>[]>;
   private listadoFragment: PeticionEvaluacionTareasFragment;
   private subscriptions: Subscription[] = [];
-
+  elementosPagina: number[] = [5, 10, 25, 100];
   datasource: MatTableDataSource<StatusWrapper<ITarea>> = new MatTableDataSource<StatusWrapper<ITarea>>();
+
+  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
+  @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
     protected readonly dialogService: DialogService,
-    protected readonly logger: NGXLogger,
     protected readonly convocatoriaReunionService: ConvocatoriaReunionService,
     protected readonly personaFisicaService: PersonaFisicaService,
     protected matDialog: MatDialog,
@@ -54,41 +56,44 @@ export class PeticionEvaluacionTareasListadoComponent extends FragmentComponent 
     this.tareas$ = (this.fragment as PeticionEvaluacionTareasFragment).tareas$;
     this.listadoFragment = this.fragment as PeticionEvaluacionTareasFragment;
 
-    this.displayedColumns = ['equipoTrabajo.nombre', 'memoria.numRerecencia', 'tarea',
-      'formacionEspecifica.nombre', 'organismo', 'acciones'];
+    this.displayedColumns = ['nombreCompleto', 'numReferencia', 'tarea',
+      'formacionEspecifica', 'organismo', 'acciones'];
 
   }
 
   ngOnInit(): void {
     super.ngOnInit();
-    this.logger.debug(PeticionEvaluacionTareasListadoComponent.name, 'ngOnInit() - start');
-
+    this.datasource.paginator = this.paginator;
+    this.datasource.sort = this.sort;
     this.listadoFragment.tareas$.subscribe((tarea) => {
       this.datasource.data = tarea;
     });
 
-    this.logger.debug(PeticionEvaluacionTareasListadoComponent.name, 'ngOnInit() - end');
+    this.datasource.sortingDataAccessor =
+      (wrapper: StatusWrapper<ITarea>, property: string) => {
+        switch (property) {
+          case 'nombreCompleto':
+            return wrapper.value.equipoTrabajo?.nombre + ' ' + wrapper.value.equipoTrabajo?.primerApellido + ' ' +
+              wrapper.value.equipoTrabajo?.segundoApellido;
+          case 'numReferencia':
+            return wrapper.value.memoria?.numReferencia;
+          case 'tarea':
+            return wrapper.value.tipoTarea ? wrapper.value.tipoTarea?.nombre : wrapper.value.tarea;
+          case 'formacionEspecifica':
+            return wrapper.value.formacionEspecifica ? wrapper.value.formacionEspecifica?.nombre : wrapper.value.formacion;
+          default:
+            return wrapper.value[property];
+        }
+      };
   }
 
   /**
    * Abre la ventana modal para añadir una nueva tarea
    */
   openModalAddTarea(): void {
-    this.logger.debug(PeticionEvaluacionTareasListadoComponent.name, 'openModalAddTarea() - start');
-
-
     const tarea: ITarea = {
-      organismo: null,
-      anio: null,
-      memoria: null,
-      equipoTrabajo: null,
-      formacion: null,
-      formacionEspecifica: null,
-      tarea: null,
-      tipoTarea: null,
-      id: null,
       eliminable: true
-    };
+    } as ITarea;
 
     const equiposTrabajo: IEquipoTrabajo[] = this.listadoFragment.equiposTrabajo;
     const memorias: IMemoria[] = this.listadoFragment.memorias;
@@ -108,11 +113,8 @@ export class PeticionEvaluacionTareasListadoComponent extends FragmentComponent 
       (tareaAniadida: ITarea) => {
         if (tareaAniadida) {
           this.listadoFragment.addTarea(tareaAniadida);
-
-          this.logger.debug(PeticionEvaluacionTareasListadoComponent.name, 'openModalAddEquipoTrabajo() - end');
         }
       });
-
   }
 
   /**
@@ -121,8 +123,6 @@ export class PeticionEvaluacionTareasListadoComponent extends FragmentComponent 
    * @param tarea tarea a modificar
    */
   openUpdateModal(tarea: StatusWrapper<ITarea>): void {
-    this.logger.debug(PeticionEvaluacionTareasListadoComponent.name, 'openUpdateModal()', 'start');
-
     const equiposTrabajo: IEquipoTrabajo[] = this.listadoFragment.equiposTrabajo;
     const memorias: IMemoria[] = this.listadoFragment.memorias;
 
@@ -142,7 +142,6 @@ export class PeticionEvaluacionTareasListadoComponent extends FragmentComponent 
           this.fragment.setChanges(true);
           this.fragment.setComplete(true);
         }
-        this.logger.debug(PeticionEvaluacionTareasListadoComponent.name, 'openUpdateModal()', 'end');
       }
     );
   }
@@ -153,9 +152,6 @@ export class PeticionEvaluacionTareasListadoComponent extends FragmentComponent 
    * @param wrappedTarea equipo de trabajo a eliminar.
    */
   delete(wrappedTarea: StatusWrapper<ITarea>): void {
-    this.logger.debug(PeticionEvaluacionTareasListadoComponent.name,
-      'delete(wrappedEquipoTrabajo: StatusWrapper<IEquipoTrabajo>) - start');
-
     const dialogSubscription = this.dialogService.showConfirmation(
       MSG_CONFIRM_DELETE
     ).subscribe((aceptado) => {
@@ -165,15 +161,10 @@ export class PeticionEvaluacionTareasListadoComponent extends FragmentComponent 
     });
 
     this.subscriptions.push(dialogSubscription);
-
-    this.logger.debug(PeticionEvaluacionTareasListadoComponent.name,
-      'delete(wrappedEquipoTrabajo: StatusWrapper<IEquipoTrabajo>) - end');
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(PeticionEvaluacionTareasListadoComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions?.forEach(x => x.unsubscribe());
-    this.logger.debug(PeticionEvaluacionTareasListadoComponent.name, 'ngOnDestroy()', 'end');
   }
 
 }

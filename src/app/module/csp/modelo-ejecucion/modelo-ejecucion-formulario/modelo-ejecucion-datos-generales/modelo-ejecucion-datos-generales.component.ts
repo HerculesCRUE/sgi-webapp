@@ -3,7 +3,6 @@ import { FormFragmentComponent } from '@core/component/fragment.component';
 import { IModeloEjecucion } from '@core/models/csp/tipos-configuracion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { NGXLogger } from 'ngx-logger';
 import { ModeloEjecucionActionService } from '../../modelo-ejecucion.action.service';
 
 @Component({
@@ -18,11 +17,9 @@ export class ModeloEjecucionDatosGeneralesComponent extends FormFragmentComponen
   key: number;
 
   constructor(
-    protected readonly logger: NGXLogger,
     readonly actionService: ModeloEjecucionActionService,
   ) {
     super(actionService.FRAGMENT.DATOS_GENERALES, actionService);
-    this.logger.debug(ModeloEjecucionDatosGeneralesComponent.name, 'constructor()', 'start');
 
     this.key = this.fragment.getKey() as number;
 
@@ -36,7 +33,6 @@ export class ModeloEjecucionDatosGeneralesComponent extends FormFragmentComponen
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row';
     this.fxLayoutProperties.xs = 'column';
-    this.logger.debug(ModeloEjecucionDatosGeneralesComponent.name, 'constructor()', 'start');
   }
 
 }

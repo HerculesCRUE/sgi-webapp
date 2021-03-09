@@ -1,8 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { LayoutService } from '@core/services/layout.service';
-import { CSP_ROUTE_NAMES } from '../csp-route-names';
 import { Subscription } from 'rxjs';
-import { NGXLogger } from 'ngx-logger';
+import { CSP_ROUTE_NAMES } from '../csp-route-names';
 
 @Component({
   selector: 'sgi-csp-menu-principal',
@@ -18,7 +17,6 @@ export class CspMenuPrincipalComponent implements OnDestroy {
   private subcription: Subscription;
 
   constructor(
-    protected readonly logger: NGXLogger,
     public layout: LayoutService) {
     this.subcription = this.layout.menuOpened$.subscribe((val) => this.opened = val);
   }
@@ -29,20 +27,16 @@ export class CspMenuPrincipalComponent implements OnDestroy {
    * @param $event evento lanzado
    */
   activarAcordeon($event): void {
-    this.logger.debug(CspMenuPrincipalComponent.name, 'activarAcordeon($event)', 'start');
     if (this.opened) {
       this.panelDesplegado = this.panelDesplegado;
     } else {
       this.panelDesplegado = !this.panelDesplegado;
     }
     $event.stopPropagation();
-    this.logger.debug(CspMenuPrincipalComponent.name, 'activarAcordeon($event)', 'end');
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(CspMenuPrincipalComponent.name, 'ngOnDestroy()', 'start');
     this.subcription.unsubscribe();
-    this.logger.debug(CspMenuPrincipalComponent.name, 'ngOnDestroy()', 'end');
   }
 
 }

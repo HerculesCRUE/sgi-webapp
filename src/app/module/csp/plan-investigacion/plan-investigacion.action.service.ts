@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-
-import { ActionService } from '@core/services/action-service';
 import { ActivatedRoute } from '@angular/router';
-
+import { IPrograma } from '@core/models/csp/programa';
+import { ActionService } from '@core/services/action-service';
+import { ProgramaService } from '@core/services/csp/programa.service';
 import { NGXLogger } from 'ngx-logger';
 import { PlanInvestigacionDatosGeneralesFragment } from './plan-investigacion-formulario/plan-investigacion-datos-generales/plan-investigacion-datos-generales.fragment';
-import { ProgramaService } from '@core/services/csp/programa.service';
 import { PlanInvestigacionProgramaFragment } from './plan-investigacion-formulario/plan-investigacion-programas/plan-investigacion-programas.fragment';
-import { IPrograma } from '@core/models/csp/programa';
+
+
 
 
 @Injectable()
@@ -27,7 +27,6 @@ export class PlanInvestigacionActionService extends ActionService {
     programaService: ProgramaService
   ) {
     super();
-    this.logger.debug(PlanInvestigacionActionService.name, 'constructor()', 'start');
     this.programa = {} as IPrograma;
     if (route.snapshot.data.plan) {
       this.programa = route.snapshot.data.plan;
@@ -41,9 +40,6 @@ export class PlanInvestigacionActionService extends ActionService {
 
     this.addFragment(this.FRAGMENT.DATOS_GENERALES, this.planInvestigacion);
     this.addFragment(this.FRAGMENT.PROGRAMAS, this.programas);
-
-    this.logger.debug(PlanInvestigacionActionService.name, 'constructor()', 'start');
-    this.logger.debug(PlanInvestigacionActionService.name, 'constructor()', 'end');
   }
 
   get getPrograma() {

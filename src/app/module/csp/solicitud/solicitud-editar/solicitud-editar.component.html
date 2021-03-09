@@ -1,0 +1,126 @@
+<mat-drawer-container class="mat-drawer-tabs" autosize>
+  <mat-drawer mode="side" class="tabs" opened>
+    <mat-list class="opciones-menu">
+      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.DATOS_GENERALES]"
+        [title]="'label.datos-generales' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-group [title]="'csp.solicitud.menu.proyectoDatos' | translate">
+        <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.PROYECTO_DATOS]" *ngIf="tipoEstandar"
+          [title]="'label.fichaGeneral' | translate"
+          [fragment]="actionService.getFragment(actionService.FRAGMENT.PROYECTO_DATOS)">
+        </sgi-action-fragment-menu-item>
+      </sgi-action-fragment-menu-group>
+      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.EQUIPO_PROYECTO]" *ngIf="tipoEstandar"
+        [title]="'csp.solicitud.menu.equipo.proyecto' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.EQUIPO_PROYECTO)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.SOCIOS_COLABORADORES]"
+        *ngIf="actionService.isSociosColaboradores" [title]="'csp.solicitud.menu.socios.colaboradores' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.SOCIOS_COLABORADORES)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.ENTIDADES_FINANCIADORAS]" *ngIf="tipoEstandar"
+        [title]="'csp.solicitud.menu.entidadesFinanciadoras' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.ENTIDADES_FINANCIADORAS)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_GLOBAL]"
+        *ngIf="!(actionService.isPresupuestoPorEntidades$ | async)"
+        [title]="'csp.solicitud.menu.desglose-presupuesto' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.DESGLOSE_PRESUPUESTO_GLOBAL)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_ENTIDADES]"
+        *ngIf="actionService.isPresupuestoPorEntidades$ | async"
+        [title]="'csp.solicitud.menu.desglose-presupuesto' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.DESGLOSE_PRESUPUESTO_ENTIDADES)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.DOCUMENTOS]"
+        [title]="'csp.solicitud.menu.documentos' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.DOCUMENTOS)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.HISTORICO_ESTADOS]"
+        [title]="'csp.solicitud.menu.historicoEstados' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.HISTORICO_ESTADOS)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.HITOS]" [title]="'csp.solicitud.hitos' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.HITOS)"
+        *ngIf="this.actionService.showHitos$ | async">
+      </sgi-action-fragment-menu-item>
+    </mat-list>
+  </mat-drawer>
+  <mat-drawer-content class="mat-drawer-content">
+    <div class="mat-drawer-content-panel">
+      <router-outlet></router-outlet>
+    </div>
+    <!-- Presentar-->
+    <sgi-action-footer [texto]="textoCrear" [actionService]="actionService">
+      <sgi-action-footer-button *ngIf="hasEstadoCambio(Estado.BORRADOR) && isPresentable" color="primary"
+        [text]="textoPresentar" (buttonClick)="cambioEstado(textoPresentar)" [disabled]="disableCambioEstado">
+      </sgi-action-footer-button>
+
+      <!-- Excluir provisionalmente-->
+      <sgi-action-footer-button *ngIf="hasEstadoCambio(Estado.PRESENTADA)" color="primary"
+        [text]="textoExcluirProvisionalmente" (buttonClick)="cambioEstado(textoExcluirProvisionalmente)"
+        [disabled]="disableCambioEstado">
+      </sgi-action-footer-button>
+
+      <!-- Admiitir provisionalmente-->
+      <sgi-action-footer-button *ngIf="hasEstadoCambio(Estado.PRESENTADA)" color="primary"
+        [text]="textoAdmitirProvisionalmente" (buttonClick)="cambioEstado(textoAdmitirProvisionalmente)"
+        [disabled]="disableCambioEstado">
+      </sgi-action-footer-button>
+
+      <!-- Desistir-->
+      <sgi-action-footer-button
+        *ngIf="hasEstadoCambio(Estado.PRESENTADA, Estado.ADMITIDA_PROVISIONAL,
+       Estado.EXCLUIDA_PROVISIONAL, Estado.ADMITIDA_DEFINITIVA,  Estado.DENEGADA_PROVISIONAL, Estado.CONCECIDA_PROVISIONAL)" color="primary"
+        [text]="textoDesistir" (buttonClick)="cambioEstado(textoDesistir)" [disabled]="disableCambioEstado">
+      </sgi-action-footer-button>
+
+      <!-- Alegar Admisión-->
+      <sgi-action-footer-button *ngIf="hasEstadoCambio(Estado.EXCLUIDA_PROVISIONAL)" color="primary"
+        [text]="textoAlegarAdmision" (buttonClick)="cambioEstado(textoAlegarAdmision)" [disabled]="disableCambioEstado">
+      </sgi-action-footer-button>
+
+      <!-- Excluir-->
+      <sgi-action-footer-button *ngIf="hasEstadoCambio(Estado.ALEGADA_ADMISION)" color="primary" [text]="textoExcluir"
+        (buttonClick)="cambioEstado(textoExcluir)" [disabled]="disableCambioEstado">
+      </sgi-action-footer-button>
+
+      <!-- Admitir definitivamente-->
+      <sgi-action-footer-button *ngIf="hasEstadoCambio(Estado.ADMITIDA_PROVISIONAL, Estado.ALEGADA_ADMISION)"
+        color="primary" [text]="textoAdmitirDefinitivamente" (buttonClick)="cambioEstado(textoAdmitirDefinitivamente)"
+        [disabled]="disableCambioEstado">
+      </sgi-action-footer-button>
+
+      <!-- Conceder provisionalmente-->
+      <sgi-action-footer-button *ngIf="hasEstadoCambio(Estado.ADMITIDA_DEFINITIVA)" color="primary"
+        [text]="textoConcederProvisionalmente" (buttonClick)="cambioEstado(textoConcederProvisionalmente)"
+        [disabled]="disableCambioEstado">
+      </sgi-action-footer-button>
+
+      <!-- Denegar provisionalmente-->
+      <sgi-action-footer-button *ngIf="hasEstadoCambio(Estado.ADMITIDA_DEFINITIVA)" color="primary"
+        [text]="textoDenegarProvisionalmente" (buttonClick)="cambioEstado(textoDenegarProvisionalmente)"
+        [disabled]="disableCambioEstado">
+      </sgi-action-footer-button>
+
+      <!-- Alegar concesión-->
+      <sgi-action-footer-button *ngIf="hasEstadoCambio(Estado.DENEGADA_PROVISIONAL)" color="primary"
+        [text]="textoAlegarConcesion" (buttonClick)="cambioEstado(textoAlegarConcesion)"
+        [disabled]="disableCambioEstado">
+      </sgi-action-footer-button>
+
+      <!-- Conceder-->
+      <sgi-action-footer-button *ngIf="hasEstadoCambio(Estado.CONCECIDA_PROVISIONAL, Estado.ALEGADA_CONCESION)"
+        color="primary" [text]="textoConceder" (buttonClick)="cambioEstado(textoConceder)"
+        [disabled]="disableCambioEstado">
+      </sgi-action-footer-button>
+
+      <!-- Denegar-->
+      <sgi-action-footer-button *ngIf="hasEstadoCambio( Estado.ALEGADA_CONCESION)" color="primary" [text]="textoDenegar"
+        (buttonClick)="cambioEstado(textoDenegar)" [disabled]="disableCambioEstado">
+      </sgi-action-footer-button>
+
+    </sgi-action-footer>
+  </mat-drawer-content>
+</mat-drawer-container>

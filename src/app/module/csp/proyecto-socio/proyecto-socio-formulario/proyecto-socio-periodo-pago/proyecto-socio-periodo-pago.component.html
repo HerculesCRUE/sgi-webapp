@@ -1,0 +1,65 @@
+<section class="proyecto-socio-periodo-pago">
+  <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSource" matSort matSortActive="id"
+    matSortDirection="asc" matSortDisableClear>
+
+    <!-- numPeriodo Column -->
+    <ng-container matColumnDef="numPeriodo">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.proyecto-socio.periodo-pago.listado.numPeriodo' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.numPeriodo}}</td>
+    </ng-container>
+
+    <!-- fechaPrevistaPago Column -->
+    <ng-container matColumnDef="fechaPrevistaPago">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.proyecto-socio.periodo-pago.listado.fechaPrevistaPago' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.fechaPrevistaPago | date : 'dd/MM/yyyy'}}</td>
+    </ng-container>
+
+    <!-- importe Column -->
+    <ng-container matColumnDef="importe">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.proyecto-socio.periodo-pago.listado.importe' |
+        translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.importe}}</td>
+    </ng-container>
+
+    <!-- fechaPago Column -->
+    <ng-container matColumnDef="fechaPago">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto-socio.periodo-pago.listado.fechaPago' |
+        translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.fechaPago | date : 'dd/MM/yyyy'}}</td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'csp.proyecto-socio.periodo-pago.listado.acciones' |
+        translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModal(wrapper)">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deleteProyectoEquipo(wrapper)">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+  <div class="separation-button">
+    <button color="three" mat-button mat-raised-button (click)="openModal()">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.proyecto-socio.periodo-pago.añadir' | translate}}
+    </button>
+  </div>
+</section>

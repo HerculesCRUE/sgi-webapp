@@ -1,5 +1,5 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -10,6 +10,7 @@ import { SnackBarService } from '@core/services/snack-bar.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
+import { SharedModule } from '@shared/shared.module';
 import { LoggerTestingModule } from 'ngx-logger/testing';
 
 import { ConvocatoriaEntidadConvocanteModalComponent, ConvocatoriaEntidadConvocanteModalData } from './convocatoria-entidad-convocante-modal.component';
@@ -20,7 +21,7 @@ describe('ConvocatoriaEntidadConvocanteModalComponent', () => {
 
   const data: IConvocatoriaEntidadConvocante = {
     convocatoria: undefined,
-    entidadRef: '',
+    entidad: undefined,
     id: 1,
     programa: undefined
   };
@@ -44,10 +45,11 @@ describe('ConvocatoriaEntidadConvocanteModalComponent', () => {
       programa: undefined,
       modalidad: undefined,
     },
-    selectedEmpresas: []
+    selectedEmpresas: [],
+    readonly: false
   };
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
         ConvocatoriaEntidadConvocanteModalComponent
@@ -60,7 +62,8 @@ describe('ConvocatoriaEntidadConvocanteModalComponent', () => {
         TestUtils.getIdiomas(),
         RouterTestingModule,
         FormsModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        SharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },

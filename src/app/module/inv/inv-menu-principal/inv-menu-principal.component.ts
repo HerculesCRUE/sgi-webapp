@@ -1,8 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { LayoutService } from '@core/services/layout.service';
-import { INV_ROUTE_NAMES } from '../inv-route-names';
 import { Subscription } from 'rxjs';
-import { NGXLogger } from 'ngx-logger';
+import { INV_ROUTE_NAMES } from '../inv-route-names';
 
 @Component({
   selector: 'sgi-inv-menu-principal',
@@ -19,7 +18,6 @@ export class InvMenuPrincipalComponent implements OnDestroy {
   private subcription: Subscription;
 
   constructor(
-    protected readonly logger: NGXLogger,
     private layout: LayoutService) {
     this.subcription = this.layout.menuOpened$.subscribe((val) => this.opened = val);
   }
@@ -30,16 +28,13 @@ export class InvMenuPrincipalComponent implements OnDestroy {
    * @param $event evento lanzado
    */
   activarAcordeon($event): void {
-    this.logger.debug(InvMenuPrincipalComponent.name, 'activarAcordeon($event)', 'start');
     if (this.opened) {
       this.panelDesplegado = this.panelDesplegado;
     } else {
       this.panelDesplegado = !this.panelDesplegado;
     }
     $event.stopPropagation();
-    this.logger.debug(InvMenuPrincipalComponent.name, 'activarAcordeon($event)', 'end');
   }
-
 
   ngOnDestroy(): void {
     this.subcription.unsubscribe();

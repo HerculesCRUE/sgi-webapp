@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
-import { NGXLogger } from 'ngx-logger';
 import { HttpClient } from '@angular/common/http';
-import { SgiRestService } from '@sgi/framework/http';
-import { environment } from '@env';
+import { Injectable } from '@angular/core';
 import { CargoComite } from '@core/models/eti/cargo-comite';
+import { environment } from '@env';
+import { SgiRestService } from '@sgi/framework/http';
 
 @Injectable({
   providedIn: 'root',
@@ -11,10 +10,9 @@ import { CargoComite } from '@core/models/eti/cargo-comite';
 export class CargoComiteService extends SgiRestService<number, CargoComite> {
   private static readonly MAPPING = '/cargocomites';
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
+  constructor(protected http: HttpClient) {
     super(
       CargoComiteService.name,
-      logger,
       `${environment.serviceServers.eti}${CargoComiteService.MAPPING}`,
       http
     );

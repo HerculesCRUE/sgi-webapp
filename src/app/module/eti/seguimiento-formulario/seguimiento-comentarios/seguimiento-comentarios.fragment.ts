@@ -1,11 +1,10 @@
 import { IComentario } from '@core/models/eti/comentario';
+import { IDictamen } from '@core/models/eti/dictamen';
 import { Fragment } from '@core/services/action-service';
 import { EvaluacionService } from '@core/services/eti/evaluacion.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { NGXLogger } from 'ngx-logger';
-import { BehaviorSubject, merge, Observable, of, from } from 'rxjs';
-import { endWith, map, takeLast, tap, mergeMap } from 'rxjs/operators';
-import { IDictamen } from '@core/models/eti/dictamen';
+import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
+import { endWith, map, mergeMap, takeLast, tap } from 'rxjs/operators';
 import { Gestion } from '../seguimiento-formulario.action.service';
 
 export class SeguimientoComentarioFragment extends Fragment {
@@ -14,18 +13,13 @@ export class SeguimientoComentarioFragment extends Fragment {
   private dictamen: IDictamen;
 
   constructor(
-    private readonly logger: NGXLogger,
     key: number,
     private rol: Gestion,
     private service: EvaluacionService) {
     super(key);
-    this.logger.debug(SeguimientoComentarioFragment.name, 'constructor()', 'start');
-    this.logger.debug(SeguimientoComentarioFragment.name, 'constructor()', 'end');
   }
 
   protected onInitialize(): void {
-    this.logger.debug(SeguimientoComentarioFragment.name, 'onInitialize()', 'start');
-
     if (this.getKey()) {
       // Se muestran el listado de los comentarios del GESTOR
       if (this.rol === Gestion.GESTOR) {
@@ -83,7 +77,6 @@ export class SeguimientoComentarioFragment extends Fragment {
   }
 
   public addComentario(comentario: IComentario) {
-    this.logger.debug(SeguimientoComentarioFragment.name, `addComentario(comentario: ${comentario})`, 'start');
     const wrapped = new StatusWrapper<IComentario>(comentario);
     wrapped.setCreated();
     const current = this.comentarios$.value;
@@ -91,11 +84,9 @@ export class SeguimientoComentarioFragment extends Fragment {
     this.comentarios$.next(current);
     this.setChanges(true);
     this.setErrors(false);
-    this.logger.debug(SeguimientoComentarioFragment.name, `addComentario(comentario: ${comentario})`, 'end');
   }
 
   public deleteComentario(comentario: StatusWrapper<IComentario>) {
-    this.logger.debug(SeguimientoComentarioFragment.name, `deleteComentario(comentario: ${comentario})`, 'start');
     const current = this.comentarios$.value;
     const index = current.findIndex((value) => value === comentario);
     if (index >= 0) {
@@ -112,12 +103,10 @@ export class SeguimientoComentarioFragment extends Fragment {
     } else {
       this.setErrors(false);
     }
-    this.logger.debug(SeguimientoComentarioFragment.name, `deleteComentario(comentario: ${comentario})`, 'end');
   }
 
   private deleteComentarioGestor(): Observable<void> {
     if (this.comentariosEliminados.length === 0) {
-      this.logger.debug(SeguimientoComentarioFragment.name, 'deleteComentarios()', 'end');
       return of(void 0);
     }
     return from(this.comentariosEliminados).pipe(
@@ -145,7 +134,6 @@ export class SeguimientoComentarioFragment extends Fragment {
   private updateComentarioGestor(): Observable<void> {
     const comentariosEditados = this.comentarios$.value.filter((comentario) => comentario.edited);
     if (comentariosEditados.length === 0) {
-      this.logger.debug(SeguimientoComentarioFragment.name, 'updateComentarios()', 'end');
       return of(void 0);
     }
     return from(comentariosEditados).pipe(
@@ -158,8 +146,7 @@ export class SeguimientoComentarioFragment extends Fragment {
           })
         );
       }),
-      endWith(),
-      tap(() => this.logger.debug(SeguimientoComentarioFragment.name, 'updateComentarios()', 'end'))
+      endWith()
     );
   }
 
@@ -205,7 +192,6 @@ export class SeguimientoComentarioFragment extends Fragment {
   private createComentarioEvaluador(): Observable<void> {
     const comentariosCreados = this.comentarios$.value.filter((comentario) => comentario.created);
     if (comentariosCreados.length === 0) {
-      this.logger.debug(SeguimientoComentarioFragment.name, 'createComentarios()', 'end');
       return of(void 0);
     }
 
@@ -219,8 +205,7 @@ export class SeguimientoComentarioFragment extends Fragment {
           })
         );
       }),
-      endWith(),
-      tap(() => this.logger.debug(SeguimientoComentarioFragment.name, 'createComentarios()', 'end'))
+      endWith()
     );
   }
 

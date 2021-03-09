@@ -1,5 +1,5 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -13,12 +13,13 @@ import { ActionFooterComponent } from '@shared/action-footer/action-footer.compo
 import { FlexModule, FlexLayoutModule } from '@angular/flex-layout';
 import { ConvocatoriaActionService } from '../convocatoria.action.service';
 import { SharedModule } from '@shared/shared.module';
+import { SgiAuthService } from '@sgi/framework/auth';
 
 describe('ConvocatoriaCrearComponent', () => {
   let component: ConvocatoriaCrearComponent;
   let fixture: ComponentFixture<ConvocatoriaCrearComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
         ConvocatoriaCrearComponent,
@@ -39,7 +40,8 @@ describe('ConvocatoriaCrearComponent', () => {
         SharedModule
       ],
       providers: [
-        ConvocatoriaActionService
+        ConvocatoriaActionService,
+        SgiAuthService
       ],
     })
       .compileComponents();

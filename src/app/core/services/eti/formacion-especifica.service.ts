@@ -1,9 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '@env';
-import { NGXLogger } from 'ngx-logger';
-import { SgiRestService } from '@sgi/framework/http';
 import { FormacionEspecifica } from '@core/models/eti/formacion-especifica';
+import { environment } from '@env';
+import { SgiRestService } from '@sgi/framework/http';
 
 @Injectable({
   providedIn: 'root'
@@ -11,10 +10,9 @@ import { FormacionEspecifica } from '@core/models/eti/formacion-especifica';
 export class FormacionEspecificaService extends SgiRestService<number, FormacionEspecifica> {
   private static readonly MAPPING = '/formacionespecificas';
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
+  constructor(protected http: HttpClient) {
     super(
       FormacionEspecificaService.name,
-      logger,
       `${environment.serviceServers.eti}${FormacionEspecificaService.MAPPING}`,
       http
     );

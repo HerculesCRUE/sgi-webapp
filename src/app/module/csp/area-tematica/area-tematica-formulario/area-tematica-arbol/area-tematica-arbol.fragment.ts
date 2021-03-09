@@ -65,13 +65,10 @@ export class AreaTematicaArbolFragment extends Fragment {
     private areaTematicaService: AreaTematicaService
   ) {
     super(key);
-    this.logger.debug(AreaTematicaArbolFragment.name, 'constructor()', 'start');
     this.setComplete(true);
-    this.logger.debug(AreaTematicaArbolFragment.name, 'constructor()', 'end');
   }
 
   protected onInitialize(): void {
-    this.logger.debug(AreaTematicaArbolFragment.name, `${this.onInitialize.name}()`, 'start');
     if (this.getKey()) {
       this.areaTematicaService.findAllHijosArea(this.getKey() as number).pipe(
         switchMap(response => {
@@ -89,11 +86,10 @@ export class AreaTematicaArbolFragment extends Fragment {
           this.publishNodes(current);
         },
         (error) => {
-          this.logger.error(AreaTematicaArbolFragment.name, `${this.onInitialize.name}()`, error);
+          this.logger.error(error);
         }
       );
     }
-    this.logger.debug(AreaTematicaArbolFragment.name, `${this.onInitialize.name}()`, 'end');
   }
 
   publishNodes(rootNodes?: NodeArea[]) {
@@ -132,20 +128,15 @@ export class AreaTematicaArbolFragment extends Fragment {
   }
 
   public addToDelete(node: NodeArea) {
-    this.logger.debug(AreaTematicaArbolFragment.name,
-      `${this.addToDelete.name}(wrapper: ${node})`, 'start');
     if (!node.area.created) {
       this.areasEliminados.push(node.area.value);
     }
     node.childs.forEach((child) => {
       this.addToDelete(child);
     });
-    this.logger.debug(AreaTematicaArbolFragment.name,
-      `${this.addToDelete.name}(wrapper: ${node})`, 'end');
   }
 
   saveOrUpdate(): Observable<void> {
-    this.logger.debug(AreaTematicaArbolFragment.name, `${this.saveOrUpdate.name}()`, 'start');
     return merge(
       this.deleteAreas(),
       this.updateAreas(this.getUpdated(this.areas$.value)),
@@ -156,8 +147,7 @@ export class AreaTematicaArbolFragment extends Fragment {
         if (this.isSaveOrUpdateComplete(this.areas$.value)) {
           this.setChanges(false);
         }
-      }),
-      tap(() => this.logger.debug(AreaTematicaArbolFragment.name, `${this.saveOrUpdate.name}()`, 'end'))
+      })
     );
   }
 
@@ -188,9 +178,7 @@ export class AreaTematicaArbolFragment extends Fragment {
   }
 
   private deleteAreas(): Observable<void> {
-    this.logger.debug(AreaTematicaArbolFragment.name, `${this.deleteAreas.name}()`, 'start');
     if (this.areasEliminados.length === 0) {
-      this.logger.debug(AreaTematicaArbolFragment.name, `${this.deleteAreas.name}()`, 'end');
       return of(void 0);
     }
     return from(this.areasEliminados).pipe(
@@ -200,17 +188,13 @@ export class AreaTematicaArbolFragment extends Fragment {
             tap(() => {
               this.areasEliminados = this.areasEliminados.filter(deleted =>
                 deleted.id !== area.id);
-            }),
-            tap(() => this.logger.debug(AreaTematicaArbolFragment.name,
-              `${this.deleteAreas.name}()`, 'end'))
+            })
           );
       }));
   }
 
   private updateAreas(nodes: NodeArea[]): Observable<void> {
-    this.logger.debug(AreaTematicaArbolFragment.name, `${this.updateAreas.name}()`, 'start');
     if (nodes.length === 0) {
-      this.logger.debug(AreaTematicaArbolFragment.name, `${this.updateAreas.name}()`, 'end');
       return of(void 0);
     }
     return from(nodes).pipe(
@@ -218,22 +202,18 @@ export class AreaTematicaArbolFragment extends Fragment {
         return this.areaTematicaService.update(node.area.value.id, node.area.value).pipe(
           map((updated) => {
             node.area = new StatusWrapper<IAreaTematica>(updated);
-          }),
-          tap(() => this.logger.debug(AreaTematicaArbolFragment.name,
-            `${this.updateAreas.name}()`, 'end'))
+          })
         );
       }));
   }
 
   private createAreas(nodes: NodeArea[]): Observable<void> {
-    this.logger.debug(AreaTematicaArbolFragment.name, `${this.createAreas.name}()`, 'start');
     if (nodes.length === 0) {
-      this.logger.debug(AreaTematicaArbolFragment.name, `${this.createAreas.name}()`, 'end');
       return of(void 0);
     }
     return from(nodes).pipe(
       concatMap(node => {
-        //Root nodes must match entity parent
+        // Root nodes must match entity parent
         if (!node.parent) {
           node.area.value.padre.id = this.getKey() as number;
         }
@@ -243,15 +223,12 @@ export class AreaTematicaArbolFragment extends Fragment {
             node.childs.forEach((child) => {
               child.area.value.padre = created;
             });
-          }),
-          tap(() => this.logger.debug(AreaTematicaArbolFragment.name,
-            `${this.createAreas.name}()`, 'end'))
+          })
         );
       }));
   }
 
   private isSaveOrUpdateComplete(nodes: NodeArea[]): boolean {
-    this.logger.debug(AreaTematicaArbolFragment.name, `${this.isSaveOrUpdateComplete.name}()`, 'start');
     let pending = this.areasEliminados.length > 0;
     if (pending) {
       return false;
@@ -268,7 +245,6 @@ export class AreaTematicaArbolFragment extends Fragment {
         }
       }
     });
-    this.logger.debug(AreaTematicaArbolFragment.name, `${this.isSaveOrUpdateComplete.name}()`, 'end');
     return true;
   }
 

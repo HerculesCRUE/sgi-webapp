@@ -1,5 +1,4 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { NGXLogger } from 'ngx-logger';
 import { ActionStatus, IActionService } from '@core/services/action-service';
 import { Subject, Subscription } from 'rxjs';
 
@@ -17,9 +16,7 @@ export class ActionFooterComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
-  constructor(
-    private readonly logger: NGXLogger
-  ) { }
+  constructor() { }
 
   ngOnInit(): void {
     this.subscriptions.push(this.actionService.status$.subscribe((status) => {
@@ -32,9 +29,7 @@ export class ActionFooterComponent implements OnInit, OnDestroy {
   }
 
   save() {
-    this.logger.debug(ActionFooterComponent.name, 'save()', 'start');
     this.event$.next(true);
-    this.logger.debug(ActionFooterComponent.name, 'save()', 'end');
   }
 
   cancel() {

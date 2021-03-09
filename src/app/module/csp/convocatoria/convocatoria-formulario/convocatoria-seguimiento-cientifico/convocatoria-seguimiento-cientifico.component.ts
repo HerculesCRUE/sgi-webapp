@@ -9,7 +9,6 @@ import { IConvocatoriaSeguimientoCientifico } from '@core/models/csp/convocatori
 import { DialogService } from '@core/services/dialog.service';
 import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { NGXLogger } from 'ngx-logger';
 import { Subscription } from 'rxjs';
 import { ConvocatoriaActionService } from '../../convocatoria.action.service';
 import { ConvocatoriaSeguimientoCientificoModalComponent, IConvocatoriaSeguimientoCientificoModalData } from '../../modals/convocatoria-seguimiento-cientifico-modal/convocatoria-seguimiento-cientifico-modal.component';
@@ -23,31 +22,26 @@ const MSG_DELETE = marker('csp.convocatoria.seguimiento.cientifico.listado.borra
   styleUrls: ['./convocatoria-seguimiento-cientifico.component.scss']
 })
 export class ConvocatoriaSeguimientoCientificoComponent extends FragmentComponent implements OnInit, OnDestroy {
-
-  private formPart: ConvocatoriaSeguimientoCientificoFragment;
+  formPart: ConvocatoriaSeguimientoCientificoFragment;
   private subscriptions: Subscription[] = [];
 
-  columnas: string[] = ['numPeriodo', 'mesInicial', 'mesFinal', 'fechaInicio', 'fechaFin', 'observaciones', 'acciones'];
-  elementosPagina: number[] = [5, 10, 25, 100];
+  columnas = ['numPeriodo', 'mesInicial', 'mesFinal', 'fechaInicio', 'fechaFin', 'observaciones', 'acciones'];
+  elementosPagina = [5, 10, 25, 100];
 
   dataSource = new MatTableDataSource<StatusWrapper<IConvocatoriaSeguimientoCientifico>>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
-    protected readonly logger: NGXLogger,
-    protected readonly actionService: ConvocatoriaActionService,
+    protected actionService: ConvocatoriaActionService,
     private matDialog: MatDialog,
-    private readonly dialogService: DialogService
+    private dialogService: DialogService
   ) {
     super(actionService.FRAGMENT.SEGUIMIENTO_CIENTIFICO, actionService);
-    this.logger.debug(ConvocatoriaSeguimientoCientificoComponent.name, 'constructor()', 'start');
     this.formPart = this.fragment as ConvocatoriaSeguimientoCientificoFragment;
-    this.logger.debug(ConvocatoriaSeguimientoCientificoComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(ConvocatoriaSeguimientoCientificoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.dataSource.paginator = this.paginator;
     this.dataSource.sortingDataAccessor =
@@ -71,7 +65,6 @@ export class ConvocatoriaSeguimientoCientificoComponent extends FragmentComponen
     this.dataSource.sort = this.sort;
     this.subscriptions.push(this.formPart.seguimientosCientificos$.subscribe(elements => {
       this.dataSource.data = elements;
-      this.logger.debug(ConvocatoriaSeguimientoCientificoComponent.name, 'ngOnInit()', 'end');
     }));
   }
 
@@ -81,29 +74,24 @@ export class ConvocatoriaSeguimientoCientificoComponent extends FragmentComponen
    * @param seguimientoCientificoActualizar seguimiento cientifico que se carga en el modal para modificarlo.
    */
   openModalSeguimientoCientifico(seguimientoCientificoActualizar?: StatusWrapper<IConvocatoriaSeguimientoCientifico>): void {
-    this.logger.debug(ConvocatoriaSeguimientoCientificoComponent.name,
-      `${this.openModalSeguimientoCientifico.name}(${seguimientoCientificoActualizar})`, 'start');
-
     const modalData: IConvocatoriaSeguimientoCientificoModalData = {
       duracion: this.actionService.duracion,
       convocatoriaSeguimientoCientifico: seguimientoCientificoActualizar
         ? seguimientoCientificoActualizar.value : {} as IConvocatoriaSeguimientoCientifico,
-      convocatoriaSeguimientoCientificoList: this.dataSource.data
+      convocatoriaSeguimientoCientificoList: this.dataSource.data,
+      readonly: this.formPart.readonly
     };
 
     const config = {
       width: GLOBAL_CONSTANTS.widthModalCSP,
       maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
       data: modalData,
-      autoFocus: false
     };
 
     const dialogRef = this.matDialog.open(ConvocatoriaSeguimientoCientificoModalComponent, config);
     dialogRef.afterClosed().subscribe(
       (periodoJustificacionModal: IConvocatoriaSeguimientoCientifico) => {
         if (!periodoJustificacionModal) {
-          this.logger.debug(ConvocatoriaSeguimientoCientificoModalComponent.name,
-            `${this.openModalSeguimientoCientifico.name}(${seguimientoCientificoActualizar})`, 'end');
           return;
         }
 
@@ -115,9 +103,6 @@ export class ConvocatoriaSeguimientoCientificoComponent extends FragmentComponen
         }
 
         this.recalcularNumPeriodos();
-
-        this.logger.debug(ConvocatoriaSeguimientoCientificoModalComponent.name,
-          `${this.openModalSeguimientoCientifico.name}(${seguimientoCientificoActualizar})`, 'end');
       }
     );
 
@@ -129,28 +114,20 @@ export class ConvocatoriaSeguimientoCientificoComponent extends FragmentComponen
    * @param seguimientoCientifico seguimiento cientifico que se quiere eliminar
    */
   deleteSeguimientoCientifico(seguimientoCientifico?: StatusWrapper<IConvocatoriaSeguimientoCientifico>): void {
-    this.logger.debug(ConvocatoriaSeguimientoCientificoModalComponent.name,
-      `${this.deleteSeguimientoCientifico.name}(${seguimientoCientifico})`, 'start');
-
     this.subscriptions.push(
       this.dialogService.showConfirmation(MSG_DELETE).subscribe(
-        (aceptado: boolean) => {
+        (aceptado) => {
           if (aceptado) {
             this.formPart.deleteSeguimientoCientifico(seguimientoCientifico);
             this.recalcularNumPeriodos();
           }
-
-          this.logger.debug(ConvocatoriaSeguimientoCientificoModalComponent.name,
-            `${this.deleteSeguimientoCientifico.name}(${seguimientoCientifico})`, 'end');
         }
       )
     );
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(ConvocatoriaSeguimientoCientificoComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
-    this.logger.debug(ConvocatoriaSeguimientoCientificoComponent.name, 'ngOnDestroy()', 'end');
   }
 
   /**

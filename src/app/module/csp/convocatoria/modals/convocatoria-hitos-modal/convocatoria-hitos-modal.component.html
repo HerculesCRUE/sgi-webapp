@@ -44,6 +44,9 @@
             <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.required">
               {{'csp.convocatoria.hitos.fecha.inicio.error.vacio' | translate}}
             </mat-error>
+            <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.notIn">
+              {{'csp.convocatoria.hitos.modal.fechaInicio.fechaExistente' | translate}}
+            </mat-error>
           </mat-form-field>
 
         </div>
@@ -69,15 +72,15 @@
 
       <div [fxLayout]="fxLayoutProperties.layout" class="checkbox">
         <mat-checkbox color="primary" formControlName="aviso" id="aviso">
-          {{'csp.convocatoria.hitos.aviso' | translate}}</mat-checkbox>
+          {{'csp.convocatoria.hitos.genera.aviso' | translate}}</mat-checkbox>
       </div>
 
     </form>
   </main>
 
   <div id="modals-buttons" class="float-right" mat-dialog-actions>
-    <button color="accent" (click)="saveOrUpdate()" md-button mat-raised-button
-      type="submit">{{'botones.guardar' | translate}}</button>
+    <button color="accent" (click)="saveOrUpdate()" md-button mat-raised-button *ngIf="!data.readonly"
+      type="submit">{{textSaveOrUpdate | translate}}</button>
     <button class="link-cancelar" mat-button (click)="closeModal()"
       type="button">{{'botones.cancelar' | translate}}</button>
   </div>

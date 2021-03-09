@@ -6,7 +6,7 @@
       <!-- Bloque Column -->
       <ng-container matColumnDef="apartado.bloque">
         <th mat-header-cell *matHeaderCellDef>{{'eti.comentario.listado.bloque' | translate}}</th>
-        <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.apartado?.bloque.nombre}}
+        <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.apartado?.bloque?.nombre}}
         </td>
       </ng-container>
 
@@ -47,7 +47,7 @@
       <tr mat-row *matRowDef="let row; columns: columnas;"></tr>
     </table>
     <div class="separation-button">
-      <button color="three" (click)="openCreateModal()" mat-button>
+      <button color="three" (click)="openCreateModal()" mat-raised-button>
         <mat-icon>add_box</mat-icon> {{'eti.evaluacion.evaluar.comentarios.crear' | translate}}
       </button>
     </div>

@@ -1,8 +1,9 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { DialogData } from '@block/dialog/dialog.component';
+import { IConvocatoriaReunion } from '@core/models/eti/convocatoria-reunion';
 import { IEvaluacion } from '@core/models/eti/evaluacion';
 import { IEvaluador } from '@core/models/eti/evaluador';
 import { IMemoria } from '@core/models/eti/memoria';
@@ -16,11 +17,11 @@ import { SnackBarService } from '@core/services/snack-bar.service';
 import { DateUtils } from '@core/utils/date-utils';
 import { FormGroupUtil } from '@core/utils/form-group-util';
 import { NullIdValidador } from '@core/validators/null-id-validador';
-import { SgiRestFilter, SgiRestFilterType, SgiRestListResult } from '@sgi/framework/http';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of, Subscription } from 'rxjs';
 import { map, shareReplay, startWith, switchMap } from 'rxjs/operators';
-import { IConvocatoriaReunion } from '@core/models/eti/convocatoria-reunion';
+
 
 const MSG_ERROR_FORM_GROUP = marker('form-group.error');
 const MSG_ERROR_CARGAR_MEMORIA = marker('eti.convocatoriaReunion.formulario.asignacionMemorias.memoria.error.cargar');
@@ -52,12 +53,14 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
   idConvocatoria: number;
   isTipoConvocatoriaSeguimiento: boolean;
   filterData: { idComite: number, idTipoConvocatoria: number, fechaLimite: Date };
-  filterMemoriasAsignables: SgiRestFilter[];
+  filterMemoriasAsignables: SgiRestFilter;
   memoriasAsignadas: IMemoria[];
   evaluacion: IEvaluacion;
 
+  isEdit = false;
+
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     private readonly dialogRef: MatDialogRef<ConvocatoriaReunionAsignacionMemoriasModalComponent>,
     private readonly evaluadorService: EvaluadorService,
     private readonly memoriaService: MemoriaService,
@@ -85,12 +88,10 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
       this.filterData = params.filterMemoriasAsignables;
       this.evaluacion = params.evaluacion;
     }
-    this.buildFilters();
+    this.buildFilter();
   }
 
   ngOnInit(): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'ngOnInit()', 'start');
-
     this.initFormGroup();
 
     if (this.idConvocatoria) {
@@ -103,28 +104,24 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
       }
     }
 
-    this.loadEvaluadores();
+    this.isEdit = this.evaluacion?.memoria ? true : false;
 
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'ngOnInit()', 'end');
+    this.loadEvaluadores();
   }
 
   /**
    * Inicializa el formGroup
    */
   private initFormGroup() {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'initFormGroup()', 'start');
     this.formGroup = new FormGroup({
       memoria: new FormControl(this.evaluacion.memoria, [Validators.required]),
       evaluador1: new FormControl(this.evaluacion.evaluador1),
       evaluador2: new FormControl(this.evaluacion.evaluador2),
     });
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'initFormGroup()', 'end');
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions?.forEach(x => x.unsubscribe());
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'ngOnDestroy()', 'end');
   }
 
   /**
@@ -132,13 +129,11 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
    *
    */
   createFormGroup(): FormGroup {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'createFormGroup()', 'start');
     const formGroup = new FormGroup({
       memoria: new FormControl(null, [new NullIdValidador().isValid()]),
       evaluador1: new FormControl(null, [Validators.required]),
       evaluador2: new FormControl(null, [Validators.required])
     });
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'createFormGroup()', 'end');
     return formGroup;
   }
 
@@ -146,30 +141,17 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
    * Construye los filtros necesarios para la búsqueda de las memorias asignables.
    *
    */
-  private buildFilters(): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'buildFilters(filterData)', 'start');
-    this.filterMemoriasAsignables = [];
-
+  private buildFilter(): void {
     if (this.filterData && this.filterData.idComite &&
       this.filterData.idTipoConvocatoria &&
       this.filterData.fechaLimite) {
-
       this.isTipoConvocatoriaSeguimiento = (this.filterData.idTipoConvocatoria === 3) ? true : false;
 
-      const filtroComite = {
-        field: 'comite.id',
-        type: SgiRestFilterType.EQUALS,
-        value: this.filterData.idComite.toString(),
-      };
-
-      const filtroFechaLimite = {
-        field: 'fechaEnvioSecretaria',
-        type: SgiRestFilterType.LOWER_OR_EQUAL,
-        value: DateUtils.formatFechaAsISODate(this.filterData.fechaLimite),
-      };
-
-      this.filterMemoriasAsignables.push(filtroComite);
-      this.filterMemoriasAsignables.push(filtroFechaLimite);
+      this.filterMemoriasAsignables = new RSQLSgiRestFilter('comite.id', SgiRestFilterOperator.EQUALS, this.filterData.idComite.toString())
+        .and('fechaEnvioSecretaria', SgiRestFilterOperator.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODate(this.filterData.fechaLimite))
+    }
+    else {
+      this.filterMemoriasAsignables = undefined;
     }
   }
 
@@ -178,10 +160,6 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
    * Recupera un listado de los memorias asignables a la convocatoria.
    */
   private loadMemoriasAsignablesConvocatoria(): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name,
-      'loadMemoriasAsignablesConvocatoria()',
-      'start');
-
     this.subscriptions.push(this.memoriaService
       .findAllMemoriasAsignablesConvocatoria(this.idConvocatoria)
       .subscribe(
@@ -201,26 +179,19 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
               map(value => this._filterMemoria(value))
             );
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_CARGAR_MEMORIA);
         }
       ));
-
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name,
-      'loadMemoriasAsignablesConvocatoria()',
-      'end');
   }
 
   /**
    * Recupera un listado de las memorias asignables si la convocatoria es de tipo seguimiento.
    */
   private loadMemoriasAsignablesConvocatoriaSeguimiento(): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name,
-      'loadMemoriasAsignablesConvocatoriaSeguimiento',
-      'start');
-
     this.subscriptions.push(this.memoriaService
-      .findAllAsignablesTipoConvocatoriaSeguimiento({ filters: this.filterMemoriasAsignables })
+      .findAllAsignablesTipoConvocatoriaSeguimiento({ filter: this.filterMemoriasAsignables })
       .subscribe(
         (response: SgiRestListResult<IMemoria>) => {
           this.memorias = response.items;
@@ -238,26 +209,19 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
               map(value => this._filterMemoria(value))
             );
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_CARGAR_MEMORIA);
         }
       ));
-
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name,
-      'loadMemoriasAsignablesConvocatoriaSeguimiento()',
-      'end');
   }
 
   /**
    * Recupera un listado de las memorias asignables si la convocatoria es de tipo ordinaria / extraordinaria.
    */
   private loadMemoriasAsignablesConvocatoriaOrdExt(): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name,
-      'loadMemoriasAsignablesConvocatoriaOrdExt',
-      'start');
-
     this.subscriptions.push(this.memoriaService
-      .findAllAsignablesTipoConvocatoriaOrdExt({ filters: this.filterMemoriasAsignables })
+      .findAllAsignablesTipoConvocatoriaOrdExt({ filter: this.filterMemoriasAsignables })
       .subscribe(
         (response: SgiRestListResult<IMemoria>) => {
           this.memorias = response.items;
@@ -275,25 +239,17 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
               map(value => this._filterMemoria(value))
             );
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_CARGAR_MEMORIA);
         }
       ));
-
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name,
-      'loadMemoriasAsignablesConvocatoriaOrdExt()',
-      'end');
   }
-
 
   /**
    * Recupera un listado de los evaluadores que hay en el sistema.
    */
   private loadEvaluadores(): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name,
-      'loadEvaluadores()',
-      'start');
-
     const evaluadoresMemoriaSeleccionada$ =
       this.formGroup.controls.memoria.valueChanges.pipe(
         switchMap((memoria: IMemoria | string) => {
@@ -348,7 +304,8 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
             map(value => this._filterEvaluador(value))
           );
       },
-      () => {
+      (error) => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR_CARGAR_EVALUADOR1);
       }
     ));
@@ -363,14 +320,11 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
             map(value => this._filterEvaluador(value))
           );
       },
-      () => {
+      (error) => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR_CARGAR_EVALUADOR2);
       }
     ));
-
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name,
-      'loadEvaluadores()',
-      'end');
   }
 
 
@@ -435,11 +389,11 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
    * @returns referencia y titulo memoria
    */
   getMemoria(memoria: IMemoria): string {
+
     return memoria ? (memoria.numReferencia + ' - ' + memoria.titulo) : '';
   }
 
   getDatosForm(): IEvaluacion {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'getDatosFormulario()', 'start');
     const evaluacion = this.evaluacion;
     const convocatoriaReunion: IConvocatoriaReunion = {
       activo: null,
@@ -466,7 +420,6 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
     this.evaluacion.evaluador1 = FormGroupUtil.getValue(this.formGroup, 'evaluador1');
     this.evaluacion.evaluador2 = FormGroupUtil.getValue(this.formGroup, 'evaluador2');
 
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'getDatosFormulario()', 'end');
     return this.evaluacion;
   }
 
@@ -474,13 +427,10 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
    * Confirmar asignación
    */
   onAsignarmemoria(): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'onAsignarmemoria()', 'start');
-
     const evaluacion: IEvaluacion = this.getDatosForm();
 
     if (evaluacion.evaluador1 === evaluacion.evaluador2) {
       this.snackBarService.showError(MSG_ERROR_EVALUADOR_REPETIDO);
-      this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'onAsignarmemoria() - end');
       return;
     }
 
@@ -489,16 +439,10 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
     } else {
       this.snackBarService.showError(MSG_ERROR_FORM_GROUP);
     }
-
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'onAsignarmemoria()', 'end');
   }
 
   onCancel(): void {
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'onCancel()', 'start');
     this.dialogRef.close();
-    this.logger.debug(ConvocatoriaReunionAsignacionMemoriasModalComponent.name, 'onCancel()', 'end');
   }
-
-
 
 }

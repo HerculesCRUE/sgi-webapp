@@ -1,11 +1,13 @@
 import { IActionService, IFormFragment, IFragment, FormFragment } from '@core/services/action-service';
 import { FormGroup } from '@angular/forms';
-import { OnInit } from '@angular/core';
+import { OnInit, Directive } from '@angular/core';
 
 export interface SgiOnRouteChange {
   onRouteChange(): void;
 }
 
+@Directive()
+// tslint:disable-next-line: directive-class-suffix
 export abstract class FragmentComponent implements SgiOnRouteChange, OnInit {
   // tslint:disable-next-line: variable-name
   private _service: IActionService;
@@ -29,6 +31,8 @@ export abstract class FragmentComponent implements SgiOnRouteChange, OnInit {
   }
 }
 
+@Directive()
+// tslint:disable-next-line: directive-class-suffix
 export abstract class FormFragmentComponent<T> implements SgiOnRouteChange, OnInit {
   // tslint:disable-next-line: variable-name
   private _service: IActionService;

@@ -59,11 +59,15 @@
       <ng-container matColumnDef="acciones">
         <th mat-header-cell *matHeaderCellDef>{{'botones.acciones' | translate}}</th>
         <td mat-cell *matCellDef="let wrapper">
-          <button mat-button matTooltip="{{'botones.editar' | translate}}"
+          <button mat-button matTooltip="{{'botones.ver' | translate}}" *ngIf="formPart.readonly"
+            (click)="openModalSeguimientoCientifico(wrapper)">
+            <mat-icon color="primary">visibility</mat-icon>
+          </button>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" *ngIf="!formPart.readonly"
             (click)="openModalSeguimientoCientifico(wrapper)">
             <mat-icon color="primary">border_color</mat-icon>
           </button>
-          <button mat-button matTooltip="{{'botones.eliminar' | translate}}"
+          <button mat-button matTooltip="{{'botones.eliminar' | translate}}" *ngIf="!formPart.readonly"
             (click)="deleteSeguimientoCientifico(wrapper)">
             <mat-icon color="warn">highlight_off</mat-icon>
           </button>
@@ -76,7 +80,8 @@
     </mat-paginator>
   </div>
   <div class="separation-button">
-    <button color="three" mat-button mat-raised-button (click)="openModalSeguimientoCientifico()">
+    <button color="three" mat-button mat-raised-button *ngIf="!formPart.readonly"
+      (click)="openModalSeguimientoCientifico()">
       <mat-icon color="accent">add_circle</mat-icon>
       {{'csp.convocatoria.seguimiento.cientifico.crear' | translate}}
     </button>

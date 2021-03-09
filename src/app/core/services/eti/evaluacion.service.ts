@@ -1,15 +1,12 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { IComentario } from '@core/models/eti/comentario';
-import { IEvaluacionSolicitante } from '@core/models/eti/evaluacion-solicitante';
 import { IEvaluacion } from '@core/models/eti/evaluacion';
+import { IEvaluacionSolicitante } from '@core/models/eti/evaluacion-solicitante';
 import { environment } from '@env';
 import { SgiBaseConverter } from '@sgi/framework/core';
 import { SgiRestFindOptions, SgiRestListResult, SgiRestService } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { IModeloEjecucion } from '@core/models/csp/tipos-configuracion';
 
 @Injectable({
   providedIn: 'root'
@@ -54,8 +51,8 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
     }
   }();
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
-    super(EvaluacionService.name, logger, `${environment.serviceServers.eti}${EvaluacionService.MAPPING}`, http);
+  constructor(protected http: HttpClient) {
+    super(EvaluacionService.name, `${environment.serviceServers.eti}${EvaluacionService.MAPPING}`, http);
   }
 
   /**
@@ -64,10 +61,7 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    * @param convocatoriaId id convocatoria.
    */
   findAllByConvocatoriaReunionId(convocatoriaId: number): Observable<SgiRestListResult<IEvaluacion>> {
-    this.logger.debug(EvaluacionService.name, `findAllByConvocatoriaReunionId(${convocatoriaId})`, '-', 'start');
-    return this.find<IEvaluacion, IEvaluacion>(`${this.endpointUrl}/convocatoriareuniones/${convocatoriaId}`, null).pipe(
-      tap(() => this.logger.debug(EvaluacionService.name, `findAllByConvocatoriaReunionId(${convocatoriaId})`, '-', 'end'))
-    );
+    return this.find<IEvaluacion, IEvaluacion>(`${this.endpointUrl}/convocatoriareuniones/${convocatoriaId}`, null);
   }
 
   /**
@@ -77,10 +71,7 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    * @param options Opciones de paginación
    */
   getComentariosGestor(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IComentario>> {
-    this.logger.debug(EvaluacionService.name, `getComentariosGestor(${id}, ${options ? JSON.stringify(options) : options}`, '-', 'start');
-    return this.find<IComentario, IComentario>(`${this.endpointUrl}/${id}/comentarios-gestor`, options).pipe(
-      tap(() => this.logger.debug(EvaluacionService.name, `getComentariosGestor(${id}, ${options ? JSON.stringify(options) : options}`, '-', 'end'))
-    );
+    return this.find<IComentario, IComentario>(`${this.endpointUrl}/${id}/comentarios-gestor`, options);
   }
 
   /**
@@ -90,11 +81,7 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    * @param options Opciones de paginación
    */
   getComentariosEvaluador(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IComentario>> {
-    this.logger.debug(EvaluacionService.name, `getComentariosEvaluador(${id}, ${options ?
-      JSON.stringify(options) : options}`, '-', 'start');
-    return this.find<IComentario, IComentario>(`${this.endpointUrl}/${id}/comentarios-evaluador`, options).pipe(
-      tap(() => this.logger.debug(EvaluacionService.name, `getComentariosEvaluador(${id}, ${options ? JSON.stringify(options) : options}`, '-', 'end'))
-    );
+    return this.find<IComentario, IComentario>(`${this.endpointUrl}/${id}/comentarios-evaluador`, options);
   }
 
 
@@ -106,10 +93,7 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    * @param comentario Comentario a crear
    */
   createComentarioGestor(id: number, comentario: IComentario): Observable<IComentario> {
-    this.logger.debug(EvaluacionService.name, `createComentarioGestor(${id}, ${comentario})`, '-', 'start');
-    return this.http.post<IComentario>(`${this.endpointUrl}/${id}/comentario-gestor`, comentario).pipe(
-      tap(() => this.logger.debug(EvaluacionService.name, `createComentarioGestor(${id}, ${comentario})`, '-', 'end'))
-    );
+    return this.http.post<IComentario>(`${this.endpointUrl}/${id}/comentario-gestor`, comentario);
   }
 
   /**
@@ -119,10 +103,7 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    * @param comentario Comentario a crear
    */
   createComentarioEvaluador(id: number, comentario: IComentario): Observable<IComentario> {
-    this.logger.debug(EvaluacionService.name, `createComentarioEvaluador(${id}, ${comentario})`, '-', 'start');
-    return this.http.post<IComentario>(`${this.endpointUrl}/${id}/comentario-evaluador`, comentario).pipe(
-      tap(() => this.logger.debug(EvaluacionService.name, `createComentarioEvaluador(${id}, ${comentario})`, '-', 'end'))
-    );
+    return this.http.post<IComentario>(`${this.endpointUrl}/${id}/comentario-evaluador`, comentario);
   }
 
   /**
@@ -133,10 +114,7 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    * @param idComentario Id del Comentario
    */
   updateComentarioGestor(id: number, comentario: IComentario, idComentario: number): Observable<IComentario> {
-    this.logger.debug(EvaluacionService.name, `updateComentarioGestor(${id}, ${comentario}, ${idComentario})`, '-', 'start');
-    return this.http.put<IComentario>(`${this.endpointUrl}/${id}/comentario-gestor/${idComentario}`, comentario).pipe(
-      tap(() => this.logger.debug(EvaluacionService.name, `updateComentarioGestor(${id}, ${comentario}, ${idComentario})`, '-', 'end'))
-    );
+    return this.http.put<IComentario>(`${this.endpointUrl}/${id}/comentario-gestor/${idComentario}`, comentario);
   }
 
   /**
@@ -147,10 +125,7 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    * @param idComentario Id del Comentario
    */
   updateComentarioEvaluador(id: number, comentario: IComentario, idComentario: number): Observable<IComentario> {
-    this.logger.debug(EvaluacionService.name, `updateComentarioEvaluador(${id}, ${comentario}, ${idComentario})`, '-', 'start');
-    return this.http.put<IComentario>(`${this.endpointUrl}/${id}/comentario-evaluador/${idComentario}`, comentario).pipe(
-      tap(() => this.logger.debug(EvaluacionService.name, `updateComentarioEvaluador(${id}, ${comentario}, ${idComentario})`, '-', 'end'))
-    );
+    return this.http.put<IComentario>(`${this.endpointUrl}/${id}/comentario-evaluador/${idComentario}`, comentario);
   }
 
   /**
@@ -160,11 +135,8 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    * @param idComentario Id del comentario
    */
   deleteComentarioGestor(id: number, idComentario: number): Observable<void> {
-    this.logger.debug(EvaluacionService.name, `deleteComentarioGestor(${id}, ${idComentario})`, '-', 'start');
     const params = new HttpParams().set('idComentario', idComentario.toString());
-    return this.http.delete<void>(`${this.endpointUrl}/${id}/comentario-gestor/${idComentario}`, { params }).pipe(
-      tap(() => this.logger.debug(EvaluacionService.name, `deleteComentarioGestor(${id}, ${idComentario})`, '-', 'end'))
-    );
+    return this.http.delete<void>(`${this.endpointUrl}/${id}/comentario-gestor/${idComentario}`, { params });
   }
 
   /**
@@ -174,11 +146,8 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    * @param idComentario Id del comentario
    */
   deleteComentarioEvaluador(id: number, idComentario: number): Observable<void> {
-    this.logger.debug(EvaluacionService.name, `deleteComentarioEvaluador(${id}, ${idComentario})`, '-', 'start');
     const params = new HttpParams().set('idComentario', idComentario.toString());
-    return this.http.delete<void>(`${this.endpointUrl}/${id}/comentario-evaluador/${idComentario}`, { params }).pipe(
-      tap(() => this.logger.debug(EvaluacionService.name, `deleteComentarioEvaluador(${id}, ${idComentario})`, '-', 'end'))
-    );
+    return this.http.delete<void>(`${this.endpointUrl}/${id}/comentario-evaluador/${idComentario}`, { params });
   }
 
   /**
@@ -188,13 +157,8 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    * @param options SgiRestFindOptions.
    */
   findAllByMemoriaAndRetrospectivaEnEvaluacion(options?: SgiRestFindOptions): Observable<SgiRestListResult<IEvaluacionSolicitante>> {
-    this.logger.debug(EvaluacionService.name, `findAllByMemoriaAndRetrospectivaEnEvaluacion
-    (${options ? JSON.stringify(options) : ''})`, '-', 'START');
     return this.find<IEvaluacion, IEvaluacionSolicitante>(`${environment.serviceServers.eti}${EvaluacionService.MAPPING}/evaluables`,
-      options, EvaluacionService.CONVERTER_EVALUACIONES_SOLICITANTES).pipe(
-        tap(() => {
-          this.logger.debug(EvaluacionService.name, `findAllByMemoriaAndRetrospectivaEnEvaluacion(${options ? JSON.stringify(options) : ''})`, '-', 'END');
-        }));
+      options, EvaluacionService.CONVERTER_EVALUACIONES_SOLICITANTES);
   }
 
   /**
@@ -206,10 +170,7 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    */
   findAllByConvocatoriaReunionIdAndNoEsRevMinima(idConvocatoria: number, options?: SgiRestFindOptions):
     Observable<SgiRestListResult<IEvaluacion>> {
-    this.logger.debug(EvaluacionService.name, `findAllByConvocatoriaReunionIdAndNoEsRevMinima(${idConvocatoria})`, '-', 'START');
-    return this.find<IEvaluacion, IEvaluacion>(`${this.endpointUrl}/convocatoriareunionnorevminima/${idConvocatoria}`, options).pipe(
-      tap(() => this.logger.debug(EvaluacionService.name, `findAllByConvocatoriaReunionIdAndNoEsRevMinima(${idConvocatoria})`, '-', 'END'))
-    );
+    return this.find<IEvaluacion, IEvaluacion>(`${this.endpointUrl}/convocatoriareunionnorevminima/${idConvocatoria}`, options);
   }
 
   /**
@@ -220,13 +181,8 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    */
 
   findSeguimientoMemoria(options?: SgiRestFindOptions): Observable<SgiRestListResult<IEvaluacionSolicitante>> {
-    this.logger.debug(EvaluacionService.name, `findSeguimientoMemoria
-    (${options ? JSON.stringify(options) : ''})`, '-', 'START');
     return this.find<IEvaluacion, IEvaluacionSolicitante>(`${environment.serviceServers.eti}${EvaluacionService.MAPPING}/memorias-seguimiento-final`,
-      options, EvaluacionService.CONVERTER_EVALUACIONES_SOLICITANTES).pipe(
-        tap(() => {
-          this.logger.debug(EvaluacionService.name, `findSeguimientoMemoria(${options ? JSON.stringify(options) : ''})`, '-', 'END');
-        }));
+      options, EvaluacionService.CONVERTER_EVALUACIONES_SOLICITANTES);
   }
 
   /**
@@ -235,10 +191,7 @@ export class EvaluacionService extends SgiRestService<number, IEvaluacion>{
    * @param id Id de la evaluación
    */
   getNumComentariosEvaluacion(id: number): Observable<SgiRestListResult<number>> {
-    this.logger.debug(EvaluacionService.name, `getNumComentariosEvaluacion(${id})`, '-', 'start');
-    return this.find<number, number>(`${this.endpointUrl}/${id}/numero-comentarios`).pipe(
-      tap(() => this.logger.debug(EvaluacionService.name, `getNumComentariosEvaluacion(${id})`, '-', 'end'))
-    );
+    return this.find<number, number>(`${this.endpointUrl}/${id}/numero-comentarios`);
   }
 
 }

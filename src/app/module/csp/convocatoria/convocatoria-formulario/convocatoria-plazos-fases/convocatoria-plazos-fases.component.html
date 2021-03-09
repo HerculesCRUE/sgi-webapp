@@ -10,13 +10,13 @@
     <!-- Fecha inicio Column -->
     <ng-container matColumnDef="fechaInicio">
       <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.plazos.fases.fechaInicio' | translate}} </th>
-      <td mat-cell *matCellDef="let plazoFase"> {{plazoFase.value.fechaInicio | date:'dd/MM/yyyy'}}</td>
+      <td mat-cell *matCellDef="let plazoFase"> {{plazoFase.value.fechaInicio | date:'dd/MM/yyyy, HH:mm:ss'}}</td>
     </ng-container>
 
     <!-- Fecha fin Column -->
     <ng-container matColumnDef="fechaFin">
       <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.plazos.fases.fechaFin' | translate}} </th>
-      <td mat-cell *matCellDef="let plazoFase"> {{plazoFase.value.fechaFin | date:'dd/MM/yyyy'}}</td>
+      <td mat-cell *matCellDef="let plazoFase"> {{plazoFase.value.fechaFin | date:'dd/MM/yyyy, HH:mm:ss'}}</td>
     </ng-container>
 
     <!-- Tipo de fase Column -->
@@ -34,14 +34,20 @@
     <!-- Acciones Column -->
     <ng-container matColumnDef="acciones">
       <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.plazos.fases.acciones' | translate}} </th>
-      <td mat-cell *matCellDef="let plazo;let i=index;">
+      <td mat-cell *matCellDef="let plazo">
         <ng-container>
-          <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModalPlazos(plazo)">
+          <button mat-button matTooltip="{{'botones.ver' | translate}}" *ngIf="formPart.readonly"
+            (click)="openModalPlazos(plazo)">
+            <mat-icon color="primary">visibility</mat-icon>
+          </button>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" *ngIf="!formPart.readonly"
+            (click)="openModalPlazos(plazo)">
             <mat-icon color="primary">border_color</mat-icon>
           </button>
         </ng-container>
         <ng-container>
-          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deleteFase(plazo)">
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}" *ngIf="!formPart.readonly"
+            (click)="deleteFase(plazo)">
             <mat-icon color="warn">highlight_off</mat-icon>
           </button>
         </ng-container>
@@ -54,12 +60,12 @@
   </table>
 
 
-  <mat-paginator [pageSizeOptions]="elementosPagina" [length]="totalElementos" showFirstLastButtons>
+  <mat-paginator [pageSizeOptions]="elementosPagina" showFirstLastButtons>
   </mat-paginator>
 
   <div class="separation-button">
-    <button color="three" aria-label="Center Align" md-button mat-raised-button (click)="openModalPlazos()"
-      [disabled]="disableAddFase">
+    <button color="three" aria-label="Center Align" md-button mat-raised-button *ngIf="!formPart.readonly"
+      (click)="openModalPlazos()" [disabled]="disableAddFase">
       <mat-icon color="accent">add_circle</mat-icon>
       {{'csp.convocatoria.plazos.fases.anadir'| translate}}
     </button>

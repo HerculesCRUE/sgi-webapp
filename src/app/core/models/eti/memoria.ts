@@ -2,8 +2,27 @@
 import { IPeticionEvaluacion } from './peticion-evaluacion';
 import { IComite } from './comite';
 import { TipoMemoria } from './tipo-memoria';
-import { TipoEstadoMemoria } from './tipo-estado-memoria';
+import { ESTADO_MEMORIA, TipoEstadoMemoria } from './tipo-estado-memoria';
 import { IRetrospectiva } from './retrospectiva';
+
+
+export function isFormularioEditable(memoria: IMemoria) {
+  if (!memoria.estadoActual.id) {
+    return true;
+  }
+  const estado = memoria.estadoActual.id as ESTADO_MEMORIA;
+  switch (+estado) {
+    case ESTADO_MEMORIA.COMPLETADA:
+    case ESTADO_MEMORIA.COMPLETADA_SEGUIMIENTO_ANUAL:
+    case ESTADO_MEMORIA.COMPLETADA_SEGUIMIENTO_FINAL:
+    case ESTADO_MEMORIA.EN_ELABORACION:
+    case ESTADO_MEMORIA.FAVORABLE_PENDIENTE_MODIFICACIONES_MINIMAS:
+    case ESTADO_MEMORIA.PENDIENTE_CORRECCIONES:
+      return true;
+    default:
+      return false;
+  }
+}
 
 export interface IMemoria {
   /** Id */

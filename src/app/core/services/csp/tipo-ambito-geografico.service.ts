@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
-import { SgiRestService } from '@sgi/framework/http/';
-import { ITipoAmbitoGeografico } from '@core/models/csp/tipo-ambito-geografico';
-import { NGXLogger } from 'ngx-logger';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { ITipoAmbitoGeografico } from '@core/models/csp/tipo-ambito-geografico';
 import { environment } from '@env';
+import { SgiRestService } from '@sgi/framework/http/';
 
 @Injectable({
   providedIn: 'root'
@@ -11,10 +10,9 @@ import { environment } from '@env';
 export class TipoAmbitoGeograficoService extends SgiRestService<number, ITipoAmbitoGeografico> {
   private static readonly MAPPING = '/tipoambitogeograficos';
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
+  constructor(protected http: HttpClient) {
     super(
       TipoAmbitoGeograficoService.name,
-      logger,
       `${environment.serviceServers.csp}${TipoAmbitoGeograficoService.MAPPING}`,
       http
     );

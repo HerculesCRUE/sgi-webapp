@@ -20,7 +20,7 @@ body {
 /**/
 
 .layout-components {
-  section {
+   section {
     h2 {
       font-weight: bold;
     }
@@ -28,8 +28,30 @@ body {
   }
 }
 
+
 /**/
 /** FIN Layout estructura */
+/**/
+
+/**/
+/** Layout contenido */
+/**/
+
+// Mostramos scroll dentro del contenido del componente con footer //
+.scrollable-panel-with-footer{
+  max-height: calc(100vh - #{$headerHeight} - #{$breadcrumHeight} - #{$footerHeight});
+  overflow: auto;
+}
+
+// Mostramos scroll dentro del contenido del componente SIN footer //
+.scrollable-panel{
+  max-height: calc(100vh - #{$headerHeight} - #{$breadcrumHeight});
+  overflow: auto;
+}
+
+
+/**/
+/** Layout contenido */
 /**/
 
 
@@ -199,6 +221,18 @@ table {
 /**/
 
 /**/
+/** RADIOBUTTON */
+/**/
+mat-radio-group.radio-inline{
+  mat-radio-button{
+    padding: 5px 15px 0px 0px;
+  }
+}
+/**/
+/** RADIOBUTTON */
+/**/
+
+/**/
 /** INPUT */
 /**/
 
@@ -220,12 +254,12 @@ mat-form-field {
   margin: 13px 0;
   padding: 10px;
   border-radius: 5px;
-  color: #156db4;
-  background-color: #bfe2ee;
+  color: map-get($palette-primary, 500);
+  background-color: map-get($palette-primary, 100);
   text-align: center;
-  -webkit-box-shadow: 0 5px 6px -6px #999;
-   -moz-box-shadow: 0 5px 6px -6px #999;
-        box-shadow: 0 5px 6px -6px #999;
+  -webkit-box-shadow: 0 5px 6px -6px map-get($palette-grease, 200);
+   -moz-box-shadow: 0 5px 6px -6px map-get($palette-grease, 200);
+        box-shadow: 0 5px 6px -6px map-get($palette-grease, 200);
 }
 
 /**/
@@ -288,9 +322,11 @@ mat-form-field {
     color: map-get($palette-grease, 900);
     font-size: mat-font-size($custom-typography, body-1);
     border-radius: 20px;
-    text-align: left;
-    padding-right: 35px;
     min-width: 150px;
+    &:has([mat-icon]) {
+      text-align: left;
+      padding-right: 35px;
+    }
   }
   // Boton danger
   .mat-danger {
@@ -298,12 +334,12 @@ mat-form-field {
     color: map-get($palette-grease, 900);
     font-size: mat-font-size($custom-typography, body-1);
     border-radius: 20px;
-    text-align: left;
-    padding-right: 35px;
     min-width: 150px;
-    mat-icon{
+    &:has([mat-icon]) {
       color: map-get($palette-warn, 500);
       font-weight: bold;
+      text-align: left;
+      padding-right: 35px;
     }
   }
   // Boton primario con border y posibilidad icono
@@ -312,29 +348,18 @@ mat-form-field {
     color: map-get($custom-colors, white);
     font-size: mat-font-size($custom-typography, body-1);
     border-radius: 20px;
-    text-align: left;
-    padding-right: 35px;
     min-width: 150px;
-    mat-icon {
+    &:has([mat-icon]) {
       float: right;
       padding: 6px;
+      text-align: left;
+      padding-right: 35px;
     }
   }
 }
 
 /**/
 /** FIN BOTONES */
-/**/
-
-/**/
-/** FORMULARIOS */
-/**/
-.fieldset-form{
-  padding-bottom: 5px;
-  font-size: mat-font-size($custom-typography, body-2);
-}
-/**/
-/** FIN FORMULARIOS */
 /**/
 
 /* Borrar la clase demo y este CSS una vez pasada la demo*/

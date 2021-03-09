@@ -30,14 +30,20 @@
     <!-- Acciones Column -->
     <ng-container matColumnDef="acciones">
       <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.enlace.acciones' | translate}} </th>
-      <td mat-cell *matCellDef="let enlace;let i=index;">
+      <td mat-cell *matCellDef="let enlace">
         <ng-container>
-          <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModal(enlace)">
+          <button mat-button matTooltip="{{'botones.ver' | translate}}" *ngIf="formPart.readonly"
+            (click)="openModal(enlace)">
+            <mat-icon color="primary">visibility</mat-icon>
+          </button>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" *ngIf="!formPart.readonly"
+            (click)="openModal(enlace)">
             <mat-icon color="primary">border_color</mat-icon>
           </button>
         </ng-container>
         <ng-container>
-          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deleteEnlace(enlace)">
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}" *ngIf="!formPart.readonly"
+            (click)="deleteEnlace(enlace)">
             <mat-icon color="warn">highlight_off</mat-icon>
           </button>
         </ng-container>
@@ -50,12 +56,12 @@
   </table>
 
 
-  <mat-paginator [pageSizeOptions]="elementosPagina" [length]="totalElementos" showFirstLastButtons>
+  <mat-paginator [pageSizeOptions]="elementosPagina" showFirstLastButtons>
   </mat-paginator>
 
   <div class="separation-button">
-    <button color="three" aria-label="Center Align" md-button mat-raised-button (click)="openModal()"
-      [disabled]="disableAddEnlace">
+    <button color="three" aria-label="Center Align" md-button mat-raised-button *ngIf="!formPart.readonly"
+      (click)="openModal()" [disabled]="disableAddEnlace">
       <mat-icon color="accent">add_circle</mat-icon>
       {{'csp.convocatoria.enlace.anadir'| translate}}
     </button>

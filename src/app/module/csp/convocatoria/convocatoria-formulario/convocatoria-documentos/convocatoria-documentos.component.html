@@ -48,31 +48,21 @@
             {{'csp.convocatoria.documentos.documento.nombre.error' | translate}}
           </mat-error>
         </mat-form-field>
-        <div>
-          <mat-form-field class="input-form file-upload" (click)="fileUpload.click()">
-            <mat-label>{{'csp.convocatoria.documentos.documento.fichero' | translate}}</mat-label>
-            <input type="file" #fileUpload (change)="onSeletectFile($event.target.files)" style="display:none;"
-              [disabled]="disableUpload" />
-            <input matInput type="text" tabindex="0" #fichero="matInput"
-              placeholder="{{'csp.convocatoria.documentos.documento.fichero.selecciona' | translate}}"
-              (focus)="fichero.focused = true" (blur)="fichero.focused = false" (keyup.enter)="fileUpload.click()"
-              formControlName="fichero" [readonly]="true" required>
-            <mat-error *ngIf="formGroup.get('fichero').errors?.required">
-              {{'csp.convocatoria.documentos.documento.fichero.error' | translate}}
-            </mat-error>
-            <mat-icon matSuffix>
-              arrow_upward
-            </mat-icon>
-          </mat-form-field>
-          <mat-progress-bar *ngIf="(viewMode === 'new' || viewMode === 'edit') && fileToUpload?.status === 'uploading'"
-            [value]="fileToUpload?.progress"></mat-progress-bar>
-        </div>
+        <mat-form-field class="input-form">
+          <mat-label>{{'csp.convocatoria.documentos.documento.fichero' | translate}}</mat-label>
+          <sgi-file-upload #uploader placeholder="{{'csp.convocatoria.documentos.documento.fichero' | translate}}"
+            formControlName="fichero" required autoUpload="false" (uploadEventChange)="onUploadProgress($event)">
+          </sgi-file-upload>
+          <mat-error *ngIf="formGroup.get('fichero').errors?.required">
+            {{'csp.convocatoria.documentos.documento.fichero.error' | translate}}
+          </mat-error>
+        </mat-form-field>
         <mat-form-field class="input-form">
           <mat-label>{{'csp.convocatoria.documentos.documento.fase' | translate}}</mat-label>
           <mat-select placeholder="{{'csp.convocatoria.documentos.documento.fase' | translate}}" formControlName="fase"
             [compareWith]="compareFase">
             <mat-option [value]="null"></mat-option>
-            <mat-option *ngFor="let fase of fases" [value]="fase">{{fase.nombre}}</mat-option>
+            <mat-option *ngFor="let fase of tipoFases$ | async" [value]="fase">{{fase.nombre}}</mat-option>
           </mat-select>
         </mat-form-field>
         <mat-form-field class="input-form">
@@ -107,17 +97,18 @@
           <mat-icon>arrow_downward</mat-icon>
           {{'csp.convocatoria.documentos.documento.button.descargarFichero' | translate}}
         </button>
-        <button *ngIf="viewMode === 'new' || viewMode === 'edit'" color="accent" mat-button mat-raised-button
-          (click)="acceptDetail()" [disabled]="!status.complete">{{'botones.aceptar' | translate}}</button>
-        <button *ngIf="viewMode === 'new' || viewMode === 'edit'" class="link-cancelar" mat-button><span
-            class="underline" (click)="cancelDetail()">{{'botones.cancelar' | translate}}</span></button>
-        <button *ngIf="viewMode === 'view'" color="accent" class="rounded" mat-button mat-raised-button
-          (click)="switchToEdit()">
+        <button *ngIf="!formPart.readonly && viewMode === 'new' || viewMode === 'edit'" color="accent" mat-button
+          mat-raised-button (click)="acceptDetail()"
+          [disabled]="!status.complete || (status.complete && uploading)">{{'botones.aceptar' | translate}}</button>
+        <button *ngIf="!formPart.readonly && viewMode === 'new' || viewMode === 'edit'" class="link-cancelar"
+          mat-button><span class="underline" (click)="cancelDetail()">{{'botones.cancelar' | translate}}</span></button>
+        <button *ngIf="!formPart.readonly && viewMode === 'view'" color="accent" class="rounded" mat-button
+          mat-raised-button (click)="switchToEdit()">
           <mat-icon>edit</mat-icon>
           {{'csp.convocatoria.documentos.documento.button.editar'| translate}}
         </button>
-        <button *ngIf="viewMode === 'view'" color="warn" class="rounded" mat-button mat-raised-button
-          (click)="deleteDetail()">
+        <button *ngIf="!formPart.readonly && viewMode === 'view'" color="warn" class="rounded" mat-button
+          mat-raised-button (click)="deleteDetail()">
           <mat-icon>close</mat-icon>
           {{'csp.convocatoria.documentos.documento.button.eliminar' | translate}}
         </button>
@@ -126,7 +117,7 @@
     <!-- FIN Visualizacion crear/editar/detalle -->
   </div>
 
-  <div class="separation-button">
+  <div class="separation-button" *ngIf="!formPart.readonly">
     <button color="three" aria-label="Center Align" mat-button mat-raised-button (click)="switchToNew()">
       <mat-icon color="accent">add_circle</mat-icon>
       {{'csp.convocatoria.documentos.button.anadir'| translate}}

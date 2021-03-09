@@ -1,27 +1,27 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { SgiRestFilter, SgiRestFilterType, SgiRestListResult } from '@sgi/framework/http';
-import { MatSort } from '@angular/material/sort';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
-import { NGXLogger } from 'ngx-logger';
-import { EvaluacionService } from '@core/services/eti/evaluacion.service';
-import { TipoConvocatoriaReunionService } from '@core/services/eti/tipo-convocatoria-reunion.service';
-import { ComiteService } from '@core/services/eti/comite.service';
-import { SnackBarService } from '@core/services/snack-bar.service';
-import { FormGroup, FormControl } from '@angular/forms';
-import { Observable, of } from 'rxjs';
-import { TipoConvocatoriaReunion } from '@core/models/eti/tipo-convocatoria-reunion';
+import { MatSort } from '@angular/material/sort';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
 import { IComite } from '@core/models/eti/comite';
-import { map, startWith } from 'rxjs/operators';
-import { DateUtils } from '@core/utils/date-utils';
+import { IEvaluacionSolicitante } from '@core/models/eti/evaluacion-solicitante';
+import { TipoConvocatoriaReunion } from '@core/models/eti/tipo-convocatoria-reunion';
+import { TipoEvaluacion } from '@core/models/eti/tipo-evaluacion';
+import { IPersona } from '@core/models/sgp/persona';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
-import { IEvaluacionSolicitante } from '@core/models/eti/evaluacion-solicitante';
-import { IPersona } from '@core/models/sgp/persona';
-import { TipoEvaluacion } from '@core/models/eti/tipo-evaluacion';
+import { ComiteService } from '@core/services/eti/comite.service';
+import { EvaluacionService } from '@core/services/eti/evaluacion.service';
+import { TipoConvocatoriaReunionService } from '@core/services/eti/tipo-convocatoria-reunion.service';
 import { TipoEvaluacionService } from '@core/services/eti/tipo-evaluacion.service';
-import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import { DateUtils } from '@core/utils/date-utils';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
+import { NGXLogger } from 'ngx-logger';
+import { from, Observable, of } from 'rxjs';
+import { map, mergeMap, startWith, switchMap } from 'rxjs/operators';
 
 const MSG_ERROR = marker('eti.evaluacion.listado.error');
 const MSG_ERROR_LOAD_TIPOS_CONVOCATORIA = marker('eti.evaluacion.listado.buscador.tipoConvocatoria.error');
@@ -62,7 +62,7 @@ export class EvaluacionListadoComponent extends AbstractTablePaginationComponent
   personaRefSolicitante: string;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     private readonly evaluacionesService: EvaluacionService,
     protected readonly snackBarService: SnackBarService,
     private readonly comiteService: ComiteService,
@@ -72,7 +72,7 @@ export class EvaluacionListadoComponent extends AbstractTablePaginationComponent
 
   ) {
 
-    super(logger, snackBarService, MSG_ERROR);
+    super(snackBarService, MSG_ERROR);
 
     this.totalElementos = 0;
 
@@ -92,7 +92,6 @@ export class EvaluacionListadoComponent extends AbstractTablePaginationComponent
   }
 
   ngOnInit(): void {
-    this.logger.debug(EvaluacionListadoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
 
     this.formGroup = new FormGroup({
@@ -108,68 +107,62 @@ export class EvaluacionListadoComponent extends AbstractTablePaginationComponent
     this.loadComites();
     this.loadTipoEvaluaciones();
     this.loadTipoConvocatoriasReunion();
-
-    this.logger.debug(EvaluacionListadoComponent.name, 'ngOnInit()', 'end');
   }
 
 
 
   protected createObservable(): Observable<SgiRestListResult<IEvaluacionSolicitante>> {
-    this.logger.debug(EvaluacionListadoComponent.name, 'createObservable()', 'start');
     const observable$ = this.evaluacionesService.findAllByMemoriaAndRetrospectivaEnEvaluacion(this.getFindOptions());
-    this.logger.debug(EvaluacionListadoComponent.name, 'createObservable()', 'end');
     return observable$;
   }
 
   protected initColumns(): void {
-    this.logger.debug(EvaluacionListadoComponent.name, 'initColumns()', 'start');
-
     this.displayedColumns = ['memoria.comite.comite', 'tipoEvaluacion', 'fechaDictamen', 'memoria.numReferencia', 'solicitante',
       'dictamen.nombre', 'version', 'acciones'];
-    this.logger.debug(EvaluacionListadoComponent.name, 'initColumns()', 'end');
   }
 
-  protected createFilters(): SgiRestFilter[] {
-
-    this.logger.debug(EvaluacionListadoComponent.name, 'createFilters()', 'start');
-
-    const filtro: SgiRestFilter[] = [];
-    this.addFiltro(filtro, 'memoria.comite.id', SgiRestFilterType.EQUALS, this.formGroup.controls.comite.value.id);
-    this.addFiltro(filtro, 'tipoEvaluacion.id', SgiRestFilterType.EQUALS, this.formGroup.controls.tipoEvaluacion.value.id);
-
-
-    if (this.formGroup.controls.fechaEvaluacionInicio) {
-      const fechaFilter = DateUtils.getFechaFinDia(this.formGroup.controls.fechaEvaluacionInicio.value);
-      this.addFiltro(filtro, 'fechaDictamen',
-        SgiRestFilterType.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fechaFilter));
-
+  protected createFilter(): SgiRestFilter {
+    const controls = this.formGroup.controls;
+    const filter = new RSQLSgiRestFilter('memoria.comite.id', SgiRestFilterOperator.EQUALS, controls.comite.value?.id?.toString())
+      .and('tipoEvaluacion.id', SgiRestFilterOperator.EQUALS, controls.tipoEvaluacion.value?.id?.toString());
+    if (controls.fechaEvaluacionInicio) {
+      const fechaFilter = DateUtils.getFechaFinDia(controls.fechaEvaluacionInicio.value);
+      filter.and('fechaDictamen',
+        SgiRestFilterOperator.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODate(fechaFilter));
     }
-
-    if (this.formGroup.controls.fechaEvaluacionFin) {
-      const fechaFilter = DateUtils.getFechaFinDia(this.formGroup.controls.fechaEvaluacionFin.value);
-      this.addFiltro(filtro, 'fechaDictamen',
-        SgiRestFilterType.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fechaFilter));
-
+    if (controls.fechaEvaluacionFin) {
+      const fechaFilter = DateUtils.getFechaFinDia(controls.fechaEvaluacionFin.value);
+      filter.and('fechaDictamen',
+        SgiRestFilterOperator.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODate(fechaFilter));
     }
+    filter
+      .and('memoria.numReferencia', SgiRestFilterOperator.LIKE_ICASE, controls.referenciaMemoria.value)
+      .and('convocatoriaReunion.tipoConvocatoriaReunion.id', SgiRestFilterOperator.EQUALS, controls.tipoConvocatoriaReunion.value?.id?.toString())
+      .and('memoria.peticionEvaluacion.personaRef', SgiRestFilterOperator.EQUALS, this.personaRefSolicitante);
 
-
-    this.addFiltro(filtro, 'memoria.numReferencia', SgiRestFilterType.LIKE, this.formGroup.controls.referenciaMemoria.value);
-    this.addFiltro(filtro, 'convocatoriaReunion.tipoConvocatoriaReunion',
-      SgiRestFilterType.EQUALS, this.formGroup.controls.tipoConvocatoriaReunion.value.id);
-    this.addFiltro(filtro, 'memoria.peticionEvaluacion.personaRef',
-      SgiRestFilterType.EQUALS, this.personaRefSolicitante);
-
-
-    this.logger.debug(EvaluacionListadoComponent.name, 'createFilters()', 'end');
-    return filtro;
+    return filter;
   }
 
   protected loadTable(reset?: boolean) {
-    this.logger.debug(EvaluacionListadoComponent.name, 'loadTable()', 'start');
-
-    this.evaluaciones$ = this.getObservableLoadTable(reset);
-    this.logger.debug(EvaluacionListadoComponent.name, 'loadTable()', 'end');
-
+    this.evaluaciones$ = this.getObservableLoadTable(reset).pipe(
+      switchMap((evaluaciones) => {
+        return from(evaluaciones).pipe(
+          mergeMap(evaluacion => {
+            const personaRef = evaluacion.memoria?.peticionEvaluacion?.personaRef;
+            if (personaRef) {
+              return this.personaFisicaService.getInformacionBasica(personaRef).pipe(
+                map(persona => {
+                  evaluacion.persona = persona;
+                  return evaluacion;
+                })
+              );
+            }
+            return of(evaluacion);
+          }),
+          map(() => evaluaciones)
+        );
+      })
+    );
   }
 
   /**
@@ -178,9 +171,7 @@ export class EvaluacionListadoComponent extends AbstractTablePaginationComponent
    * returns nombre comité
    */
   getComite(comite: IComite): string {
-
     return comite?.comite;
-
   }
 
   /**
@@ -198,19 +189,13 @@ export class EvaluacionListadoComponent extends AbstractTablePaginationComponent
    * returns nombre tipo convocatoria reunión.
    */
   getTipoConvocatoriaReunion(convocatoria: TipoConvocatoriaReunion): string {
-
     return convocatoria?.nombre;
-
   }
 
   /**
    * Recupera un listado de los comités que hay en el sistema.
    */
   loadComites(): void {
-    this.logger.debug(EvaluacionListadoComponent.name,
-      'loadComites()',
-      'start');
-
     this.suscripciones.push(this.comiteService.findAll().subscribe(
       (response) => {
         this.comiteListado = response.items;
@@ -221,20 +206,12 @@ export class EvaluacionListadoComponent extends AbstractTablePaginationComponent
             map(value => this.filterComite(value))
           );
       }));
-
-    this.logger.debug(EvaluacionListadoComponent.name,
-      'loadComites()',
-      'end');
   }
 
   /**
    * Recupera un listado de los tipos de evaluacion que hay en el sistema.
    */
   loadTipoEvaluaciones(): void {
-    this.logger.debug(EvaluacionListadoComponent.name,
-      'loadTipoEvaluaciones()',
-      'start');
-
     this.suscripciones.push(this.tipoEvaluacionService.findTipoEvaluacionMemoriaRetrospectiva().subscribe(
       (response) => {
         this.tipoEvaluacionListado = response.items;
@@ -245,10 +222,6 @@ export class EvaluacionListadoComponent extends AbstractTablePaginationComponent
             map(value => this.filterTipoEvaluacion(value))
           );
       }));
-
-    this.logger.debug(EvaluacionListadoComponent.name,
-      'loadTipoEvaluaciones()',
-      'end');
   }
 
 
@@ -256,10 +229,6 @@ export class EvaluacionListadoComponent extends AbstractTablePaginationComponent
    * Recupera un listado de los tipos convocatoria que hay en el sistema.
    */
   loadTipoConvocatoriasReunion(): void {
-    this.logger.debug(EvaluacionListadoComponent.name,
-      'loadTipoConvocatoriasReunion()',
-      'start');
-
     this.suscripciones.push(this.tipoConvocatoriaReunionService.findAll().subscribe(
       (response) => {
         this.tipoConvocatoriaReunionListado = response.items;
@@ -270,14 +239,11 @@ export class EvaluacionListadoComponent extends AbstractTablePaginationComponent
             map(value => this.filterTipoConvocatoriaReunion(value))
           );
       },
-      () => {
+      (error) => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR_LOAD_TIPOS_CONVOCATORIA);
       }
     ));
-
-    this.logger.debug(EvaluacionListadoComponent.name,
-      'loadTipoConvocatoriasReunion()',
-      'end');
   }
 
 
@@ -338,8 +304,17 @@ export class EvaluacionListadoComponent extends AbstractTablePaginationComponent
    * @param persona Persona seleccionada
    */
   public setPersona(persona: IPersona) {
+    this.formGroup.controls.solicitante.setValue(persona.personaRef);
+    this.datosUsuarioSolicitante = persona.nombre ? persona.nombre + ' ' + persona.primerApellido + ' ' + persona.segundoApellido : '';
     this.personaRefSolicitante = persona.personaRef;
   }
 
+  /**
+   * Clean filters an reload the table
+   */
+  onClearFilters(): void {
+    super.onClearFilters();
+    this.setPersona({} as IPersona);
+  }
 
 }

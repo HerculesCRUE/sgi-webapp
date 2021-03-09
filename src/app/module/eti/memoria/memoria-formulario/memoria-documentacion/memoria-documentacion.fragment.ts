@@ -1,11 +1,10 @@
+import { IDocumentacionMemoria } from '@core/models/eti/documentacion-memoria';
 import { Fragment } from '@core/services/action-service';
 import { MemoriaService } from '@core/services/eti/memoria.service';
-import { Observable, BehaviorSubject, of, from, merge } from 'rxjs';
-import { StatusWrapper } from '@core/utils/status-wrapper';
-import { IDocumentacionMemoria } from '@core/models/eti/documentacion-memoria';
-import { map, mergeMap, endWith, tap, takeLast } from 'rxjs/operators';
-import { NGXLogger } from 'ngx-logger';
 import { DocumentoService } from '@core/services/sgdoc/documento.service';
+import { StatusWrapper } from '@core/utils/status-wrapper';
+import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
+import { endWith, map, mergeMap, takeLast, tap } from 'rxjs/operators';
 
 export enum TIPO_DOCUMENTACION {
   INICIAL = 0,
@@ -31,14 +30,12 @@ export class MemoriaDocumentacionFragment extends Fragment {
   private deletedDocumentacionRetrospectiva: StatusWrapper<IDocumentacionMemoria>[] = [];
 
   constructor(
-    private logger: NGXLogger,
     key: number,
     private service: MemoriaService,
     private documentoService: DocumentoService
   ) {
     super(key);
   }
-
 
   onInitialize(): void {
     if (this.getKey()) {
@@ -52,12 +49,10 @@ export class MemoriaDocumentacionFragment extends Fragment {
 
 
   loadDocumentosMemoria(idMemoria: number): void {
-
     if (!this.isInitialized()) {
       this.service.findDocumentacionFormulario(idMemoria).pipe(
         map((response) => {
           if (response.items) {
-
             return response.items.map((documentacion) => new StatusWrapper<IDocumentacionMemoria>(documentacion));
           }
           else {
@@ -65,7 +60,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
           }
         })
       ).subscribe((documentacionMemoria) => {
-
         this.documentacionesMemoria$.next(documentacionMemoria);
       });
     }
@@ -84,7 +78,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
           }
         })
       ).subscribe((documentacionMemoria) => {
-
         this.documentacionesSeguimientoAnual$.next(documentacionMemoria);
       });
     }
@@ -102,8 +95,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
           }
         })
       ).subscribe((documentacionMemoria) => {
-
-
         this.documentacionesSeguimientoFinal$.next(documentacionMemoria);
       });
     }
@@ -121,7 +112,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
           }
         })
       ).subscribe((documentacionMemoria) => {
-
         this.documentacionesRetrospectiva$.next(documentacionMemoria);
       });
     }
@@ -149,13 +139,10 @@ export class MemoriaDocumentacionFragment extends Fragment {
    * Actualiza la documentación inicial de una memoria.
    */
   private updateDocumentacionInicial(): Observable<void> {
-    this.logger.debug(MemoriaDocumentacionFragment.name, 'updateDocumentacionInicial()', 'start');
     const editedDocumentacion = this.documentacionesMemoria$.value.filter((documentacion) => documentacion.edited);
     if (editedDocumentacion.length === 0) {
-      this.logger.debug(MemoriaDocumentacionFragment.name, 'updateDocumentacionInicial()', 'end');
       return of(void 0);
     }
-
 
     return from(editedDocumentacion).pipe(
       mergeMap((wrappedDocumentacion) => {
@@ -168,7 +155,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
           })
         );
       }));
-
   }
 
 
@@ -176,9 +162,7 @@ export class MemoriaDocumentacionFragment extends Fragment {
    * Elimina la documentación inicial de una memoria.
    */
   private deleteDocumentacionInicial(): Observable<void> {
-    this.logger.debug(MemoriaDocumentacionFragment.name, 'deleteDocumentacionInicial()', 'start');
     if (this.deletedDocumentacionInicial.length === 0) {
-      this.logger.debug(MemoriaDocumentacionFragment.name, 'deleteDocumentacionInicial()', 'end');
       return of(void 0);
     }
     return from(this.deletedDocumentacionInicial).pipe(
@@ -198,7 +182,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
         );
 
       }));
-
   }
 
   /**
@@ -209,10 +192,8 @@ export class MemoriaDocumentacionFragment extends Fragment {
     if (documentacionCreada.length === 0) {
       return of(void 0);
     }
-
     return from(documentacionCreada).pipe(
       mergeMap((wrappedDocumentacion) => {
-
         return this.service.createDocumentacionInicial(this.getKey() as number, wrappedDocumentacion.value).pipe(
           map((savedDocumentacion) => {
             const index = this.documentacionesMemoria$.value.findIndex((currentComentario) => currentComentario === wrappedDocumentacion);
@@ -222,7 +203,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
       }),
       endWith()
     );
-
   }
 
   /**
@@ -235,7 +215,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
     }
     return from(documentacionCreada).pipe(
       mergeMap((wrappedDocumentacion) => {
-
         return this.service.createDocumentacionSeguimientoAnual(this.getKey() as number, wrappedDocumentacion.value).pipe(
           map((savedDocumentacion) => {
             const index = this.documentacionesSeguimientoAnual$.value.findIndex((currentComentario) => currentComentario
@@ -246,7 +225,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
       }),
       endWith()
     );
-
   }
 
   /**
@@ -257,10 +235,8 @@ export class MemoriaDocumentacionFragment extends Fragment {
     if (documentacionCreada.length === 0) {
       return of(void 0);
     }
-
     return from(documentacionCreada).pipe(
       mergeMap((wrappedDocumentacion) => {
-
         return this.service.createDocumentacionSeguimientoFinal(this.getKey() as number, wrappedDocumentacion.value).pipe(
           map((savedDocumentacion) => {
             const index = this.documentacionesSeguimientoFinal$.value.findIndex((currentComentario) => currentComentario
@@ -273,7 +249,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
     );
   }
 
-
   /**
    * Crea la documentación de retrospectiva de una memoria
    */
@@ -284,7 +259,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
     }
     return from(documentacionCreada).pipe(
       mergeMap((wrappedDocumentacion) => {
-
         return this.service.createDocumentacionRetrospectiva(this.getKey() as number, wrappedDocumentacion.value).pipe(
           map((savedDocumentacion) => {
             const index = this.documentacionesRetrospectiva$.value.findIndex((currentComentario) => currentComentario
@@ -297,15 +271,11 @@ export class MemoriaDocumentacionFragment extends Fragment {
     );
   }
 
-
-
   /**
    * Elimina la documentación de seguimiento anual de una memoria
    */
   private deleteDocumentacionSeguimientoAnual(): Observable<void> {
-    this.logger.debug(MemoriaDocumentacionFragment.name, 'deleteDocumentacionSeguimientoAnual()', 'start');
     if (this.deletedDocumentacionSeguimientoAnual.length === 0) {
-      this.logger.debug(MemoriaDocumentacionFragment.name, 'deleteDocumentacionSeguimientoAnual()', 'end');
       return of(void 0);
     }
     return from(this.deletedDocumentacionSeguimientoAnual).pipe(
@@ -322,14 +292,11 @@ export class MemoriaDocumentacionFragment extends Fragment {
       }));
   }
 
-
   /**
    * Elimina la documentación de seguimiento final de una memoria
    */
   private deleteDocumentacionSeguimientoFinal(): Observable<void> {
-    this.logger.debug(MemoriaDocumentacionFragment.name, 'deleteDocumentacionSeguimientoFinall()', 'start');
     if (this.deletedDocumentacionSeguimientoFinal.length === 0) {
-      this.logger.debug(MemoriaDocumentacionFragment.name, 'deleteDocumentacionSeguimientoFinall()', 'end');
       return of(void 0);
     }
     return from(this.deletedDocumentacionSeguimientoFinal).pipe(
@@ -346,14 +313,11 @@ export class MemoriaDocumentacionFragment extends Fragment {
       }));
   }
 
-
   /**
    * Elimina la documentación de retrospectiva de una memoria
    */
   private deleteDocumentacionRetrospectiva(): Observable<void> {
-    this.logger.debug(MemoriaDocumentacionFragment.name, 'deleteDocumentacionRetrospectiva()', 'start');
     if (this.deletedDocumentacionRetrospectiva.length === 0) {
-      this.logger.debug(MemoriaDocumentacionFragment.name, 'deleteDocumentacionRetrospectiva()', 'end');
       return of(void 0);
     }
     return from(this.deletedDocumentacionRetrospectiva).pipe(
@@ -376,23 +340,16 @@ export class MemoriaDocumentacionFragment extends Fragment {
    * @param tipoDocumentacion tipo de documentación a añadir.
    */
   addDocumentacion(documentacion: IDocumentacionMemoria) {
-    this.logger.debug(MemoriaDocumentacionFragment.name,
-      `addDocumentacion()`, 'start');
     const wrapped = new StatusWrapper<IDocumentacionMemoria>(documentacion);
     wrapped.setCreated();
-
 
     const current = this.documentacionesMemoria$.value;
     current.push(wrapped);
     this.documentacionesMemoria$.next(current);
 
-
     this.setChanges(true);
     this.setErrors(false);
-    this.logger.debug(MemoriaDocumentacionFragment.name,
-      `addDocumentacion()`, 'end');
   }
-
 
   /**
    * Añade documentación del tipo recibido por parámetro al listado de documentación correspondiente.
@@ -400,8 +357,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
    * @param tipoDocumentacion tipo de documentación a añadir.
    */
   addDocumentacionSeguimiento(documentacion: IDocumentacionMemoria, tipoDocumentacion: number) {
-    this.logger.debug(MemoriaDocumentacionFragment.name,
-      `addDocumentacionSeguimiento()`, 'start');
     const wrapped = new StatusWrapper<IDocumentacionMemoria>(documentacion);
     wrapped.setCreated();
 
@@ -421,10 +376,7 @@ export class MemoriaDocumentacionFragment extends Fragment {
 
     this.setChanges(true);
     this.setErrors(false);
-    this.logger.debug(MemoriaDocumentacionFragment.name,
-      `addDocumentacionSeguimiento()`, 'end');
   }
-
 
   /**
    * Elimina documentación del tipo recibido por parámentro de la lista correspondiente.
@@ -437,8 +389,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
    * @param wrapperDocumentacion documentación a eliminar.
    */
   deletedDocumentacionSeguimiento(tipoDocumentacion: number, wrapperDocumentacion: StatusWrapper<IDocumentacionMemoria>): void {
-    this.logger.debug(MemoriaDocumentacionFragment.name, 'deletedDocumentacionSeguimiento(tipoSeguimiento: string, wrapperDocumentacion: StatusWrapper<IDocumentacionMemoria>)', 'start');
-
     let current: StatusWrapper<IDocumentacionMemoria>[];
     if (tipoDocumentacion === TIPO_DOCUMENTACION.INICIAL) {
       current = this.documentacionesMemoria$.value;
@@ -477,8 +427,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
         }
         this.setChanges(true);
       }
-
-      this.logger.debug(MemoriaDocumentacionFragment.name, 'deleteTareasEquipoTrabajo(tipoSeguimiento: string, wrapperDocumentacion: StatusWrapper<IDocumentacionMemoria>)', 'end');
     }
   }
 

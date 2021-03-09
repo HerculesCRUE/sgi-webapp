@@ -12,6 +12,7 @@
           <mat-form-field fxFill>
             <mat-label>{{'csp.tipo.documento' | translate}}</mat-label>
             <mat-select matNativeControl formControlName="tipoDocumento" required>
+              <mat-option [value]="null"></mat-option>
               <mat-option *ngFor="let tipoDocumento of tipoDocumentos$ | async" [value]="tipoDocumento">
                 {{tipoDocumento.nombre}}
               </mat-option>
@@ -29,11 +30,15 @@
           [fxFlexOrder]="fxFlexProperties.order">
           <mat-form-field fxFill>
             <mat-label>{{'csp.tipo.documento.fase' | translate}}</mat-label>
-            <mat-select matNativeControl formControlName="tipoFase">
-              <mat-option *ngFor="let tipoFase of data.tipoFases" [value]="tipoFase">
+            <mat-select matNativeControl formControlName="tipoFase" [required]="isFaseRequired">
+              <mat-option [value]="null"></mat-option>
+              <mat-option *ngFor="let tipoFase of tipoFases$ | async" [value]="tipoFase">
                 {{tipoFase.nombre}}
               </mat-option>
             </mat-select>
+            <mat-error *ngIf="formGroup.controls.tipoFase.errors?.required">
+              {{'csp.tipo.fase.error.requerido' | translate}}
+            </mat-error>
           </mat-form-field>
         </div>
       </div>
@@ -41,9 +46,9 @@
     </form>
   </main>
   <div id="modals-buttons" class="float-right" mat-dialog-actions>
-    <button color="accent" (click)="saveOrUpdate()" md-button mat-raised-button
-      type="submit">{{'botones.guardar' | translate}}</button>
-    <button class="link-cancelar" mat-button (click)="closeModal()"
-      type="button">{{'botones.cancelar' | translate}}</button>
+    <button color="accent" (click)="saveOrUpdate()" md-button mat-raised-button type="submit">{{'botones.aniadir' |
+      translate}}</button>
+    <button class="link-cancelar" mat-button (click)="closeModal()" type="button">{{'botones.cancelar' |
+      translate}}</button>
   </div>
 </div>

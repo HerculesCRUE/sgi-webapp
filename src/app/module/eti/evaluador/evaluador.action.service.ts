@@ -23,8 +23,9 @@ export class EvaluadorActionService extends ActionService {
   private conflictoInteres: EvaluadorConflictosInteresFragment;
 
   constructor(
+    private readonly logger: NGXLogger,
     fb: FormBuilder, route: ActivatedRoute, service: EvaluadorService,
-    personaService: PersonaService, conflictoInteresService: ConflictoInteresService, protected readonly logger: NGXLogger
+    personaService: PersonaService, conflictoInteresService: ConflictoInteresService
   ) {
     super();
     this.evaluador = {} as IEvaluador;
@@ -33,7 +34,7 @@ export class EvaluadorActionService extends ActionService {
       this.enableEdit();
     }
     this.datosGenerales = new EvaluadorDatosGeneralesFragment(fb, this.evaluador?.id, service, personaService);
-    this.conflictoInteres = new EvaluadorConflictosInteresFragment(fb, this.evaluador?.id, logger, service,
+    this.conflictoInteres = new EvaluadorConflictosInteresFragment(this.evaluador?.id, service,
       personaService, conflictoInteresService);
 
     this.addFragment(this.FRAGMENT.DATOS_GENERALES, this.datosGenerales);

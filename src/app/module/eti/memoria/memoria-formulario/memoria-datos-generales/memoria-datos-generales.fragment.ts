@@ -1,17 +1,16 @@
-import { FormFragment } from '@core/services/action-service';
-import { IMemoria } from '@core/models/eti/memoria';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
+import { IMemoria } from '@core/models/eti/memoria';
+import { IPeticionEvaluacion } from '@core/models/eti/peticion-evaluacion';
+import { IPersona } from '@core/models/sgp/persona';
+import { FormFragment } from '@core/services/action-service';
 import { MemoriaService } from '@core/services/eti/memoria.service';
+import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
+import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { IsEntityValidator } from '@core/validators/is-entity-validador';
 import { NullIdValidador } from '@core/validators/null-id-validador';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { map, switchMap, catchError, tap } from 'rxjs/operators';
-import { IPersona } from '@core/models/sgp/persona';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
-import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
-import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
-import { OnDestroy } from '@angular/core';
-import { NGXLogger } from 'ngx-logger';
-import { IPeticionEvaluacion } from '@core/models/eti/peticion-evaluacion';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 
 export class MemoriaDatosGeneralesFragment extends FormFragment<IMemoria>  {
   private memoria: IMemoria;
@@ -26,7 +25,7 @@ export class MemoriaDatosGeneralesFragment extends FormFragment<IMemoria>  {
 
 
   constructor(
-    private fb: FormBuilder, private logger: NGXLogger, readonly: boolean, key: number, private service: MemoriaService,
+    private fb: FormBuilder, readonly: boolean, key: number, private service: MemoriaService,
     private personaFisicaService: PersonaFisicaService,
     private readonly peticionEvaluacionService: PeticionEvaluacionService) {
     super(key);
@@ -37,7 +36,6 @@ export class MemoriaDatosGeneralesFragment extends FormFragment<IMemoria>  {
 
 
   public loadResponsable(idPeticionEvaluacion: number): void {
-    this.logger.debug(MemoriaDatosGeneralesFragment.name, 'loadResponsable(idPeticionEvaluacion: number)', 'start');
     this.idPeticionEvaluacion = idPeticionEvaluacion;
     this.subscriptions.push(
       this.peticionEvaluacionService.findEquipoInvestigador(idPeticionEvaluacion).pipe(
@@ -58,19 +56,22 @@ export class MemoriaDatosGeneralesFragment extends FormFragment<IMemoria>  {
           }
         })
       ).subscribe());
-    this.logger.debug(MemoriaDatosGeneralesFragment.name, 'loadResponsable(idPeticionEvaluacion: number)', 'end');
   }
 
 
   protected buildFormGroup(): FormGroup {
-    this.logger.debug(MemoriaDatosGeneralesFragment.name, 'buildFormGroup()', 'start');
     return this.fb.group({
+      numReferencia: [{ value: '', disabled: true }],
       comite: [{ value: this.isEdit() ? this.memoria.comite : '', disabled: (this.isEdit() || this.readonly) },
-      new NullIdValidador().isValid()],
-      tipoMemoria: [{ value: this.isEdit() ? this.memoria.tipoMemoria : '', disabled: (this.isEdit() || this.readonly) }],
+      [new NullIdValidador().isValid(), IsEntityValidator.isValid()]],
+      tipoMemoria: [{
+        value: this.isEdit() ?
+          this.memoria.tipoMemoria : '', disabled: (this.isEdit() || this.readonly)
+      }, IsEntityValidator.isValid()],
       titulo: [{ value: this.isEdit() ? this.memoria.titulo : '', disabled: this.readonly }],
-      personaResponsable: [{ value: '', disabled: this.readonly }, Validators.required],
-      codOrganoCompetente: [{ value: this.isEdit() ? this.memoria.codOrganoCompetente : '', disabled: this.readonly }],
+      personaResponsable: [{ value: '', disabled: this.readonly }, Validators.maxLength(250)],
+      codOrganoCompetente: [{ value: this.isEdit() ? this.memoria.codOrganoCompetente : '', disabled: this.readonly },
+      Validators.maxLength(250)],
       memoriaOriginal: [{
         value: this.isEdit() ? this.memoria.memoriaOriginal?.numReferencia : '',
         disabled: this.isEdit()
@@ -81,6 +82,7 @@ export class MemoriaDatosGeneralesFragment extends FormFragment<IMemoria>  {
 
   buildPatch(value: IMemoria): { [key: string]: any } {
     return {
+      numReferencia: value.numReferencia,
       comite: value.comite,
       tipoMemoria: value.tipoMemoria,
       titulo: value.titulo,
@@ -91,7 +93,6 @@ export class MemoriaDatosGeneralesFragment extends FormFragment<IMemoria>  {
   }
 
   getValue(): IMemoria {
-    this.logger.debug(MemoriaDatosGeneralesFragment.name, 'getValue()', 'start');
     const form = this.getFormGroup().value;
     if (!this.isEdit()) {
       this.memoria.comite = form.comite;
@@ -104,12 +105,10 @@ export class MemoriaDatosGeneralesFragment extends FormFragment<IMemoria>  {
     } else {
       this.memoria.codOrganoCompetente = null;
     }
-    this.logger.debug(MemoriaDatosGeneralesFragment.name, 'getValue()', 'end');
     return this.memoria;
   }
 
   saveOrUpdate(): Observable<number> {
-    this.logger.debug(MemoriaDatosGeneralesFragment.name, 'saveOrUpdate()', 'start');
     const datosGenerales = this.getValue();
     datosGenerales.peticionEvaluacion = {} as IPeticionEvaluacion;
     datosGenerales.peticionEvaluacion.id = this.idPeticionEvaluacion;
@@ -120,14 +119,12 @@ export class MemoriaDatosGeneralesFragment extends FormFragment<IMemoria>  {
     return obs.pipe(
       map((value) => {
         this.memoria = value;
-        this.logger.debug(MemoriaDatosGeneralesFragment.name, 'saveOrUpdate()', 'end');
         return this.memoria.id;
       })
     );
   }
 
   protected initializer(key: number): Observable<IMemoria> {
-    this.logger.debug(MemoriaDatosGeneralesFragment.name, 'initializer(key: number)', 'start');
     if (this.getKey()) {
       return this.service.findById(key).pipe(
         switchMap((memoria) => {
@@ -153,7 +150,6 @@ export class MemoriaDatosGeneralesFragment extends FormFragment<IMemoria>  {
         })
       );
     }
-    this.logger.debug(MemoriaDatosGeneralesFragment.name, 'initializer(key: number)', 'end');
   }
 
 }

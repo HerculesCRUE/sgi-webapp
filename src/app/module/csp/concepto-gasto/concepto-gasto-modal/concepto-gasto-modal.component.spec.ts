@@ -1,5 +1,5 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { IConceptoGasto } from '@core/models/csp/tipos-configuracion';
@@ -12,7 +12,7 @@ describe('ConceptoGastoModalComponent', () => {
   let component: ConceptoGastoModalComponent;
   let fixture: ComponentFixture<ConceptoGastoModalComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     const mockDialogRef = {
       close: jasmine.createSpy('close'),
     };

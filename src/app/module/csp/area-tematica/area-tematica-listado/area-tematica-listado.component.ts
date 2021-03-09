@@ -10,7 +10,7 @@ import { AreaTematicaService } from '@core/services/csp/area-tematica.service';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { SgiAuthService } from '@sgi/framework/auth';
-import { SgiRestFilter, SgiRestFilterType, SgiRestListResult } from '@sgi/framework/http';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -38,14 +38,13 @@ export class AreaTematicaListadoComponent extends AbstractTablePaginationCompone
   areaTematica$: Observable<IAreaTematica[]>;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     private readonly areaTematicaService: AreaTematicaService,
     private readonly dialogService: DialogService,
     public authService: SgiAuthService,
   ) {
-    super(logger, snackBarService, MSG_ERROR);
-    this.logger.debug(AreaTematicaListadoComponent.name, 'constructor()', 'start');
+    super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -56,37 +55,29 @@ export class AreaTematicaListadoComponent extends AbstractTablePaginationCompone
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-    this.logger.debug(AreaTematicaListadoComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(AreaTematicaListadoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.formGroup = new FormGroup({
       nombre: new FormControl(''),
       activo: new FormControl('true')
     });
-    this.filter = this.createFilters();
-    this.logger.debug(AreaTematicaListadoComponent.name, 'ngOnInit()', 'end');
+    this.filter = this.createFilter();
   }
 
   onClearFilters() {
-    this.logger.debug(AreaTematicaListadoComponent.name, `${this.onClearFilters.name}()`, 'start');
     this.formGroup.controls.activo.setValue('true');
     this.formGroup.controls.nombre.setValue('');
     this.onSearch();
-    this.logger.debug(AreaTematicaListadoComponent.name, `${this.onClearFilters.name}()`, 'end');
   }
 
   protected createObservable(): Observable<SgiRestListResult<IAreaTematica>> {
-    this.logger.debug(AreaTematicaListadoComponent.name, `${this.createObservable.name}()`, 'start');
     const observable$ = this.areaTematicaService.findTodos(this.getFindOptions());
-    this.logger.debug(AreaTematicaListadoComponent.name, `${this.createObservable.name}()`, 'end');
     return observable$;
   }
 
   protected initColumns(): void {
-    this.logger.debug(AreaTematicaListadoComponent.name, `${this.initColumns.name}()`, 'start');
     let columns = ['nombre', 'descripcion', 'activo', 'acciones'];
 
     if (!this.authService.hasAuthorityForAnyUO('CSP-AT-ACT')) {
@@ -94,25 +85,21 @@ export class AreaTematicaListadoComponent extends AbstractTablePaginationCompone
     }
 
     this.columnas = columns;
-
-    this.logger.debug(AreaTematicaListadoComponent.name, `${this.initColumns.name}()`, 'end');
   }
 
   protected loadTable(reset?: boolean): void {
-    this.logger.debug(AreaTematicaListadoComponent.name, `${this.loadTable.name}(${reset})`, 'start');
     this.areaTematica$ = this.getObservableLoadTable(reset);
-    this.logger.debug(AreaTematicaListadoComponent.name, `${this.loadTable.name}(${reset})`, 'end');
   }
 
-  protected createFilters(): SgiRestFilter[] {
-    this.logger.debug(AreaTematicaListadoComponent.name, `${this.createFilters.name}()`, 'start');
-    const filtros = [];
-    this.addFiltro(filtros, 'nombre', SgiRestFilterType.LIKE, this.formGroup.controls.nombre.value);
-    if (this.formGroup.controls.activo.value !== 'todos') {
-      this.addFiltro(filtros, 'activo', SgiRestFilterType.EQUALS, this.formGroup.controls.activo.value);
+  protected createFilter(): SgiRestFilter {
+    const controls = this.formGroup.controls;
+    const filter = new RSQLSgiRestFilter('nombre', SgiRestFilterOperator.LIKE_ICASE, controls.nombre.value);
+
+    if (controls.activo.value !== 'todos') {
+      filter.and('activo', SgiRestFilterOperator.EQUALS, controls.activo.value);
     }
-    this.logger.debug(AreaTematicaListadoComponent.name, `${this.createFilters.name}()`, 'end');
-    return filtros;
+
+    return filter;
   }
 
   /**
@@ -120,7 +107,6 @@ export class AreaTematicaListadoComponent extends AbstractTablePaginationCompone
    * @param areaTematica areaTematica
    */
   deactivateAreaTematica(areaTematica: IAreaTematica): void {
-    this.logger.debug(AreaTematicaListadoComponent.name, `${this.deactivateAreaTematica.name}()`, 'start');
     const subcription = this.dialogService.showConfirmation(MSG_DEACTIVATE).pipe(
       switchMap((accept) => {
         if (accept) {
@@ -132,13 +118,10 @@ export class AreaTematicaListadoComponent extends AbstractTablePaginationCompone
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_DEACTIVATE);
           this.loadTable();
-          this.logger.debug(AreaTematicaListadoComponent.name,
-            `${this.deactivateAreaTematica.name}(areaTematica: ${areaTematica})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_DEACTIVATE);
-          this.logger.error(AreaTematicaListadoComponent.name,
-            `${this.deactivateAreaTematica.name}(areaTematica: ${areaTematica})`, 'error');
         }
       );
     this.suscripciones.push(subcription);
@@ -149,9 +132,6 @@ export class AreaTematicaListadoComponent extends AbstractTablePaginationCompone
    * @param areaTematica areaTematica
    */
   activeAreaTematica(areaTematica: IAreaTematica): void {
-    this.logger.debug(AreaTematicaListadoComponent.name,
-      `${this.activeAreaTematica.name}(areaTematica: ${areaTematica})`, 'start');
-
     const suscription = this.dialogService.showConfirmation(MSG_REACTIVE).pipe(
       switchMap((accept) => {
         if (accept) {
@@ -164,14 +144,11 @@ export class AreaTematicaListadoComponent extends AbstractTablePaginationCompone
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_REACTIVE);
           this.loadTable();
-          this.logger.debug(AreaTematicaListadoComponent.name,
-            `${this.activeAreaTematica.name}(areaTematica: ${areaTematica})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           areaTematica.activo = false;
           this.snackBarService.showError(MSG_ERROR_REACTIVE);
-          this.logger.error(AreaTematicaListadoComponent.name,
-            `${this.activeAreaTematica.name}(areaTematica: ${areaTematica})`, 'error');
         }
       );
     this.suscripciones.push(suscription);

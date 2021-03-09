@@ -6,17 +6,16 @@ import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
 import { IModeloTipoEnlace } from '@core/models/csp/modelo-tipo-enlace';
+import { ITipoEnlace } from '@core/models/csp/tipos-configuracion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { DialogService } from '@core/services/dialog.service';
 import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { NGXLogger } from 'ngx-logger';
 import { Subscription } from 'rxjs';
 import { ModeloEjecucionTipoEnlaceModalComponent, ModeloEjecucionTipoEnlaceModalData } from '../../modals/modelo-ejecucion-tipo-enlace-modal/modelo-ejecucion-tipo-enlace-modal.component';
 import { ModeloEjecucionActionService } from '../../modelo-ejecucion.action.service';
 import { ModeloEjecucionTipoEnlaceFragment } from './modelo-ejecucion-tipo-enlace.fragment';
-import { ITipoEnlace } from '@core/models/csp/tipos-configuracion';
 
 const MSG_DELETE = marker('csp.modelo.ejecucion.tipo.enlace.listado.borrar');
 
@@ -41,13 +40,11 @@ export class ModeloEjecucionTipoEnlaceComponent extends FragmentComponent implem
   fxLayoutProperties: FxLayoutProperties;
 
   constructor(
-    protected readonly logger: NGXLogger,
     private readonly dialogService: DialogService,
     private matDialog: MatDialog,
     actionService: ModeloEjecucionActionService
   ) {
     super(actionService.FRAGMENT.TIPO_ENLACES, actionService);
-    this.logger.debug(ModeloEjecucionTipoEnlaceComponent.name, 'constructor()', 'start');
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -60,12 +57,10 @@ export class ModeloEjecucionTipoEnlaceComponent extends FragmentComponent implem
     this.fxLayoutProperties.xs = 'column';
 
     this.formPart = this.fragment as ModeloEjecucionTipoEnlaceFragment;
-    this.logger.debug(ModeloEjecucionTipoEnlaceComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
     super.ngOnInit();
-    this.logger.debug(ModeloEjecucionTipoEnlaceComponent.name, 'ngOnInit()', 'start');
     const subscription = this.formPart.modeloTipoEnlace$.subscribe(
       (wrappers: StatusWrapper<IModeloTipoEnlace>[]) => {
         this.modelosTipoEnlaces.data = wrappers;
@@ -87,17 +82,13 @@ export class ModeloEjecucionTipoEnlaceComponent extends FragmentComponent implem
       };
     this.modelosTipoEnlaces.sort = this.sort;
     this.subscriptions.push(subscription);
-    this.logger.debug(ModeloEjecucionTipoEnlaceComponent.name, 'ngOnInit()', 'end');
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(ModeloEjecucionTipoEnlaceComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
-    this.logger.debug(ModeloEjecucionTipoEnlaceComponent.name, 'ngOnDestroy()', 'end');
   }
 
   openModal(): void {
-    this.logger.debug(ModeloEjecucionTipoEnlaceComponent.name, `${this.openModal.name}()`, 'start');
     const modeloTipoEnlace = { activo: true } as IModeloTipoEnlace;
 
     const tipoEnlaces: ITipoEnlace[] = [];
@@ -116,22 +107,17 @@ export class ModeloEjecucionTipoEnlaceComponent extends FragmentComponent implem
         if (result) {
           this.formPart.addModeloTipoEnlace(result);
         }
-        this.logger.debug(ModeloEjecucionTipoEnlaceComponent.name, `${this.openModal.name}()`, 'end');
       }
     );
   }
 
   deleteModeloTipoEnlace(wrapper: StatusWrapper<IModeloTipoEnlace>) {
-    this.logger.debug(ModeloEjecucionTipoEnlaceComponent.name,
-      `${this.deleteModeloTipoEnlace.name}(${wrapper})`, 'start');
     this.subscriptions.push(
       this.dialogService.showConfirmation(MSG_DELETE).subscribe(
         (aceptado: boolean) => {
           if (aceptado) {
             this.formPart.deleteModeloTipoEnlace(wrapper);
           }
-          this.logger.debug(ModeloEjecucionTipoEnlaceComponent.name,
-            `${this.deleteModeloTipoEnlace.name}(${wrapper})`, 'end');
         }
       )
     );

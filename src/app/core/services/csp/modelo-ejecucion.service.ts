@@ -1,18 +1,16 @@
-import { Injectable } from '@angular/core';
-import { SgiRestService, SgiRestFindOptions, SgiRestListResult } from '@sgi/framework/http/';
-import { NGXLogger } from 'ngx-logger';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '@env';
-import { of, Observable } from 'rxjs';
-import { IModeloEjecucion, ITipoHito } from '@core/models/csp/tipos-configuracion';
-import { IModeloTipoEnlace } from '@core/models/csp/modelo-tipo-enlace';
-import { tap } from 'rxjs/operators';
-import { IModeloTipoFinalidad } from '@core/models/csp/modelo-tipo-finalidad';
-import { IModeloTipoFase } from '@core/models/csp/modelo-tipo-fase';
+import { Injectable } from '@angular/core';
 import { IModeloTipoDocumento } from '@core/models/csp/modelo-tipo-documento';
+import { IModeloTipoEnlace } from '@core/models/csp/modelo-tipo-enlace';
+import { IModeloTipoFase } from '@core/models/csp/modelo-tipo-fase';
+import { IModeloTipoFinalidad } from '@core/models/csp/modelo-tipo-finalidad';
 import { IModeloTipoHito } from '@core/models/csp/modelo-tipo-hito';
-import { ModeloUnidadService, IModeloUnidadBackend } from './modelo-unidad.service';
 import { IModeloUnidad } from '@core/models/csp/modelo-unidad';
+import { IModeloEjecucion, ITipoHito } from '@core/models/csp/tipos-configuracion';
+import { environment } from '@env';
+import { SgiRestFindOptions, SgiRestListResult, SgiRestService } from '@sgi/framework/http/';
+import { Observable, of } from 'rxjs';
+import { IModeloUnidadBackend, ModeloUnidadService } from './modelo-unidad.service';
 
 const tiposHito: ITipoHito[] = [
   {
@@ -31,10 +29,9 @@ const tiposHito: ITipoHito[] = [
 export class ModeloEjecucionService extends SgiRestService<number, IModeloEjecucion> {
   private static readonly MAPPING = '/modeloejecuciones';
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
+  constructor(protected http: HttpClient) {
     super(
       ModeloEjecucionService.name,
-      logger,
       `${environment.serviceServers.csp}${ModeloEjecucionService.MAPPING}`,
       http
     );
@@ -47,7 +44,6 @@ export class ModeloEjecucionService extends SgiRestService<number, IModeloEjecuc
    * @returns Listado de tipos de hitos.
    */
   findTipoHitos(idModeloEjecucion: number): Observable<SgiRestListResult<ITipoHito>> {
-    this.logger.debug(ModeloEjecucionService.name, `findTipoHitos(idModeloEjecucion)`, '-', 'START');
     return of({
       page: null,
       total: tiposHito.length,
@@ -56,30 +52,41 @@ export class ModeloEjecucionService extends SgiRestService<number, IModeloEjecuc
   }
 
   findModeloTipoEnlace(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloTipoEnlace>> {
-    this.logger.debug(ModeloEjecucionService.name, `${this.findModeloTipoEnlace.name}(id: ${id})`, '-', 'START');
-    return this.find<IModeloTipoEnlace, IModeloTipoEnlace>(`${this.endpointUrl}/${id}/modelotipoenlaces`, options).pipe(
-      tap(() => this.logger.debug(ModeloEjecucionService.name, `${this.findModeloTipoEnlace.name}(id: ${id})`, '-', 'END'))
-    );
+    return this.find<IModeloTipoEnlace, IModeloTipoEnlace>(`${this.endpointUrl}/${id}/modelotipoenlaces`, options);
   }
 
   findModeloTipoFinalidad(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloTipoFinalidad>> {
-    this.logger.debug(ModeloEjecucionService.name, `${this.findModeloTipoFinalidad.name}(id: ${id})`, '-', 'START');
-    return this.find<IModeloTipoFinalidad, IModeloTipoFinalidad>(`${this.endpointUrl}/${id}/modelotipofinalidades`, options).pipe(
-      tap(() => this.logger.debug(ModeloEjecucionService.name, `${this.findModeloTipoFinalidad.name}(id: ${id})`, '-', 'END'))
-    );
+    return this.find<IModeloTipoFinalidad, IModeloTipoFinalidad>(`${this.endpointUrl}/${id}/modelotipofinalidades`, options);
   }
 
   /**
-   * Muestra todos los modelos tipo de fase
+   * Muestra todos los modelos tipo de fase de modelo ejecución convocatoria
    * @param id modelo de ejecucion
    * @param options opciones de búsqueda.
    */
-  findModeloTipoFase(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloTipoFase>> {
-    this.logger.debug(ModeloEjecucionService.name, `${this.findModeloTipoFase.name}(id: ${id})`, '-', 'START');
-    return this.find<IModeloTipoFase, IModeloTipoFase>(`${this.endpointUrl}/${id}/modelotipofases/convocatoria`, options).pipe(
-      tap(() => this.logger.debug(ModeloEjecucionService.name, `${this.findModeloTipoFase.name}(id: ${id})`, '-', 'END'))
-    );
+  findModeloTipoFaseModeloEjecucionConvocatoria(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloTipoFase>> {
+    return this.find<IModeloTipoFase, IModeloTipoFase>(`${this.endpointUrl}/${id}/modelotipofases/convocatoria`, options);
   }
+
+  /**
+   * Muestra todos los modelos tipo de fase de modelo ejecución proyecto
+   * @param id modelo de ejecucion
+   * @param options opciones de búsqueda.
+   */
+  findModeloTipoFaseModeloEjecucionProyecto(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloTipoFase>> {
+    return this.find<IModeloTipoFase, IModeloTipoFase>(`${this.endpointUrl}/${id}/modelotipofases/proyecto`, options);
+  }
+
+
+  /**
+   * Muestra todos los modelos tipo de fase del modelo de ejecución
+   * @param id modelo de ejecucion
+   * @param options opciones de búsqueda.
+   */
+  findModeloTipoFaseModeloEjecucion(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloTipoFase>> {
+    return this.find<IModeloTipoFase, IModeloTipoFase>(`${this.endpointUrl}/${id}/modelotipofases`, options);
+  }
+
 
   /**
    * Muestra todos los modelos tipo de documento
@@ -87,39 +94,71 @@ export class ModeloEjecucionService extends SgiRestService<number, IModeloEjecuc
    * @param options opciones de búsqueda.
    */
   findModeloTipoDocumento(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloTipoDocumento>> {
-    this.logger.debug(ModeloEjecucionService.name, `${this.findModeloTipoDocumento.name}(id: ${id})`, '-', 'START');
-    return this.find<IModeloTipoDocumento, IModeloTipoDocumento>(`${this.endpointUrl}/${id}/modelotipodocumentos`, options).pipe(
-      tap(() => this.logger.debug(ModeloEjecucionService.name, `${this.findModeloTipoDocumento.name}(id: ${id})`, '-', 'END'))
-    );
+    return this.find<IModeloTipoDocumento, IModeloTipoDocumento>(`${this.endpointUrl}/${id}/modelotipodocumentos`, options);
   }
 
   findModeloTipoHito(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloTipoHito>> {
-    this.logger.debug(ModeloEjecucionService.name, `${this.findModeloTipoHito.name}(id: ${id})`, '-', 'START');
-    return this.find<IModeloTipoHito, IModeloTipoHito>(`${this.endpointUrl}/${id}/modelotipohitos`, options).pipe(
-      tap(() => this.logger.debug(ModeloEjecucionService.name, `${this.findModeloTipoHito.name}(id: ${id})`, '-', 'END'))
-    );
+    return this.find<IModeloTipoHito, IModeloTipoHito>(`${this.endpointUrl}/${id}/modelotipohitos`, options);
+  }
+
+  /**
+  * Muestra los tipo de hitos de solicitudes para un modelo de ejecución concreto
+  * @param id modelo de ejecucion
+  * @param options opciones de búsqueda.
+  */
+  findModeloTipoHitoSolicitud(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloTipoHito>> {
+    return this.find<IModeloTipoHito, IModeloTipoHito>(`${this.endpointUrl}/${id}/modelotipohitos/solicitud`, options);
+  }
+
+  /**
+  * Muestra los tipo de hitos de convocatorias para un modelo de ejecución concreto
+  * @param id modelo de ejecucion
+  * @param options opciones de búsqueda.
+  */
+  findModeloTipoHitoConvocatoria(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloTipoHito>> {
+    return this.find<IModeloTipoHito, IModeloTipoHito>(`${this.endpointUrl}/${id}/modelotipohitos/convocatoria`, options);
+  }
+
+  /**
+  * Muestra los tipo de hitos de proyectos para un modelo de ejecución concreto
+  * @param id modelo de ejecucion
+  * @param options opciones de búsqueda.
+  */
+  findModeloTipoHitoProyecto(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloTipoHito>> {
+    return this.find<IModeloTipoHito, IModeloTipoHito>(`${this.endpointUrl}/${id}/modelotipohitos/proyecto`, options);
   }
 
   /**
    * Encuentra unidades de gestion
    */
   findModeloTipoUnidadGestion(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloUnidad>> {
-    this.logger.debug(ModeloEjecucionService.name, `${this.findModeloTipoUnidadGestion.name}(id: ${id})`, '-', 'START');
     return this.find<IModeloUnidadBackend, IModeloUnidad>(`${this.endpointUrl}/${id}/modelounidades`,
-      options, ModeloUnidadService.CONVERTER).pipe(
-        tap(() => this.logger.debug(ModeloEjecucionService.name, `${this.findModeloTipoUnidadGestion.name}(id: ${id})`, '-', 'END'))
-      );
+      options, ModeloUnidadService.CONVERTER);
   }
 
   /**
    * Muestra activos y no activos
    * @param options opciones de búsqueda.
    */
-  findTodos(options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloEjecucion>> {
-    this.logger.debug(ModeloEjecucionService.name, `${this.findTodos.name}(`, '-', 'START');
-    return this.find<IModeloEjecucion, IModeloEjecucion>(`${this.endpointUrl}/todos`, options).pipe(
-      tap(() => this.logger.debug(ModeloEjecucionService.name, `${this.findTodos.name}()`, '-', 'END'))
-    );
+  findAllTodos(options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloEjecucion>> {
+    return this.find<IModeloEjecucion, IModeloEjecucion>(`${this.endpointUrl}/todos`, options);
   }
+
+  /**
+   * Desactivar modelo ejecucion
+   * @param options opciones de búsqueda.
+   */
+  desactivar(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.endpointUrl}/${id}/desactivar`, undefined);
+  }
+
+  /**
+   * Reactivar modelo ejecucion
+   * @param options opciones de búsqueda.
+   */
+  reactivar(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.endpointUrl}/${id}/reactivar`, undefined);
+  }
+
 
 }

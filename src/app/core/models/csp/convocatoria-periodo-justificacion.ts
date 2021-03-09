@@ -1,9 +1,5 @@
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { IConvocatoria } from './convocatoria';
-
-export enum TipoJustificacion {
-  PERIODICA = 'periodica',
-  FINAL = 'final'
-}
 
 export interface IConvocatoriaPeriodoJustificacion {
   /** Id */
@@ -31,6 +27,17 @@ export interface IConvocatoriaPeriodoJustificacion {
   observaciones: string;
 
   /** Tipo */
-  tipoJustificacion: TipoJustificacion;
+  tipo: Tipo;
 
 }
+
+
+export enum Tipo {
+  PERIODICO = 'PERIODICO',
+  FINAL = 'FINAL'
+}
+
+export const TIPO_MAP: Map<Tipo, string> = new Map([
+  [Tipo.PERIODICO, marker(`csp.convocatoria-periodo-justificacion.tipo.PERIODICO`)],
+  [Tipo.FINAL, marker(`csp.convocatoria-periodo-justificacion.tipo.FINAL`)],
+]);

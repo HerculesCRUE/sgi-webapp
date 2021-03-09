@@ -11,5 +11,6 @@ export const CONVOCATORIA_ROUTE_NAMES = {
   ELEGIBILIDAD: 'elegibilidad',
   REQUISITOS_EQUIPO: 'requisitos-equipo',
   CODIGOS_ECONOMICOS: 'codigos-economicos',
-  DOCUMENTOS: 'documentos'
+  DOCUMENTOS: 'documentos',
+  CONFIGURACION_SOLICITUDES: 'configuracion-solicitudes'
 };

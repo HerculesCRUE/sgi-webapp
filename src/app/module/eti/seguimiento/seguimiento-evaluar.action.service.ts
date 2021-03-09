@@ -16,7 +16,7 @@ import { Gestion, SeguimientoFormularioActionService } from '../seguimiento-form
 export class SeguimientoEvaluarActionService extends SeguimientoFormularioActionService {
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     fb: FormBuilder,
     route: ActivatedRoute,
     service: EvaluacionService,
@@ -28,9 +28,9 @@ export class SeguimientoEvaluarActionService extends SeguimientoFormularioAction
       this.evaluacion = route.snapshot.data.evaluacion;
       this.enableEdit();
     }
-    this.comentarios = new SeguimientoComentarioFragment(this.logger, this.evaluacion?.id, Gestion.EVALUADOR, service);
+    this.comentarios = new SeguimientoComentarioFragment(this.evaluacion?.id, Gestion.EVALUADOR, service);
     this.datosMemoria = new SeguimientoDatosMemoriaFragment(this.logger, fb, this.evaluacion?.id, service, personaFisicaService);
-    this.documentacion = new SeguimientoDocumentacionFragment(this.logger, this.evaluacion?.id);
+    this.documentacion = new SeguimientoDocumentacionFragment(this.evaluacion?.id);
 
     this.addFragment(this.FRAGMENT.COMENTARIOS, this.comentarios);
     this.addFragment(this.FRAGMENT.MEMORIA, this.datosMemoria);

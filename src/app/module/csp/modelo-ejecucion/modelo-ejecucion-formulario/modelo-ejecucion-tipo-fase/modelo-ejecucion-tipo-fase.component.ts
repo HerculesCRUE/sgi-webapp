@@ -12,7 +12,6 @@ import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-pro
 import { DialogService } from '@core/services/dialog.service';
 import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { NGXLogger } from 'ngx-logger';
 import { Subscription } from 'rxjs';
 import { ModeloEjecucionTipoFaseModalComponent, ModeloEjecucionTipoFaseModalData } from '../../modals/modelo-ejecucion-tipo-fase-modal/modelo-ejecucion-tipo-fase-modal.component';
 import { ModeloEjecucionActionService } from '../../modelo-ejecucion.action.service';
@@ -40,13 +39,11 @@ export class ModeloEjecucionTipoFaseComponent extends FragmentComponent implemen
   fxLayoutProperties: FxLayoutProperties;
 
   constructor(
-    protected logger: NGXLogger,
     private dialogService: DialogService,
     private matDialog: MatDialog,
     actionService: ModeloEjecucionActionService
   ) {
     super(actionService.FRAGMENT.TIPO_FASES, actionService);
-    this.logger.debug(ModeloEjecucionTipoFaseComponent.name, 'constructor()', 'start');
     this.formPart = this.fragment as ModeloEjecucionTipoFaseFragment;
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
@@ -58,12 +55,10 @@ export class ModeloEjecucionTipoFaseComponent extends FragmentComponent implemen
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-    this.logger.debug(ModeloEjecucionTipoFaseComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
     super.ngOnInit();
-    this.logger.debug(ModeloEjecucionTipoFaseComponent.name, 'ngOnInit()', 'start');
     const subscription = this.formPart.modeloTipoFase$.subscribe(
       wrappers => this.modelosTipoFases.data = wrappers);
     this.subscriptions.push(subscription);
@@ -75,21 +70,21 @@ export class ModeloEjecucionTipoFaseComponent extends FragmentComponent implemen
             return wrapper.value.tipoFase.nombre;
           case 'descripcion':
             return wrapper.value.tipoFase.descripcion;
-          case 'activo':
-            return wrapper.value.tipoFase.activo;
+          case 'convocatorias':
+            return wrapper.value.convocatoria;
+          case 'proyectos':
+            return wrapper.value.proyecto;
           default:
             return wrapper[property];
         }
       };
     this.modelosTipoFases.sort = this.sort;
-    this.logger.debug(ModeloEjecucionTipoFaseComponent.name, 'ngOnInit()', 'end');
   }
 
   /**
    * Abre el modal para crear/modificar
    */
   openModal(statusWrapper?: StatusWrapper<IModeloTipoFase>): void {
-    this.logger.debug(ModeloEjecucionTipoFaseComponent.name, `openModal()`, 'start');
     const modeloTipoFase: IModeloTipoFase = {
       activo: true,
       convocatoria: false,
@@ -123,7 +118,6 @@ export class ModeloEjecucionTipoFaseComponent extends FragmentComponent implemen
             this.formPart.addModeloTipoFase(result);
           }
         }
-        this.logger.debug(ModeloEjecucionTipoFaseComponent.name, `openModal()`, 'end');
       }
     );
   }
@@ -132,25 +126,19 @@ export class ModeloEjecucionTipoFaseComponent extends FragmentComponent implemen
    * Borra el tipo modelo fase correspondiente
    */
   deleteModeloTipoFase(wrapper: StatusWrapper<IModeloTipoFase>) {
-    this.logger.debug(ModeloEjecucionTipoFaseComponent.name,
-      `deleteModeloTipoFase(${wrapper})`, 'start');
     this.subscriptions.push(
       this.dialogService.showConfirmation(MSG_DELETE).subscribe(
         (aceptado) => {
           if (aceptado) {
             this.formPart.deleteModeloTipoFase(wrapper);
           }
-          this.logger.debug(ModeloEjecucionTipoFaseComponent.name,
-            `deleteModeloTipoFase(${wrapper})`, 'end');
         }
       )
     );
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(ModeloEjecucionTipoFaseComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
-    this.logger.debug(ModeloEjecucionTipoFaseComponent.name, 'ngOnDestroy()', 'end');
   }
 
 }

@@ -1,26 +1,25 @@
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { DateUtils } from '@core/utils/date-utils';
-import { SgiRestFilter, SgiRestFilterType, SgiRestListResult } from '@sgi/framework/http';
-import { MatSort } from '@angular/material/sort';
-import { MatPaginator } from '@angular/material/paginator';
-import { Observable, of, Subscription } from 'rxjs';
-import { IConvocatoriaReunion } from '@core/models/eti/convocatoria-reunion';
-import { NGXLogger } from 'ngx-logger';
-import { DialogService } from '@core/services/dialog.service';
-import { SnackBarService } from '@core/services/snack-bar.service';
-import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
-import { map, startWith } from 'rxjs/operators';
 import { FormBuilder, FormControl } from '@angular/forms';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { IComite } from '@core/models/eti/comite';
+import { IConvocatoriaReunion } from '@core/models/eti/convocatoria-reunion';
+import { TipoConvocatoriaReunion } from '@core/models/eti/tipo-convocatoria-reunion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { FormGroupUtil } from '@core/utils/form-group-util';
-import { IComite } from '@core/models/eti/comite';
-import { ComiteService } from '@core/services/eti/comite.service';
-import { TipoConvocatoriaReunionService } from '@core/services/eti/tipo-convocatoria-reunion.service';
-import { TipoConvocatoriaReunion } from '@core/models/eti/tipo-convocatoria-reunion';
 import { ROUTE_NAMES } from '@core/route.names';
-import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { DialogService } from '@core/services/dialog.service';
+import { ComiteService } from '@core/services/eti/comite.service';
+import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
+import { TipoConvocatoriaReunionService } from '@core/services/eti/tipo-convocatoria-reunion.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import { DateUtils } from '@core/utils/date-utils';
+import { FormGroupUtil } from '@core/utils/form-group-util';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
+import { Observable, of, Subscription } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 
 const MSG_BUTTON_NEW = marker('eti.convocatoriaReunion.listado.nuevaConvocatoriaReunion');
 const MSG_ERROR = marker('eti.convocatoriaReunion.listado.error');
@@ -39,7 +38,6 @@ export class ConvocatoriaReunionListadoComponent extends AbstractTablePagination
 
   displayedColumns: string[];
   totalElementos: number;
-  filter: SgiRestFilter[];
 
   fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
@@ -62,7 +60,6 @@ export class ConvocatoriaReunionListadoComponent extends AbstractTablePagination
   private tiposConvocatoriaReunionSubscription: Subscription;
 
   constructor(
-    protected readonly logger: NGXLogger,
     private readonly convocatoriaReunionService: ConvocatoriaReunionService,
     private readonly dialogService: DialogService,
     protected readonly snackBarService: SnackBarService,
@@ -71,8 +68,7 @@ export class ConvocatoriaReunionListadoComponent extends AbstractTablePagination
     private formBuilder: FormBuilder
   ) {
 
-    super(logger, snackBarService, MSG_ERROR);
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name, 'constructor()', 'start');
+    super(snackBarService, MSG_ERROR);
 
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(25%-10px)';
@@ -87,59 +83,37 @@ export class ConvocatoriaReunionListadoComponent extends AbstractTablePagination
 
 
     this.totalElementos = 0;
-    this.filter = [];
-
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name, 'constructor()', 'end');
   }
 
 
   protected createObservable(): Observable<SgiRestListResult<IConvocatoriaReunion>> {
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name, 'createObservable()', 'start');
     const observable$ = this.convocatoriaReunionService.findAll(this.getFindOptions());
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name, 'createObservable()', 'end');
     return observable$;
   }
   protected initColumns(): void {
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name, 'initColumns()', 'start');
-    this.displayedColumns = ['comite', 'fecha-evaluacion', 'codigo', 'hora', 'lugar', 'tipoConvocatoriaReunion', 'fechaEnvio', 'acciones'];
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name, 'initColumns()', 'end');
+    this.displayedColumns = ['comite', 'fechaEvaluacion', 'codigo', 'horaInicio', 'lugar', 'tipoConvocatoriaReunion', 'fechaEnvio', 'acciones'];
   }
 
-  protected createFilters(): SgiRestFilter[] {
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name, 'buildFilters()', 'start');
-
-
-    const filtro: SgiRestFilter[] = [];
-    this.addFiltro(filtro, 'comite.id', SgiRestFilterType.EQUALS, this.formGroup.controls.comite.value.id);
-    this.addFiltro(filtro, 'tipoConvocatoriaReunion.id',
-      SgiRestFilterType.EQUALS, this.formGroup.controls.tipoConvocatoriaReunion.value.id);
-
-
-
-    if (this.formGroup.controls.fechaEvaluacionDesde.value) {
-      const fechaFilter = DateUtils.getFechaFinDia(this.formGroup.controls.fechaEvaluacionDesde.value);
-      this.addFiltro(filtro, 'fechaEvaluacion',
-        SgiRestFilterType.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fechaFilter));
-
+  protected createFilter(): SgiRestFilter {
+    const controls = this.formGroup.controls;
+    const filter = new RSQLSgiRestFilter('comite.id', SgiRestFilterOperator.EQUALS, controls.comite.value?.id?.toString())
+      .and('tipoConvocatoriaReunion.id', SgiRestFilterOperator.EQUALS, controls.tipoConvocatoriaReunion.value?.id?.toString());
+    if (controls.fechaEvaluacionDesde.value) {
+      const fechaFilter = DateUtils.getFechaFinDia(controls.fechaEvaluacionDesde.value);
+      filter.and('fechaEvaluacion',
+        SgiRestFilterOperator.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fechaFilter));
+    }
+    if (controls.fechaEvaluacionHasta.value) {
+      const fechaFilter = DateUtils.getFechaFinDia(controls.fechaEvaluacionHasta.value);
+      filter.and('fechaEvaluacion',
+        SgiRestFilterOperator.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fechaFilter));
     }
 
-    if (this.formGroup.controls.fechaEvaluacionHasta.value) {
-      const fechaFilter = DateUtils.getFechaFinDia(this.formGroup.controls.fechaEvaluacionHasta.value);
-
-      this.addFiltro(filtro, 'fechaEvaluacion',
-        SgiRestFilterType.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fechaFilter));
-
-    }
-
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name, 'buildFilters()', 'end');
-
-    return this.filter;
+    return filter;
   }
 
 
   ngOnInit(): void {
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name, 'ngOnInit()', 'start');
-
     super.ngOnInit();
 
     // Inicializa el formulario de busqueda
@@ -153,8 +127,6 @@ export class ConvocatoriaReunionListadoComponent extends AbstractTablePagination
     // Recupera los valores de los combos
     this.loadComites();
     this.loadTiposConvocatoriaReunion();
-
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name, 'ngOnInit()', 'end');
   }
 
 
@@ -162,10 +134,6 @@ export class ConvocatoriaReunionListadoComponent extends AbstractTablePagination
    * Recupera un listado de los comites que hay en el sistema.
    */
   private loadComites(): void {
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name,
-      'loadComites()',
-      'start');
-
     this.comitesSubscription = this.comiteService.findAll().subscribe(
       (response) => {
         this.comiteListado = response.items;
@@ -176,20 +144,12 @@ export class ConvocatoriaReunionListadoComponent extends AbstractTablePagination
             map(value => this._filterComite(value))
           );
       });
-
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name,
-      'loadComites()',
-      'end');
   }
 
   /**
    * Recupera un listado de los tipos de convocatoria reunion que hay en el sistema.
    */
   private loadTiposConvocatoriaReunion(): void {
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name,
-      'loadTiposConvocatoriaReunion()',
-      'start');
-
     this.tiposConvocatoriaReunionSubscription = this.tipoConvocatoriaReunionService.findAll().subscribe(
       (response) => {
         this.tipoConvocatoriaReunionListado = response.items;
@@ -200,10 +160,6 @@ export class ConvocatoriaReunionListadoComponent extends AbstractTablePagination
             map(value => this._filterTipoConvocatoriaReunion(value))
           );
       });
-
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name,
-      'loadTiposConvocatoriaReunion()',
-      'end');
   }
 
   /**
@@ -270,9 +226,7 @@ export class ConvocatoriaReunionListadoComponent extends AbstractTablePagination
   }
 
   protected loadTable(reset?: boolean) {
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name, 'loadTable()', 'start');
     this.convocatoriaReunion$ = this.getObservableLoadTable(reset);
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name, 'loadTable()', 'end');
   }
 
   /**
@@ -281,9 +235,6 @@ export class ConvocatoriaReunionListadoComponent extends AbstractTablePagination
    * @param event evento lanzado.
    */
   borrar(convocatoriaReunionId: number, $event: Event): void {
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name,
-      'borrar(convocatoriaReunionId: number, $event: Event) - start');
-
     $event.stopPropagation();
     $event.preventDefault();
 
@@ -303,9 +254,6 @@ export class ConvocatoriaReunionListadoComponent extends AbstractTablePagination
         }
         aceptado = false;
       });
-
-    this.logger.debug(ConvocatoriaReunionListadoComponent.name,
-      'borrarSeleccionado(convocatoriaReunionId: number, $event: Event) - end');
   }
 
   /**

@@ -1,38 +1,39 @@
-import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
-import { MatSort } from '@angular/material/sort';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
-import { FormGroup, FormControl } from '@angular/forms';
-import { Observable, of, merge, Subscription } from 'rxjs';
-import { NGXLogger } from 'ngx-logger';
-
-import { SgiRestFilter, SgiRestFilterType, SgiRestSortDirection, SgiRestListResult } from '@sgi/framework/http';
-import { tap, map, catchError, startWith } from 'rxjs/operators';
-
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
-import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-
-import { IEvaluador } from '@core/models/eti/evaluador';
-import { IComite } from '@core/models/eti/comite';
-import { IPersona } from '@core/models/sgp/persona';
-import { DialogService } from '@core/services/dialog.service';
-import { ComiteService } from '@core/services/eti/comite.service';
-import { SnackBarService } from '@core/services/snack-bar.service';
-
-import { DateUtils } from '@core/utils/date-utils';
-import { ROUTE_NAMES } from '@core/route.names';
-
-import { EvaluadorService } from '@core/services/eti/evaluador.service';
-import { PersonaService } from '@core/services/sgp/persona.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { MatSort } from '@angular/material/sort';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { IComite } from '@core/models/eti/comite';
+import { IEvaluador } from '@core/models/eti/evaluador';
+import { IPersona } from '@core/models/sgp/persona';
+import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
+import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
+import { ROUTE_NAMES } from '@core/route.names';
+import { DialogService } from '@core/services/dialog.service';
+import { ComiteService } from '@core/services/eti/comite.service';
+import { EvaluadorService } from '@core/services/eti/evaluador.service';
+import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import { DateUtils } from '@core/utils/date-utils';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
+import { BuscarPersonaComponent } from '@shared/buscar-persona/buscar-persona.component';
+import { NGXLogger } from 'ngx-logger';
+import { Observable, of } from 'rxjs';
+import { catchError, map, startWith } from 'rxjs/operators';
+
+
+
+
+
 
 
 const MSG_BUTTON_SAVE = marker('footer.eti.evaluador.crear');
 const MSG_ERROR = marker('eti.evaluador.listado.error');
 const TEXT_USER_TITLE = marker('eti.buscarUsuario.titulo');
 const TEXT_USER_BUTTON = marker('eti.buscarUsuario.boton.buscar');
-
+const MSG_DELETE = marker('eti.evaluador.listado.eliminar');
+const MSG_SUCCESS = marker('eti.evaluador.listado.eliminarConfirmado');
 
 @Component({
   selector: 'sgi-evaluador-listado',
@@ -50,40 +51,31 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
 
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   @ViewChild(MatPaginator, { static: false }) paginator: MatPaginator;
+  @ViewChild(BuscarPersonaComponent, { static: false }) private buscarPersona: BuscarPersonaComponent;
 
   evaluadores$: Observable<IEvaluador[]> = of();
 
   comiteListado: IComite[];
-  comitesSubscription: Subscription;
   filteredComites: Observable<IComite[]>;
-
-  dialogServiceSubscription: Subscription;
-  dialogServiceSubscriptionGetSubscription: Subscription;
-  evaluadorServiceDeleteSubscription: Subscription;
 
   textoCrear = MSG_BUTTON_SAVE;
   textoUsuarioLabel = TEXT_USER_TITLE;
   textoUsuarioInput = TEXT_USER_TITLE;
   textoUsuarioButton = TEXT_USER_BUTTON;
-  datosUsuarioEvaluador: string;
-  personaRef: string;
-
-  personaServiceOneSubscritpion: Subscription;
 
   personasRef: string[];
 
   personas$: Observable<IPersona[]> = of();
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     private readonly evaluadoresService: EvaluadorService,
     protected readonly snackBarService: SnackBarService,
     private readonly comiteService: ComiteService,
-    private readonly personaService: PersonaService,
     private readonly personaFisicaService: PersonaFisicaService,
     private readonly dialogService: DialogService
   ) {
-    super(logger, snackBarService, MSG_ERROR);
+    super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -98,56 +90,42 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
   }
 
   ngOnInit(): void {
-    this.logger.debug(EvaluadorListadoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.formGroup = new FormGroup({
       comite: new FormControl('', []),
-      estado: new FormControl('', [])
+      estado: new FormControl('', []),
+      solicitante: new FormControl('', [])
     });
 
     this.getComites();
-
-    this.logger.debug(EvaluadorListadoComponent.name, 'ngOnInit()', 'end');
   }
 
 
   protected createObservable(): Observable<SgiRestListResult<IEvaluador>> {
-    this.logger.debug(EvaluadorListadoComponent.name, 'createObservable()', 'start');
     const observable$ = this.evaluadoresService.findAll(this.getFindOptions());
-    this.logger.debug(EvaluadorListadoComponent.name, 'createObservable()', 'end');
     return observable$;
   }
 
   protected initColumns(): void {
-    this.logger.debug(EvaluadorListadoComponent.name, 'initColumns()', 'start');
-    this.displayedColumns = ['nombre', 'identificadorNumero', 'comite', 'cargoComite', 'fechaAlta', 'fechaBaja', 'activo', 'acciones'];
-    this.logger.debug(EvaluadorListadoComponent.name, 'initColumns()', 'end');
+    this.displayedColumns = ['nombre', 'identificadorNumero', 'comite', 'cargoComite', 'fechaAlta', 'fechaBaja', 'estado', 'acciones'];
   }
 
-  protected createFilters(): SgiRestFilter[] {
-    this.logger.debug(EvaluadorListadoComponent.name, 'createFilters()', 'start');
-
-    const filtro: SgiRestFilter[] = [];
-
-    this.addFiltro(filtro, 'comite.id', SgiRestFilterType.EQUALS, this.formGroup.controls.comite.value.id);
-
-    if (this.formGroup.controls.estado.value) {
-      this.addFiltro(filtro, 'fechaBaja', SgiRestFilterType.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODate(new Date()));
-      this.addFiltro(filtro, 'fechaAlta', SgiRestFilterType.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODate(new Date()));
-
+  protected createFilter(): SgiRestFilter {
+    const controls = this.formGroup.controls;
+    const filter = new RSQLSgiRestFilter('comite.id', SgiRestFilterOperator.EQUALS, controls.comite.value?.id?.toString());
+    if (controls.estado.value) {
+      filter
+        .and('fechaBaja', SgiRestFilterOperator.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODate(new Date()))
+        .and('fechaAlta', SgiRestFilterOperator.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODate(new Date()));
     }
+    filter.and('personaRef', SgiRestFilterOperator.EQUALS, controls.solicitante.value);
 
-    this.addFiltro(filtro, 'personaRef', SgiRestFilterType.EQUALS, this.personaRef);
-
-
-    this.logger.debug(EvaluadorListadoComponent.name, 'createFilters()', 'end');
-    return filtro;
+    return filter;
   }
 
 
 
   protected loadTable(reset?: boolean) {
-    this.logger.debug(EvaluadorListadoComponent.name, 'loadTable()', 'start');
     // Do the request with paginator/sort/filter values
     this.evaluadores$ = this.createObservable().pipe(
       map((response) => {
@@ -157,22 +135,19 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
         if (reset) {
           this.paginator.pageIndex = 0;
         }
-        this.logger.debug(EvaluadorListadoComponent.name, 'loadTable()', 'end');
         // Return the values
         return this.getDatosEvaluadores(response.items);
       }),
-      catchError(() => {
+      catchError((error) => {
+        this.logger.error(error);
         // On error reset pagination values
         this.paginator.firstPage();
         this.totalElementos = 0;
-        this.snackBarService.showError('eti.evaluador.listado.error');
-        this.logger.debug(EvaluadorListadoComponent.name, 'loadTable()', 'end');
+        this.snackBarService.showError(MSG_ERROR);
         return of([]);
       })
     );
-    this.logger.debug(EvaluadorListadoComponent.name, 'loadTable()', 'end');
   }
-
 
   /**
    * Devuelve el nombre de un comité.
@@ -180,9 +155,7 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
    * returns nombre comité
    */
   getComite(comite: IComite): string {
-
     return comite?.comite;
-
   }
 
   /**
@@ -211,30 +184,13 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
     return evaluadores;
   }
 
-  private buildFilterPersonasRef(): SgiRestFilter[] {
-    this.logger.debug(EvaluadorListadoComponent.name, 'buildFilterPersonasRef()', 'start');
-
-    this.filter = [];
-    if (this.personasRef) {
-      const filterPersonaRef: SgiRestFilter = {
-        field: 'personaRefs',
-        type: SgiRestFilterType.EQUALS,
-        value: this.personasRef.toString(),
-      };
-
-      this.filter.push(filterPersonaRef);
-    }
-    this.logger.debug(EvaluadorListadoComponent.name, 'buildFilterPersonasRef()', 'end');
-    return this.filter;
-  }
-
   /**
    * Devuelve los datos de persona del evaluador
    * @param evaluador el evaluador
    * returns el evaluador con los datos de persona
    */
   loadDatosUsuario(evaluador: IEvaluador): IEvaluador {
-    this.personaServiceOneSubscritpion = this.personaFisicaService.getInformacionBasica(evaluador.personaRef)
+    const personaServiceOneSubscription = this.personaFisicaService.getInformacionBasica(evaluador.personaRef)
       .subscribe(
         (persona: IPersona) => {
           evaluador.nombre = persona.nombre;
@@ -243,15 +199,12 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
           evaluador.identificadorNumero = persona.identificadorNumero;
           evaluador.identificadorLetra = persona.identificadorLetra;
         },
-        () => {
-          this.snackBarService.showError('eti.evaluador.actualizar.no-encontrado');
-          this.logger.debug(
-            EvaluadorListadoComponent.name,
-            'loadDatosUsuario()',
-            'end'
-          );
+        (error) => {
+          this.logger.error(error);
+          this.snackBarService.showError(MSG_ERROR);
         }
       );
+    this.suscripciones.push(personaServiceOneSubscription);
     return evaluador;
   }
 
@@ -261,7 +214,6 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
    * returns activo o inactivo
    */
   getEstado(estado: boolean): boolean {
-
     return estado;
   }
 
@@ -269,11 +221,7 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
    * Recupera un listado de los comités que hay en el sistema.
    */
   getComites(): void {
-    this.logger.debug(EvaluadorListadoComponent.name,
-      'getComites()',
-      'start');
-
-    this.comitesSubscription = this.comiteService.findAll().subscribe(
+    const comitesSubscription = this.comiteService.findAll().subscribe(
       (response) => {
         this.comiteListado = response.items;
 
@@ -283,10 +231,7 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
             map(value => this.filterComite(value))
           );
       });
-
-    this.logger.debug(EvaluadorListadoComponent.name,
-      'getComites()',
-      'end');
+    this.suscripciones.push(comitesSubscription);
   }
 
 
@@ -314,32 +259,26 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
    * @param event evento lanzado
    */
   borrar(evaluadorId: number, $event: Event): void {
-    this.logger.debug(EvaluadorListadoComponent.name,
-      'borrar(evaluadorId: number, $event: Event) - start');
-
     $event.stopPropagation();
     $event.preventDefault();
 
-    this.dialogServiceSubscriptionGetSubscription = this.dialogService.showConfirmation(
-      'eti.evaluador.listado.eliminar'
-    ).subscribe(
+    const dialogServiceSubscriptionGetSubscription = this.dialogService.showConfirmation(MSG_DELETE).subscribe(
       (aceptado: boolean) => {
         if (aceptado) {
-          this.evaluadorServiceDeleteSubscription = this.evaluadoresService
+          const evaluadorServiceDeleteSubscription = this.evaluadoresService
             .deleteById(evaluadorId)
             .pipe(
               map(() => {
                 return this.loadTable();
               })
             ).subscribe(() => {
-              this.snackBarService.showSuccess('eti.evaluador.listado.eliminarConfirmado');
+              this.snackBarService.showSuccess(MSG_SUCCESS);
             });
+          this.suscripciones.push(evaluadorServiceDeleteSubscription);
         }
         aceptado = false;
       });
-
-    this.logger.debug(EvaluadorListadoComponent.name,
-      'borrar(evaluadorId: number, $event: Event) - end');
+    this.suscripciones.push(dialogServiceSubscriptionGetSubscription);
   }
 
   /**
@@ -347,9 +286,15 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
    * @param persona persona seleccionado
    */
   public setUsuario(persona: IPersona) {
-    this.personaRef = persona ? persona.personaRef : undefined;
+    this.formGroup.controls.solicitante.setValue(persona?.personaRef);
   }
 
-
+  /**
+   * Clean filters an reload the table
+   */
+  onClearFilters(): void {
+    super.onClearFilters();
+    this.buscarPersona.clear();
+  }
 
 }

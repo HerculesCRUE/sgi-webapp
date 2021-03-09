@@ -1,23 +1,23 @@
 import { Component, OnInit } from '@angular/core';
-
-import { NGXLogger } from 'ngx-logger';
-import { Observable } from 'rxjs';
-
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
-import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-
-import { ComiteService } from '@core/services/eti/comite.service';
-import { CargoComiteService } from '@core/services/eti/cargo-comite.service';
-import { SnackBarService } from '@core/services/snack-bar.service';
-import { IEvaluador } from '@core/models/eti/evaluador';
-import { IComite } from '@core/models/eti/comite';
-import { CargoComite } from '@core/models/eti/cargo-comite';
-import { SgiRestListResult } from '@sgi/framework/http';
-import { startWith, map } from 'rxjs/operators';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
+import { CargoComite } from '@core/models/eti/cargo-comite';
+import { IComite } from '@core/models/eti/comite';
+import { IEvaluador } from '@core/models/eti/evaluador';
+import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
+import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
+import { CargoComiteService } from '@core/services/eti/cargo-comite.service';
+import { ComiteService } from '@core/services/eti/comite.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import { SgiRestListResult } from '@sgi/framework/http';
+import { NGXLogger } from 'ngx-logger';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 import { EvaluadorActionService } from '../../evaluador.action.service';
 import { EvaluadorDatosGeneralesFragment } from './evaluador-datos-generales.fragment';
+
+
+
 
 const TEXT_USER_BUTTON = marker('eti.buscarUsuario.boton.buscar');
 const TEXT_USER_TITLE = marker('eti.buscarUsuario.titulo');
@@ -50,7 +50,7 @@ export class EvaluadorDatosGeneralesComponent extends FormFragmentComponent<IEva
   isEditForm: boolean;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     private readonly comiteService: ComiteService,
     private readonly cargoComiteService: CargoComiteService,
     private readonly snackBarService: SnackBarService,
@@ -80,28 +80,24 @@ export class EvaluadorDatosGeneralesComponent extends FormFragmentComponent<IEva
 
   ngOnInit() {
     super.ngOnInit();
-    this.logger.debug(EvaluadorDatosGeneralesComponent.name, 'ngOnInit()', 'start');
 
     this.cargarSelectorComites();
     this.cargarSelectorCargosComite();
-
-    this.logger.debug(EvaluadorDatosGeneralesComponent.name, 'ngOnInit()', 'end');
   }
 
   cargarSelectorComites() {
     this.comiteService.findAll().subscribe(
       (res) => {
         this.comites = res.items;
-        this.logger.debug(EvaluadorDatosGeneralesComponent.name, 'cargarSelectorComites()', 'start');
         this.filteredComites = this.formGroup.controls.comite.valueChanges
           .pipe(
             startWith(''),
             map(value => this.filterComite(value))
           );
       },
-      () => {
+      (error) => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR_INIT_);
-        this.logger.debug(EvaluadorDatosGeneralesComponent.name, 'cargarSelectorComites()', 'end');
       }
     );
   }
@@ -116,7 +112,8 @@ export class EvaluadorDatosGeneralesComponent extends FormFragmentComponent<IEva
             map(value => this.filterCargoComite(value))
           );
       },
-      () => {
+      (error) => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR_INIT_);
       }
     );

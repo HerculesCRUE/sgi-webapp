@@ -1,162 +1,168 @@
 <!-- Actas listado -->
-<section class="acta-listado">
+<div class="scrollable-panel-with-footer">
+  <section class="acta-listado">
 
-  <!-- Buscador de actas -->
+    <!-- Buscador de actas -->
 
-  <form class="formulario" [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs"
-    [fxLayout]="fxLayoutProperties.layout" fxLayoutGap="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+    <form class="formulario mat-elevation-z8" [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs"
+      [fxLayout]="fxLayoutProperties.layout" fxLayoutGap="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
 
-    <!-- Comité -->
-    <div class="col">
-      <mat-form-field class="input-form">
-        <mat-label>{{'eti.convocatoriaReunion.buscador.comite.titulo' | translate}}</mat-label>
-        <input type="text" [placeholder]="'eti.convocatoriaReunion.buscador.comite.titulo' | translate"
-          arial-label="Number" matInput formControlName="comite" [matAutocomplete]="autocompleteComite">
-        <mat-autocomplete #autocompleteComite="matAutocomplete" [displayWith]="getComite">
-          <mat-option *ngFor="let comite of filteredComites | async" [value]="comite">
-            {{comite.comite}}
-          </mat-option>
-        </mat-autocomplete>
-      </mat-form-field>
-    </div>
+      <div fxFlex="85%" fxFlex.sm="50%" fxFlex.md="73%" [fxLayout.xs]="fxLayoutProperties.xs"
+        [fxLayout]="fxLayoutProperties.layout" fxLayoutGap="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+        <!-- Comité -->
+        <div class="col">
+          <mat-form-field class="input-form">
+            <mat-label>{{'eti.convocatoriaReunion.buscador.comite.titulo' | translate}}</mat-label>
+            <input type="text" [placeholder]="'eti.convocatoriaReunion.buscador.comite.titulo' | translate"
+              arial-label="Number" matInput formControlName="comite" [matAutocomplete]="autocompleteComite">
+            <mat-autocomplete #autocompleteComite="matAutocomplete" [displayWith]="getComite">
+              <mat-option *ngFor="let comite of filteredComites | async" [value]="comite">
+                {{comite.comite}}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
 
-    <!-- Fechas inicio evaluacion-->
-    <div class="col">
-      <mat-form-field color="primary">
-        <mat-label>{{'eti.acta.listado.fechaEvaluacion.inicio'| translate}}</mat-label>
-        <input matInput [matDatepicker]="pickerFechaEvaluacionInicio" formControlName="fechaEvaluacionInicio">
-        <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaEvaluacionInicio"></mat-datepicker-toggle>
-        <mat-datepicker #pickerFechaEvaluacionInicio></mat-datepicker>
-      </mat-form-field>
-    </div>
+        <!-- Fechas inicio evaluacion-->
+        <div class="col">
+          <mat-form-field color="primary">
+            <mat-label>{{'eti.acta.listado.fechaEvaluacion.inicio'| translate}}</mat-label>
+            <input matInput [matDatepicker]="pickerFechaEvaluacionInicio" formControlName="fechaEvaluacionInicio">
+            <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaEvaluacionInicio">
+            </mat-datepicker-toggle>
+            <mat-datepicker #pickerFechaEvaluacionInicio></mat-datepicker>
+          </mat-form-field>
+        </div>
 
-    <!-- Fechas fin evaluacion-->
-    <div class="col">
-      <mat-form-field color="primary">
-        <mat-label>{{'eti.acta.listado.fechaEvaluacion.fin'| translate}}</mat-label>
-        <input matInput [matDatepicker]="pickerFechaEvaluacionFin" formControlName="fechaEvaluacionFin">
-        <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaEvaluacionFin"></mat-datepicker-toggle>
-        <mat-datepicker #pickerFechaEvaluacionFin></mat-datepicker>
-      </mat-form-field>
-    </div>
+        <!-- Fechas fin evaluacion-->
+        <div class="col">
+          <mat-form-field color="primary">
+            <mat-label>{{'eti.acta.listado.fechaEvaluacion.fin'| translate}}</mat-label>
+            <input matInput [matDatepicker]="pickerFechaEvaluacionFin" formControlName="fechaEvaluacionFin">
+            <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaEvaluacionFin"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFechaEvaluacionFin></mat-datepicker>
+          </mat-form-field>
+        </div>
 
-    <!-- Num acta-->
-    <div class="col">
-      <mat-form-field>
-        <mat-label>{{'eti.acta.listado.numeroActa' | translate}}</mat-label>
-        <input matInput type="number" placeholder="{{'eti.acta.listado.numeroActa' | translate}}"
-          formControlName="numeroActa" min="0">
-      </mat-form-field>
-    </div>
+        <!-- Num acta-->
+        <div class="col">
+          <mat-form-field>
+            <mat-label>{{'eti.acta.listado.numeroActa' | translate}}</mat-label>
+            <input matInput type="number" placeholder="{{'eti.acta.listado.numeroActa' | translate}}"
+              formControlName="numeroActa" min="0">
+          </mat-form-field>
+        </div>
 
-    <!-- Tipo estado -->
-    <div class="col">
-      <mat-form-field class="input-form">
-        <mat-label>{{'eti.acta.listado.estado' | translate}}</mat-label>
-        <input type="text" placeholder="{{'eti.acta.listado.estado' | translate}}" arial-label="Number" matInput
-          formControlName="tipoEstadoActa" [matAutocomplete]="autoCompleteTipoEstado">
-        <mat-autocomplete #autoCompleteTipoEstado="matAutocomplete" [displayWith]="getTipoEstadoActa">
-          <mat-option *ngFor="let tipoEstado of filteredTipoEstadoActa | async" [value]="tipoEstado">
-            {{tipoEstado.nombre}}
-          </mat-option>
-        </mat-autocomplete>
-      </mat-form-field>
-    </div>
-
-    <div class="buttons-final">
-      <div class="col filter-button">
-        <button color="primary" aria-label="Center Align" md-button mat-raised-button (click)="onSearch()">
-          <mat-icon>search</mat-icon> {{'botones.buscar'| translate}}
-        </button>
-        <button color="warn" class="md-primary" aria-label="Center Align" md-button (click)="onClearFilters()"
-          mat-button>{{'botones.limpiar'| translate}}
-        </button>
+        <!-- Tipo estado -->
+        <div class="col">
+          <mat-form-field class="input-form">
+            <mat-label>{{'eti.acta.listado.estado' | translate}}</mat-label>
+            <input type="text" placeholder="{{'eti.acta.listado.estado' | translate}}" arial-label="Number" matInput
+              formControlName="tipoEstadoActa" [matAutocomplete]="autoCompleteTipoEstado">
+            <mat-autocomplete #autoCompleteTipoEstado="matAutocomplete" [displayWith]="getTipoEstadoActa">
+              <mat-option *ngFor="let tipoEstado of filteredTipoEstadoActa | async" [value]="tipoEstado">
+                {{tipoEstado.nombre}}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
       </div>
-    </div>
-  </form>
 
-  <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="actas$ | async" matSort matSortActive="id"
-    matSortDirection="asc" matSortDisableClear>
-
-    <!-- Comite Column -->
-    <ng-container matColumnDef="comite">
-      <th mat-header-cell *matHeaderCellDef> {{'eti.acta.listado.comite' | translate}} </th>
-      <td mat-cell *matCellDef="let acta"> {{acta.comite}} </td>
-    </ng-container>
-
-    <!-- Fecha evaluacion Column -->
-    <ng-container matColumnDef="fechaEvaluacion">
-      <th mat-header-cell *matHeaderCellDef> {{'eti.acta.listado.fechaEvaluacion' | translate}} </th>
-      <td mat-cell *matCellDef="let acta"> {{acta.fechaEvaluacion | date:'dd/MM/yyyy'}} </td>
-    </ng-container>
-
-    <!-- Numero acta Column -->
-    <ng-container matColumnDef="numero">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.acta.listado.numeroActa' | translate}} </th>
-      <td mat-cell *matCellDef="let acta"> {{acta.numeroActa}} </td>
-    </ng-container>
-
-    <!-- Convocatoria Column -->
-    <ng-container matColumnDef="convocatoria">
-      <th mat-header-cell *matHeaderCellDef> {{'eti.acta.listado.convocatoria' | translate}} </th>
-      <td mat-cell *matCellDef="let acta"> {{acta.convocatoria}} </td>
-    </ng-container>
-
-    <!-- Numero de iniciales Column -->
-    <ng-container matColumnDef="numeroIniciales">
-      <th mat-header-cell *matHeaderCellDef> {{'eti.acta.listado.numeroIniciales' | translate}} </th>
-      <td mat-cell *matCellDef="let acta"> {{acta.numEvaluaciones}} </td>
-    </ng-container>
-
-    <!-- Numero de revisiones Column -->
-    <ng-container matColumnDef="numeroRevisiones">
-      <th mat-header-cell *matHeaderCellDef> {{'eti.acta.listado.numeroRevisiones' | translate}} </th>
-      <td mat-cell *matCellDef="let acta"> {{acta.numRevisiones}} </td>
-    </ng-container>
-
-    <!-- Numero total Column -->
-    <ng-container matColumnDef="numeroTotal">
-      <th mat-header-cell *matHeaderCellDef> {{'eti.acta.listado.numeroTotal' | translate}} </th>
-      <td mat-cell *matCellDef="let acta"> {{acta.numTotal}} </td>
-    </ng-container>
-
-    <!-- Estado Column -->
-    <ng-container matColumnDef="estadoActual.nombre">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.acta.listado.estado' | translate}} </th>
-      <td mat-cell *matCellDef="let acta"> {{acta.estadoActa.nombre}}</td>
-    </ng-container>
-
-
-    <!-- Acciones Column -->
-    <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef> {{'eti.acta.listado.acciones' | translate}} </th>
-      <td mat-cell *matCellDef="let acta;let i=index;">
-        <ng-container *sgiHasAuthorityForAnyUO="'ETI-ACT-E'">
-          <button mat-button [routerLink]="[acta.id]" matTooltip="{{'eti.acta.listado.editar' | translate}}">
-            <mat-icon color="primary">border_color</mat-icon>
+      <div class="buttons-final">
+        <div class="col filter-button">
+          <button color="primary" aria-label="Center Align" md-button mat-raised-button (click)="onSearch()">
+            <mat-icon>search</mat-icon> {{'botones.buscar'| translate}}
           </button>
-        </ng-container>
-        <ng-container *ngIf="isFinalizada(acta)">
-          <button mat-button matTooltip="{{'botones.visualizar' | translate}}">
-            <mat-icon color="primary">picture_as_pdf</mat-icon>
+          <button color="warn" class="md-primary" aria-label="Center Align" md-button (click)="onClearFilters()"
+            mat-button>{{'botones.limpiar'| translate}}
           </button>
-        </ng-container>
-        <ng-container *sgiHasAuthorityForAnyUO="'ETI-ACT-FIN'">
-          <button *ngIf="hasFinalizarActa(acta)" mat-button (click)="finishActa(acta.id)"
-            matTooltip="{{'eti.acta.listado.finalizar' | translate}}">
-            <mat-icon color="primary">https</mat-icon>
-          </button>
-        </ng-container>
-      </td>
-    </ng-container>
+        </div>
+      </div>
+    </form>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-  </table>
+    <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="actas$ | async" matSort matSortActive="id"
+      matSortDirection="asc" matSortDisableClear>
 
-  <mat-paginator [pageSizeOptions]="elementosPagina" [length]="totalElementos" showFirstLastButtons>
-  </mat-paginator>
-</section>
-<sgi-footer-crear *sgiHasAuthorityForAnyUO="'ETI-ACT-C'" [texto]="textoCrear" [route]="ROUTE_NAMES.NEW">
-</sgi-footer-crear>
-<!-- FIN actas listado-->
+      <!-- Comite Column -->
+      <ng-container matColumnDef="convocatoriaReunion.comite">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.acta.listado.comite' | translate}} </th>
+        <td mat-cell *matCellDef="let acta"> {{acta.comite}} </td>
+      </ng-container>
+
+      <!-- Fecha evaluacion Column -->
+      <ng-container matColumnDef="convocatoriaReunion.fechaEvaluacion">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.acta.listado.fechaEvaluacion' | translate}} </th>
+        <td mat-cell *matCellDef="let acta"> {{acta.fechaEvaluacion | date:'dd/MM/yyyy'}} </td>
+      </ng-container>
+
+      <!-- Numero acta Column -->
+      <ng-container matColumnDef="numero">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.acta.listado.numeroActa' | translate}} </th>
+        <td mat-cell *matCellDef="let acta"> {{acta.numeroActa}} </td>
+      </ng-container>
+
+      <!-- Convocatoria Column -->
+      <ng-container matColumnDef="convocatoriaReunion.tipoConvocatoriaReunion">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.acta.listado.convocatoria' | translate}} </th>
+        <td mat-cell *matCellDef="let acta"> {{acta.convocatoria}} </td>
+      </ng-container>
+
+      <!-- Numero de iniciales Column -->
+      <ng-container matColumnDef="numeroIniciales">
+        <th mat-header-cell *matHeaderCellDef> {{'eti.acta.listado.numeroIniciales' | translate}} </th>
+        <td mat-cell *matCellDef="let acta"> {{acta.numEvaluaciones}} </td>
+      </ng-container>
+
+      <!-- Numero de revisiones Column -->
+      <ng-container matColumnDef="numeroRevisiones">
+        <th mat-header-cell *matHeaderCellDef> {{'eti.acta.listado.numeroRevisiones' | translate}} </th>
+        <td mat-cell *matCellDef="let acta"> {{acta.numRevisiones}} </td>
+      </ng-container>
+
+      <!-- Numero total Column -->
+      <ng-container matColumnDef="numeroTotal">
+        <th mat-header-cell *matHeaderCellDef> {{'eti.acta.listado.numeroTotal' | translate}} </th>
+        <td mat-cell *matCellDef="let acta"> {{acta.numTotal}} </td>
+      </ng-container>
+
+      <!-- Estado Column -->
+      <ng-container matColumnDef="estadoActual.nombre">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.acta.listado.estado' | translate}} </th>
+        <td mat-cell *matCellDef="let acta"> {{acta.estadoActa.nombre}}</td>
+      </ng-container>
+
+
+      <!-- Acciones Column -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef> {{'eti.acta.listado.acciones' | translate}} </th>
+        <td mat-cell *matCellDef="let acta;let i=index;">
+          <ng-container *sgiHasAuthorityForAnyUO="'ETI-ACT-E'">
+            <button mat-button [routerLink]="[acta.id]" matTooltip="{{'eti.acta.listado.editar' | translate}}">
+              <mat-icon color="primary">border_color</mat-icon>
+            </button>
+          </ng-container>
+          <ng-container *ngIf="isFinalizada(acta)">
+            <button mat-button matTooltip="{{'botones.visualizar' | translate}}">
+              <mat-icon color="primary">picture_as_pdf</mat-icon>
+            </button>
+          </ng-container>
+          <ng-container *sgiHasAuthorityForAnyUO="'ETI-ACT-FIN'">
+            <button *ngIf="hasFinalizarActa(acta)" mat-button (click)="finishActa(acta.id)"
+              matTooltip="{{'eti.acta.listado.finalizar' | translate}}">
+              <mat-icon color="primary">https</mat-icon>
+            </button>
+          </ng-container>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="elementosPagina" [length]="totalElementos" showFirstLastButtons>
+    </mat-paginator>
+  </section>
+  <sgi-footer-crear *sgiHasAuthorityForAnyUO="'ETI-ACT-C'" [texto]="textoCrear" [route]="ROUTE_NAMES.NEW">
+  </sgi-footer-crear>
+
+  <!-- FIN actas listado-->

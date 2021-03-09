@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { MemoriaListadoInvComponent } from './memoria-listado-inv.component';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -17,7 +17,7 @@ describe('MemoriaListadoInvComponent', () => {
   let component: MemoriaListadoInvComponent;
   let fixture: ComponentFixture<MemoriaListadoInvComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
         MemoriaListadoInvComponent,

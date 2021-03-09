@@ -26,7 +26,7 @@
             arial-label="Number" matInput formControlName="memoria" [matAutocomplete]="autocompleteMemoria">
           <mat-autocomplete #autocompleteMemoria="matAutocomplete" [displayWith]="getMemoria">
             <mat-option *ngFor="let m of filteredMemorias | async" [value]="m" (click)="onClickMemoria(m)">
-              {{m.titulo}}
+              {{m.numReferencia}}
             </mat-option>
           </mat-autocomplete>
         </mat-form-field>
@@ -88,7 +88,7 @@
   </main>
   <mat-dialog-actions align="center">
     <button color="accent" (click)="addTarea()" md-button mat-raised-button
-      tabindex="-1">{{'botones.anadir' | translate}}</button>
+      tabindex="-1">{{'botones.aniadir' | translate}}</button>
     <button class="link-cancelar" mat-button mat-dialog-close tabindex="-1">{{'botones.cancelar' | translate}}</button>
   </mat-dialog-actions>
 </div>

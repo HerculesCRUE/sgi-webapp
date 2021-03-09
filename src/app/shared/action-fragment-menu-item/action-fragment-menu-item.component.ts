@@ -1,4 +1,5 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, Input, ViewChild, ViewEncapsulation } from '@angular/core';
+import { RouterLinkActive } from '@angular/router';
 import { IFragment } from '@core/services/action-service';
 
 @Component({
@@ -7,12 +8,25 @@ import { IFragment } from '@core/services/action-service';
   styleUrls: ['./action-fragment-menu-item.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class ActionFragmentMenuItemComponent {
+export class ActionFragmentMenuItemComponent implements AfterViewInit {
   @Input() fragment: IFragment;
   @Input() route: string | string[];
   @Input() title: string;
 
+  @ViewChild(RouterLinkActive, { static: true }) private activeLink: RouterLinkActive;
+  private initialized = false;
+
+  get isActive(): boolean {
+    if (this.initialized) {
+      return this.activeLink.isActive;
+    }
+    return false;
+  }
+
   constructor() { }
 
+  ngAfterViewInit(): void {
+    this.initialized = true;
+  }
 
 }

@@ -95,7 +95,7 @@ const routes: SgiRoutes = [
         canDeactivate: [FragmentGuard]
       },
       {
-        path: MEMORIA_ROUTE_NAMES.INFORMES,
+        path: MEMORIA_ROUTE_NAMES.VERSIONES,
         component: MemoriaInformesComponent,
         canDeactivate: [FragmentGuard]
       }

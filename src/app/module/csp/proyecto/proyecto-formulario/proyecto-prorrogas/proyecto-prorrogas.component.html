@@ -1,0 +1,104 @@
+<section>
+  <h2>{{'csp.proyecto-prorroga.title' | translate}}</h2>
+  <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSource" matSort matSortActive="numProrroga"
+    matSortDirection="asc" matSortDisableClear>
+    <!-- Número prórroga -->
+    <ng-container matColumnDef="numProrroga">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.proyecto-prorroga.numProrroga' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{ wrapper.value.numProrroga }}
+      </td>
+    </ng-container>
+
+    <!-- Fecha concesión -->
+    <ng-container matColumnDef="fechaConcesion">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.proyecto-prorroga.fechaConcesion' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{ wrapper.value.fechaConcesion | date:'dd/MM/yyyy'}}
+      </td>
+    </ng-container>
+
+    <!-- Tipo de prórroga -->
+    <ng-container matColumnDef="tipo">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.proyecto-prorroga.tipo' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{ TIPO_MAP.get(wrapper.value?.tipo) | translate }}
+      </td>
+    </ng-container>
+
+
+    <!-- Fecha de fin Column -->
+    <ng-container matColumnDef="fechaFin">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.proyecto-prorroga.fechaFin' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{wrapper.value.fechaFin | date:'dd/MM/yyyy'}}
+      </td>
+    </ng-container>
+
+    <!-- Importe -->
+    <ng-container matColumnDef="importe">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.proyecto-prorroga.importe' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{wrapper.value.importe}}
+      </td>
+    </ng-container>
+
+    <!-- Observaciones -->
+    <ng-container matColumnDef="observaciones">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.proyecto-prorroga.observaciones' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{wrapper.value.observaciones}}
+      </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'csp.proyecto-prorroga.listado.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper">
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.ver' | translate}}"
+            [routerLink]="['../../..', CSP_ROUTE_NAMES.PROYECTO_PRORROGA, wrapper.value.id]"
+            [state]="createState(wrapper)"
+            *ngIf="lastProyectoProrroga.id !== wrapper.value.id || actionService.readOnly">
+            <mat-icon color="primary">visibility</mat-icon>
+          </button>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}"
+            [routerLink]="['../../..', CSP_ROUTE_NAMES.PROYECTO_PRORROGA, wrapper.value.id]"
+            [state]="createState(wrapper)"
+            *ngIf="lastProyectoProrroga.id === wrapper.value.id && !actionService.readOnly">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deleteProyectoProrroga(wrapper)"
+            *ngIf="lastProyectoProrroga.id === wrapper.value.id && !actionService.readOnly">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+  <div class="separation-button">
+    <button color="three" mat-button mat-raised-button
+      [routerLink]="['../../..', CSP_ROUTE_NAMES.PROYECTO_PRORROGA, ROUTE_NAMES.NEW]" [state]="createState()"
+      [disabled]="actionService.readOnly">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.proyecto-prorroga.añadir' | translate}}
+    </button>
+  </div>
+
+</section>

@@ -1,0 +1,132 @@
+<div class="modal-proyecto-paquetes-trabajo">
+  <header class="modal-header-material">
+    <h3 mat-dialog-title>{{'csp.proyecto.paquete.trabajo.modal.titulo' | translate}}</h3>
+  </header>
+  <main>
+
+    <form [formGroup]="formGroup">
+
+      <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+        [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+
+          <!-- Nombre -->
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.proyecto.paquete.trabajo.nombre' | translate}}
+            </mat-label>
+            <input matInput formControlName="nombre" type="text" id="nombre" required
+              placeholder="{{'csp.proyecto.paquete.trabajo.nombre' | translate}}">
+            <mat-error *ngIf="formGroup.controls.nombre.errors?.required">
+              {{'csp.proyecto.paquete.trabajo.nombre.error.requerido' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.nombre.errors?.notAllowed">
+              {{'csp.proyecto.paquete.trabajo.nombre.error.contains' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.nombre.errors?.maxlength">
+              {{'csp.proyecto.paquete.trabajo.nombre.error.maxLength' | translate}}
+            </mat-error>
+          </mat-form-field>
+
+        </div>
+      </div>
+
+      <div class="fieldset-form">
+        {{'csp.proyecto.paquete.trabajo.modal.duracion' | translate}}
+      </div>
+
+      <div [fxLayout.xs]="fxLayoutProperties2.xs" [fxLayout]="fxLayoutProperties2.layout"
+        [fxLayoutGap]="fxLayoutProperties2.gap" ngClass.gt-xs="ml-10">
+
+        <div [fxFlex.sm]="fxFlexProperties2.sm" [fxFlex.md]="fxFlexProperties2.md"
+          [fxFlex.gt-md]="fxFlexProperties2.gtMd" [fxFlexOrder]="fxFlexProperties2.order">
+          <!-- fecha inicio -->
+          <mat-form-field color="primary">
+            <mat-label>{{'csp.proyecto.paquete.trabajo.fechaInicio'| translate}}</mat-label>
+            <input matInput [matDatepicker]="pickerFechaInicio" formControlName="fechaInicio" required>
+            <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaInicio"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFechaInicio></mat-datepicker>
+            <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.required">
+              {{'csp.proyecto.paquete.trabajo.fechaInicio.error.vacio' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.invalid">
+              {{'csp.proyecto.paquete.trabajo.fechaInicio.error.invalido' | translate}}
+            </mat-error>
+          </mat-form-field>
+
+        </div>
+
+        <div [fxFlex.sm]="fxFlexProperties2.sm" [fxFlex.md]="fxFlexProperties2.md"
+          [fxFlex.gt-md]="fxFlexProperties2.gtMd" [fxFlexOrder]="fxFlexProperties2.order">
+          <!-- fecha fin -->
+          <mat-form-field color="primary">
+            <mat-label>{{'csp.proyecto.paquete.trabajo.fechaFin'| translate}}</mat-label>
+            <input matInput [matDatepicker]="pickerFechaFin" formControlName="fechaFin" required>
+            <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaFin"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFechaFin></mat-datepicker>
+            <mat-error *ngIf="formGroup.controls.fechaFin.errors?.required">
+              {{'csp.proyecto.paquete.trabajo.fechaFin.error.vacio' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.fechaFin.errors?.invalid">
+              {{'csp.proyecto.paquete.trabajo.fechaFin.error.invalido' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.fechaFin.errors?.after">
+              {{'csp.proyecto.paquete.trabajo.fechaFin.error.after' | translate}}
+            </mat-error>
+          </mat-form-field>
+
+        </div>
+
+      </div>
+
+      <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+        [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+
+          <!-- Persona/mes -->
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.proyecto.paquete.trabajo.personaMes' | translate}}
+            </mat-label>
+            <input matInput formControlName="personaMes" type="number" id="personaMes" required
+              placeholder="{{'csp.proyecto.paquete.trabajo.personaMes' | translate}}">
+            <mat-error *ngIf="formGroup.controls.personaMes.errors?.required">
+              {{'csp.proyecto.paquete.trabajo.personaMes.error.requerido' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.personaMes.errors?.max">
+              {{'csp.proyecto.paquete.trabajo.personaMes.error.max' | translate}}
+            </mat-error>
+          </mat-form-field>
+
+        </div>
+      </div>
+
+      <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+        [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <!--Descripcion-->
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.proyecto.paquete.trabajo.descripcion' | translate}}</mat-label>
+            <textarea matInput formControlName="descripcion" type="text" id="descripcion"
+              placeholder="{{'csp.proyecto.paquete.trabajo.descripcion' | translate}}">
+            </textarea>
+            <mat-error *ngIf="formGroup.controls.descripcion.errors?.maxlength">
+              {{'csp.proyecto.paquete.trabajo.descripcion.maximo' | translate}}
+            </mat-error>
+          </mat-form-field>
+
+        </div>
+      </div>
+
+    </form>
+  </main>
+
+  <div id="modals-buttons" class="float-right" mat-dialog-actions>
+    <button color="accent" (click)="saveOrUpdate()" md-button mat-raised-button type="submit">{{textSaveOrUpdate |
+      translate}}</button>
+    <button class="link-cancelar" mat-button (click)="closeModal()" type="button">{{'botones.cancelar' |
+      translate}}</button>
+  </div>
+</div>

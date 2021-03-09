@@ -3,11 +3,28 @@
   <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
     [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
 
+    <ng-container *ngIf="this.fragment.isEdit()">
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field class="input-form">
+          <mat-label>{{'eti.peticionEvaluacion.codigo' | translate}}</mat-label>
+          <input matInput formControlName="codigo" type="text" id="codigo"
+            placeholder="{{'eti.peticionEvaluacion.codigo' | translate}}" required maxlength="100">
+          <mat-error
+            *ngIf="FormGroupUtil.checkError(formGroup, 'codigo') && (formGroup.get('codigo').errors.vacio || formGroup.get('codigo').errors.required)">
+            {{'eti.peticionEvaluacion.codigo.vacio' | translate}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+    </ng-container>
+
+
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
         <mat-label>{{'eti.peticionEvaluacion.titulo' | translate}}</mat-label>
-        <input #nombre matInput formControlName="titulo" type="text" id="titulo"
+        <input matInput formControlName="titulo" type="text" id="titulo"
           placeholder="{{'eti.peticionEvaluacion.titulo' | translate}}" required maxlength="100">
         <mat-error
           *ngIf="FormGroupUtil.checkError(formGroup, 'titulo') && (formGroup.get('titulo').errors.vacio || formGroup.get('titulo').errors.required)">

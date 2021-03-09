@@ -1,0 +1,87 @@
+<div class="solicitud-equipo-periodo-pago-modal">
+  <header class="modal-header-material">
+    <h3 mat-dialog-title>
+      {{'csp.proyecto-socio.periodo-pago.modal.titulo' | translate}}</h3>
+  </header>
+  <main>
+    <form [formGroup]="formGroup">
+
+      <!-- numPeriodo -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.proyecto-socio.periodo-pago.modal.numPeriodo' | translate}}</mat-label>
+            <input matInput formControlName="numPeriodo" type="number" id="numPeriodo"
+              placeholder="{{'csp.proyecto-socio.periodo-pago.modal.numPeriodo' | translate}}">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- fechaPrevistaPago -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.proyecto-socio.periodo-pago.modal.fechaPrevistaPago' | translate}}</mat-label>
+            <input matInput [matDatepicker]="fechaPrevistaPago" formControlName="fechaPrevistaPago"
+              id="fechaPrevistaPago" required
+              placeholder="{{'csp.proyecto-socio.periodo-pago.modal.fechaPrevistaPago' | translate}}">
+            <mat-datepicker-toggle matSuffix [for]="fechaPrevistaPago"></mat-datepicker-toggle>
+            <mat-datepicker #fechaPrevistaPago></mat-datepicker>
+            <mat-error *ngIf="formGroup.controls.fechaPrevistaPago.errors?.required">
+              {{'csp.proyecto-socio.periodo-pago.modal.fechaPrevistaPago.required' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.fechaPrevistaPago.errors?.minDate">
+              {{'csp.proyecto.socio-periodo-pago.modal.fecha-prevista-pago.minDate' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.fechaPrevistaPago.errors?.maxDate">
+              {{'csp.proyecto.socio-periodo-pago.modal.fecha-prevista-pago.maxDate' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- importe -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.proyecto-socio.periodo-pago.modal.importe' | translate}}</mat-label>
+            <input matInput formControlName="importe" type="number" id="importe" required
+              placeholder="{{'csp.proyecto-socio.periodo-pago.modal.importe' | translate}}">
+            <mat-error *ngIf="formGroup.controls.importe.errors?.min">
+              {{'csp.proyecto-socio.periodo-pago.modal.importe.min' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.importe.errors?.max">
+              {{'csp.proyecto-socio.periodo-pago.modal.importe.max' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.importe.errors?.required">
+              {{'csp.proyecto-socio.periodo-pago.modal.importe.required' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- fechaPago -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.proyecto-socio.periodo-pago.modal.fechaPago' | translate}}</mat-label>
+            <input matInput [matDatepicker]="fechaPago" formControlName="fechaPago" id="fechaPago"
+              placeholder="{{'csp.proyecto-socio.periodo-pago.modal.fechaPago' | translate}}">
+            <mat-datepicker-toggle matSuffix [for]="fechaPago"></mat-datepicker-toggle>
+            <mat-datepicker #fechaPago></mat-datepicker>
+          </mat-form-field>
+        </div>
+      </div>
+    </form>
+  </main>
+</div>
+<div id="modals-buttons" class="float-right" mat-dialog-actions>
+  <button color="accent" md-button mat-raised-button (click)="saveOrUpdate()">{{textSaveOrUpdate |
+    translate}}</button>
+  <button class="link-cancelar" mat-button (click)="closeModal()" type="button">{{'botones.cancelar' |
+    translate}}</button>
+</div>

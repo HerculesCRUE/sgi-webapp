@@ -1,0 +1,71 @@
+<div class="solicitud-equipo-periodo-pago-modal">
+  <header class="modal-header-material">
+    <h3 mat-dialog-title>
+      {{'csp.solicitud-proyecto-socio.periodo-pago.modal.titulo' | translate}}</h3>
+  </header>
+  <main>
+    <form [formGroup]="formGroup">
+
+      <!-- numPeriodo -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.solicitud-proyecto-socio.periodo-pago.modal.numPeriodo' | translate}}</mat-label>
+            <input matInput formControlName="numPeriodo" type="number" id="numPeriodo"
+              placeholder="{{'csp.solicitud-proyecto-socio.periodo-pago.modal.numPeriodo' | translate}}">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- mes -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.solicitud-proyecto-socio.periodo-pago.modal.mes' | translate}}</mat-label>
+            <input matInput formControlName="mes" type="number" id="mes" required
+              placeholder="{{'csp.solicitud-proyecto-socio.periodo-pago.modal.mes' | translate}}">
+            <mat-error *ngIf="formGroup.controls.mes.errors?.required">
+              {{'csp.solicitud-proyecto-socio.periodo-pago.modal.mes.required' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.mes.errors?.min">
+              {{'csp.solicitud-proyecto-socio.periodo-pago.modal.mes.min' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.mes.errors?.max">
+              {{'csp.solicitud-proyecto-socio.periodo-pago.modal.mes.max' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.mes.errors?.contains">
+              {{'csp.solicitud-proyecto-socio.periodo-pago.modal.mes.contains' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- importe -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.solicitud-proyecto-socio.periodo-pago.modal.importe' | translate}}</mat-label>
+            <input matInput formControlName="importe" type="number" id="importe"
+              placeholder="{{'csp.solicitud-proyecto-socio.periodo-pago.modal.importe' | translate}}">
+            <mat-error *ngIf="formGroup.controls.importe.errors?.min">
+              {{'csp.solicitud-proyecto-socio.periodo-pago.modal.importe.min' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.importe.errors?.max">
+              {{'csp.solicitud-proyecto-socio.periodo-pago.modal.importe.max' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+    </form>
+  </main>
+</div>
+<div id="modals-buttons" class="float-right" mat-dialog-actions>
+  <button color="accent" md-button mat-raised-button (click)="saveOrUpdate()"
+    *ngIf="!this.data.readonly">{{textSaveOrUpdate |
+    translate}}</button>
+  <button class="link-cancelar" mat-button (click)="closeModal()" type="button">{{'botones.cancelar' |
+    translate}}</button>
+</div>

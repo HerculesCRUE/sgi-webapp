@@ -13,9 +13,11 @@
 
           <mat-form-field color="primary" fxFill>
             <mat-label>{{'csp.convocatoria.plazos.fases.modal.fechaInicio' | translate}}</mat-label>
-            <input matInput formControlName="fechaInicio" [matDatepicker]="picker1">
+            <input matInput formControlName="fechaInicio" [ngxMatDatetimePicker]="picker1"
+              placeholder="{{'csp.convocatoria.plazos.fases.modal.fechaInicio' | translate}}" required>
             <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
-            <mat-datepicker #picker1></mat-datepicker>
+            <ngx-mat-datetime-picker #picker1 [showSeconds]="showSeconds" [defaultTime]="defaultTimeStart">
+            </ngx-mat-datetime-picker>
             <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.required">
               {{'csp.convocatoria.plazos.fases.modal.fechaInicio.error.requerido' | translate}}
             </mat-error>
@@ -33,9 +35,11 @@
 
           <mat-form-field color="primary" fxFill>
             <mat-label>{{'csp.convocatoria.plazos.fases.modal.fechaFin' | translate}}</mat-label>
-            <input matInput formControlName="fechaFin" [matDatepicker]="picker2">
+            <input matInput formControlName="fechaFin" [ngxMatDatetimePicker]="picker2"
+              placeholder="{{'csp.convocatoria.plazos.fases.modal.fechaFin' | translate}}" required>
             <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
-            <mat-datepicker #picker2></mat-datepicker>
+            <ngx-mat-datetime-picker #picker2 [showSeconds]="showSeconds" [defaultTime]="defaultTimeEnd">
+            </ngx-mat-datetime-picker>
             <mat-error *ngIf="formGroup.controls.fechaFin.errors?.required">
               {{'csp.convocatoria.plazos.fases.modal.fechaFin.error.requerido' | translate}}
             </mat-error>
@@ -56,7 +60,7 @@
           [fxFlexOrder]="fxFlexProperties.order">
           <mat-form-field fxFill>
             <mat-label>{{'csp.convocatoria.plazos.fases.modal.tipoPlazosFases' | translate}}</mat-label>
-            <input matInput formControlName="tipoFase" type="text" id="tipoPlazosFases"
+            <input matInput formControlName="tipoFase" type="text" id="tipoPlazosFases" required
               placeholder="{{'csp.convocatoria.plazos.fases.modal.tipoPlazosFases' | translate}}"
               [matAutocomplete]="autoPlazosFase">
             <mat-autocomplete #autoPlazosFase="matAutocomplete" [displayWith]="getTipoPlazosFase">
@@ -94,9 +98,9 @@
     </form>
   </main>
   <div id="modals-buttons" class="float-right" mat-dialog-actions>
-    <button color="accent" (click)="saveOrUpdate()" md-button mat-raised-button
-      type="submit">{{'botones.guardar' | translate}}</button>
-    <button class="link-cancelar" mat-button (click)="closeModal()"
-      type="button">{{'botones.cancelar' | translate}}</button>
+    <button color="accent" (click)="saveOrUpdate()" md-button mat-raised-button *ngIf="!data.readonly"
+      type="submit">{{textSaveOrUpdate | translate}}</button>
+    <button class="link-cancelar" mat-button (click)="closeModal()" type="button">{{'botones.cancelar' |
+      translate}}</button>
   </div>
 </div>

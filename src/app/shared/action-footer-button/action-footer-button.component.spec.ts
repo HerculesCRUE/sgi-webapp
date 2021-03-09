@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ActionFooterButtonComponent } from './action-footer-button.component';
 import TestUtils from '@core/utils/test-utils';
@@ -9,7 +9,7 @@ describe('ActionFooterButtonComponent', () => {
   let component: ActionFooterButtonComponent;
   let fixture: ComponentFixture<ActionFooterButtonComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ActionFooterButtonComponent],
       imports: [

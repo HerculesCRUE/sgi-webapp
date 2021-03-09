@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { IConvocatoriaReunion } from '@core/models/eti/convocatoria-reunion';
 import { ActionService } from '@core/services/action-service';
 import { AsistenteService } from '@core/services/eti/asistente.service';
 import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
-import { ConvocatoriaReunionDatosGeneralesFragment } from './convocatoria-reunion-formulario/convocatoria-reunion-datos-generales/convocatoria-reunion-datos-generales.fragment';
-import { IConvocatoriaReunion } from '@core/models/eti/convocatoria-reunion';
-import { ConvocatoriaReunionAsignacionMemoriasListadoFragment } from './convocatoria-reunion-formulario/convocatoria-reunion-asignacion-memorias/convocatoria-reunion-asignacion-memorias-listado/convocatoria-reunion-asignacion-memorias-listado.fragment';
 import { EvaluacionService } from '@core/services/eti/evaluacion.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
-import { Subject } from 'rxjs';
-import { NGXLogger } from 'ngx-logger';
 import { EvaluadorService } from '@core/services/eti/evaluador.service';
+import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { NGXLogger } from 'ngx-logger';
+import { Subject } from 'rxjs';
+import { ConvocatoriaReunionAsignacionMemoriasListadoFragment } from './convocatoria-reunion-formulario/convocatoria-reunion-asignacion-memorias/convocatoria-reunion-asignacion-memorias-listado/convocatoria-reunion-asignacion-memorias-listado.fragment';
+import { ConvocatoriaReunionDatosGeneralesFragment } from './convocatoria-reunion-formulario/convocatoria-reunion-datos-generales/convocatoria-reunion-datos-generales.fragment';
 
 interface DatosAsignacionEvaluacion {
   idComite: number;
@@ -45,7 +45,6 @@ export class ConvocatoriaReunionActionService extends ActionService {
     evaluadorService: EvaluadorService
   ) {
     super();
-    this.logger.debug(ConvocatoriaReunionActionService.name, 'constructor()', 'start');
     this.convocatoriaReunion = {} as IConvocatoriaReunion;
     if (route.snapshot.data.convocatoriaReunion) {
       this.convocatoriaReunion = route.snapshot.data.convocatoriaReunion;
@@ -62,25 +61,20 @@ export class ConvocatoriaReunionActionService extends ActionService {
 
     this.addFragment(this.FRAGMENT.DATOS_GENERALES, this.datosGenerales);
     this.addFragment(this.FRAGMENT.ASIGNACION_MEMORIAS, this.asignacionMemorias);
-    this.logger.debug(ConvocatoriaReunionActionService.name, 'constructor()', 'end');
   }
 
   public getDatosAsignacion(): DatosAsignacionEvaluacion {
-    this.logger.debug(ConvocatoriaReunionActionService.name, 'getDatosAsignacion()', 'start');
     const datosAsignacionEvaluacion = {
       idComite: this.datosGenerales.getFormGroup().controls.comite.value?.id,
       idTipoConvocatoria: this.datosGenerales.getFormGroup().controls.tipoConvocatoriaReunion.value?.id,
       fechaLimite: this.datosGenerales.getFormGroup().controls.fechaLimite.value
     } as DatosAsignacionEvaluacion;
-    this.logger.debug(ConvocatoriaReunionActionService.name, 'getDatosAsignacion()', 'end');
     return datosAsignacionEvaluacion;
   }
 
   onKeyChange(value: number) {
-    this.logger.debug(ConvocatoriaReunionActionService.name, `onKeyChange(value: ${value})`, 'start');
     this.asignacionMemorias.setKey(value);
     this.asignacionMemorias.setConvocatoriaReunion(this.datosGenerales.getValue());
-    this.logger.debug(ConvocatoriaReunionActionService.name, `onKeyChange(value: ${value})`, 'end');
   }
 
   /**
@@ -94,8 +88,6 @@ export class ConvocatoriaReunionActionService extends ActionService {
    *
    */
   onEnterDatosGenerales(): void {
-    this.logger.debug(ConvocatoriaReunionActionService.name, 'onEnterDatosGenerales', 'start');
-
     // Si la convocatoria tiene Acta los campos ya estarán desactivados
     if (this.datosGenerales.hasActa()) {
       return;
@@ -114,7 +106,6 @@ export class ConvocatoriaReunionActionService extends ActionService {
     }
 
     this.disableCamposDatosGenerales.next(disable);
-    this.logger.debug(ConvocatoriaReunionActionService.name, 'onEnterDatosGenerales', 'end');
   }
 
   /**
@@ -127,8 +118,6 @@ export class ConvocatoriaReunionActionService extends ActionService {
    * Si la convocatoria tiene Acta siempre tendrá valor en los campos requeridos
    */
   onEnterAsignacionMemorias(): void {
-    this.logger.debug(ConvocatoriaReunionActionService.name, 'onEnterAsignacionMemorias', 'start');
-
     // Si la convocatoria tiene Acta siempre tendrá valor en los campos requeridos
     if (this.datosGenerales.hasActa()) {
       return;
@@ -142,6 +131,5 @@ export class ConvocatoriaReunionActionService extends ActionService {
     }
 
     this.disableAsignarMemorias.next(disable);
-    this.logger.debug(ConvocatoriaReunionActionService.name, 'onEnterAsignacionMemorias', 'end');
   }
 }

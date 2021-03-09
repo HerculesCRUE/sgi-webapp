@@ -1,0 +1,73 @@
+<section class="proyecto-paquete-trabajo">
+  <h2>{{'csp.proyecto.paquete.trabajo.title' | translate}}</h2>
+
+  <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSource" matSort matSortActive="id"
+    matSortDirection="asc" matSortDisableClear>
+
+    <!-- Nombre Column -->
+    <ng-container matColumnDef="nombre">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.paquete.trabajo.nombre' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.nombre}} </td>
+    </ng-container>
+
+    <!-- Fecha inicio Column -->
+    <ng-container matColumnDef="fechaInicio">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.paquete.trabajo.fechaInicio' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.fechaInicio | date:'dd/MM/yyyy'}} </td>
+    </ng-container>
+
+    <!-- Fecha fin Column -->
+    <ng-container matColumnDef="fechaFin">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.paquete.trabajo.fechaFin' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.fechaFin | date:'dd/MM/yyyy'}} </td>
+    </ng-container>
+
+    <!-- Personas/mes Column -->
+    <ng-container matColumnDef="personaMes">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.paquete.trabajo.personaMes' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.personaMes}} </td>
+    </ng-container>
+
+    <!-- Descripcion Column -->
+    <ng-container matColumnDef="descripcion">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.paquete.trabajo.descripcion' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.descripcion}} </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'columna.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper">
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" *ngIf="!formPart.readonly"
+            (click)="openModal(wrapper)">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deletePaqueteTrabajo(wrapper)">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+  </table>
+
+  <mat-paginator [pageSizeOptions]="elementosPagina" showFirstLastButtons>
+  </mat-paginator>
+
+  <div class="separation-button">
+    <!-- Botón añadir paquetes trabajo -->
+    <button color="three" mat-button mat-raised-button (click)="openModal()">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.proyecto.paquete.trabajo.añadir' | translate}}
+    </button>
+  </div>
+</section>

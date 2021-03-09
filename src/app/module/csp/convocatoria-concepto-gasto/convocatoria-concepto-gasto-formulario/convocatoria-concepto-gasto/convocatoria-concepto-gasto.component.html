@@ -1,0 +1,126 @@
+<div class="convocatoria-concepto-gasto-modal">
+  <header class="modal-header-material">
+    <h3 mat-dialog-title>
+      {{( formPart.convocatoriaConceptoGasto.permitido? 'csp.convocatoria.concepto-gasto.modal.titulo.permitido' :
+      'csp.convocatoria.concepto-gasto.modal.titulo.no-permitido') | translate}}
+    </h3>
+  </header>
+  <main>
+    <form [formGroup]="formGroup">
+      <!-- Concepto Gasto -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.convocatoria.concepto-gasto.modal.conceptoGasto' | translate}}</mat-label>
+            <input matInput formControlName="conceptoGasto" type="text" id="conceptoGasto"
+              placeholder="{{'csp.convocatoria.concepto-gasto.modal.conceptoGasto' | translate}}"
+              [matAutocomplete]="autocompleteConceptoGasto" required>
+            <mat-autocomplete #autocompleteConceptoGasto="matAutocomplete" [displayWith]="getNombreConceptoGasto">
+              <mat-option *ngFor="let conceptoGasto of conceptoGastos$ | async" [value]="conceptoGasto">
+                {{conceptoGasto.nombre}}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="formGroup.controls.conceptoGasto.errors?.invalid">
+              {{'csp.convocatoria.concepto-gasto.modal.conceptoGasto.error.invalido' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Importe máximo -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign"
+        *ngIf="formPart.convocatoriaConceptoGasto.permitido">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.convocatoria.concepto-gasto.modal.importeMaximo' | translate}}
+            </mat-label>
+            <input matInput formControlName="importeMaximo" type="number" id="importeMaximo" min="0"
+              placeholder="{{'csp.convocatoria.concepto-gasto.modal.importeMaximo' | translate}}">
+            <mat-error *ngIf="formGroup.controls.importeMaximo.hasError('max')">
+              {{'csp.convocatoria.concepto-gasto.error.max' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.importeMaximo.hasError('min')">
+              {{'csp.convocatoria.concepto-gasto.error.min' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Número de meses -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.convocatoria.concepto-gasto.modal.mesInicial' | translate}}
+            </mat-label>
+            <input matInput formControlName="mesInicial" type="number" id="mesInicial" min="0"
+              placeholder="{{'csp.convocatoria.concepto-gasto.modal.mesInicial' | translate}}">
+            <mat-error *ngIf="formGroup.controls.mesInicial.hasError('max')">
+              {{'csp.convocatoria.concepto-gasto.mesInicial.error.max' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.mesInicial.hasError('min')">
+              {{'csp.convocatoria.concepto-gasto.mesInicial.error.min' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.mesInicial.hasError('integer')">
+              {{'csp.convocatoria.concepto-gasto.mesInicial.error.integer' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.mesInicial.hasError('before')">
+              {{'csp.convocatoria.concepto-gasto.mesInicial.error.before' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.mesInicial.hasError('overlapped')">
+              {{'csp.convocatoria.concepto-gasto.mesInicial.error.overlapped' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Mes final -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.convocatoria.concepto-gasto.modal.mesFinal' | translate}}
+            </mat-label>
+            <input matInput formControlName="mesFinal" type="number" id="mesFinal" min="0"
+              placeholder="{{'csp.convocatoria.concepto-gasto.modal.mesFinal' | translate}}">
+            <mat-error *ngIf="formGroup.controls.mesFinal.hasError('max')">
+              {{'csp.convocatoria.concepto-gasto.mesFinal.error.max' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.mesFinal.hasError('min')">
+              {{'csp.convocatoria.concepto-gasto.mesFinal.error.min' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.mesFinal.hasError('integer')">
+              {{'csp.convocatoria.concepto-gasto.mesFinal.error.integer' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.mesFinal.hasError('after')">
+              {{'csp.convocatoria.concepto-gasto.mesFinal.error.after' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.mesFinal.hasError('before')">
+              {{'csp.convocatoria.concepto-gasto.mesFinal.error.before' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.controls.mesFinal.hasError('overlapped')">
+              {{'csp.convocatoria.concepto-gasto.mesFinal.error.overlapped' | translate}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Observaciones -->
+      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+          [fxFlexOrder]="fxFlexProperties.order">
+          <mat-form-field fxFill>
+            <mat-label>{{'csp.convocatoria.concepto-gasto.modal.observaciones' | translate}}
+            </mat-label>
+            <textarea #obs matInput formControlName="observaciones" type="text" id="observaciones"
+              placeholder="{{'csp.convocatoria.concepto-gasto.modal.observaciones' | translate}}" maxlength="250">
+                         </textarea>
+            <mat-hint>{{obs.value.length}} / 250</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+    </form>
+  </main>
+</div>

@@ -9,9 +9,8 @@ import {
   Route,
   Router,
   RouterEvent,
-  UrlSegment,
+  UrlSegment
 } from '@angular/router';
-import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject } from 'rxjs';
 
 export interface Navigation {
@@ -30,10 +29,8 @@ export class NavigationService {
 
   private navigationStack: Navigation[] = [];
 
-  constructor(protected logger: NGXLogger, private router: Router) {
-    this.logger.debug(NavigationService.name, 'constructor(protected logger: NGXLogger)', 'start');
+  constructor(private router: Router) {
     this.router.events.subscribe((event: RouterEvent) => this.processEvent(event));
-    this.logger.debug(NavigationService.name, 'constructor(protected logger: NGXLogger)', 'end');
   }
 
   private processEvent(event: RouterEvent): void {

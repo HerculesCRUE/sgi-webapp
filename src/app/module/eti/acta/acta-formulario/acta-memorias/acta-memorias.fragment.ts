@@ -36,7 +36,7 @@ export class ActaMemoriasFragment extends Fragment {
               idEvaluacion => new MemoriaListado(
                 evaluacionesSinDuplicados[idEvaluacion].memoria?.id,
                 evaluacionesSinDuplicados[idEvaluacion].memoria?.numReferencia,
-                evaluacionesSinDuplicados[idEvaluacion].memoria?.version,
+                evaluacionesSinDuplicados[idEvaluacion].version,
                 evaluacionesSinDuplicados[idEvaluacion].dictamen
               )
             );

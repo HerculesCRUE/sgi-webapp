@@ -2,10 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { IFuenteFinanciacion } from '@core/models/csp/fuente-financiacion';
 import { environment } from '@env';
-import { SgiRestService, SgiRestFindOptions, SgiRestListResult } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
+import { SgiRestFindOptions, SgiRestListResult, SgiRestService } from '@sgi/framework/http';
 import { Observable } from 'rxjs';
-import { tap, map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -13,10 +11,9 @@ import { tap, map } from 'rxjs/operators';
 export class FuenteFinanciacionService extends SgiRestService<number, IFuenteFinanciacion> {
   private static readonly MAPPING = '/fuentefinanciaciones';
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
+  constructor(protected http: HttpClient) {
     super(
       FuenteFinanciacionService.name,
-      logger,
       `${environment.serviceServers.csp}${FuenteFinanciacionService.MAPPING}`,
       http
     );
@@ -28,10 +25,7 @@ export class FuenteFinanciacionService extends SgiRestService<number, IFuenteFin
    * @param options opciones de búsqueda.
    */
   findTodos(options?: SgiRestFindOptions): Observable<SgiRestListResult<IFuenteFinanciacion>> {
-    this.logger.debug(FuenteFinanciacionService.name, `${this.findTodos.name}(`, '-', 'START');
-    return this.find<IFuenteFinanciacion, IFuenteFinanciacion>(`${this.endpointUrl}/todos`, options).pipe(
-      tap(() => this.logger.debug(FuenteFinanciacionService.name, `${this.findTodos.name}()`, '-', 'END'))
-    );
+    return this.find<IFuenteFinanciacion, IFuenteFinanciacion>(`${this.endpointUrl}/todos`, options);
   }
 
   /**
@@ -39,10 +33,7 @@ export class FuenteFinanciacionService extends SgiRestService<number, IFuenteFin
    * @param options opciones de búsqueda.
    */
   reactivar(id: number): Observable<void> {
-    this.logger.debug(FuenteFinanciacionService.name, `${this.reactivar.name}(${id}`, '-', 'start');
-    return this.http.patch(`${this.endpointUrl}/${id}/reactivar`, { id }).pipe(
-      map(() => this.logger.debug(FuenteFinanciacionService.name, `${this.reactivar.name}(${id}`, '-', 'end'))
-    );
+    return this.http.patch<void>(`${this.endpointUrl}/${id}/reactivar`, { id });
   }
 
   /**
@@ -50,10 +41,7 @@ export class FuenteFinanciacionService extends SgiRestService<number, IFuenteFin
    * @param options opciones de búsqueda.
    */
   desactivar(id: number): Observable<void> {
-    this.logger.debug(FuenteFinanciacionService.name, `${this.desactivar.name}(${id}`, '-', 'start');
-    return this.http.patch(`${this.endpointUrl}/${id}/desactivar`, { id }).pipe(
-      map(() => this.logger.debug(FuenteFinanciacionService.name, `${this.desactivar.name}(${id}`, '-', 'end'))
-    );
+    return this.http.patch<void>(`${this.endpointUrl}/${id}/desactivar`, { id });
   }
 
 }

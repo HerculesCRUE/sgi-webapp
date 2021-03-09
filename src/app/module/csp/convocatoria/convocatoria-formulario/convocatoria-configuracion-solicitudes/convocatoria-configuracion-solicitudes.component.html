@@ -1,0 +1,176 @@
+<section class="convocatoria-configuracion-solicitudes">
+  <h2>{{'csp.convocatoria.configuracionSolicitud.titulo' | translate}}</h2>
+
+  <form [formGroup]="formGroup">
+
+    <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+      [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+      <!-- Tramitacion SGI -->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field class="input-form">
+          <mat-label>{{'csp.convocatoria.configuracionSolicitud.tramitacionSGI' | translate}}</mat-label>
+          <mat-select matNativeControl formControlName="tramitacionSGI">
+            <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
+            <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+      [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+      <!-- Seleccione fase de presentacion de solicitudes -->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field class="input-form" [ngClass]="this.dataSource.data.length>0 ? 'disabled' : ''">
+          <mat-label>{{'csp.convocatoria.configuracionSolicitud.fasePresentacionSolicitudes' | translate}}</mat-label>
+          <input matInput formControlName="fasePresentacionSolicitudes" type="text" id="fasePresentacionSolicitudes"
+            placeholder="{{'csp.convocatoria.configuracionSolicitud.fasePresentacionSolicitudes' | translate}}"
+            [matAutocomplete]="autoPresentacionSolicitudes" (ngModelChange)="habilitarCampos()"
+            [required]="presentacionSolicitud()" (click)="loadConvocatoriaFases()">
+          <mat-autocomplete #autoPresentacionSolicitudes="matAutocomplete" [displayWith]="getFormularioSolicitud">
+            <mat-option *ngFor="let convocatoriaFase of convocatoriaFase$ | async"
+              [value]="convocatoriaFase | translate" [disabled]="this.dataSource.data.length>0">
+              {{ convocatoriaFase.tipoFase.nombre | translate}}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="formGroup.controls.fasePresentacionSolicitudes.errors?.required">
+            {{'csp.convocatoria.configuracionSolicitud.fasePresentacionSolicitudes.requerido' | translate}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Fecha inicio Solicitudes -->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field color="primary">
+          <mat-label>{{'csp.convocatoria.configuracionSolicitud.fecha.inicio'| translate}}</mat-label>
+          <input matInput [matDatepicker]="pickerFechaInicioFase" formControlName="fechaInicioFase">
+          <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaInicioFase"></mat-datepicker-toggle>
+          <mat-datepicker #pickerFechaInicioFase></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <!-- Fecha Fin Solicitudes -->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field color="primary">
+          <mat-label>{{'csp.convocatoria.configuracionSolicitud.fecha.fin'| translate}}</mat-label>
+          <input matInput [matDatepicker]="pickerFechaFinFase" formControlName="fechaFinFase">
+          <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaFinFase"></mat-datepicker-toggle>
+          <mat-datepicker #pickerFechaFinFase></mat-datepicker>
+        </mat-form-field>
+      </div>
+    </div>
+
+  </form>
+
+  <!-- Documentos Requeridos -->
+
+  <div class="separation-button listado-documentos-requeridos">
+
+    <h3>{{'csp.convocatoria.configuracionSolicitud.documentos.title' | translate}}</h3>
+    <table class="mat-elevation-z8 table-documentos" mat-table [dataSource]="dataSource" matSort matSortActive="id"
+      matSortDirection="asc" matSortDisableClear>
+
+      <!-- Nombre Column -->
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'csp.convocatoria.configuracionSolicitud.nombre' | translate}} </th>
+        <td mat-cell *matCellDef="let documentoRequerido"> {{documentoRequerido.value.tipoDocumento.nombre}}</td>
+      </ng-container>
+
+      <!-- Descripcion Column -->
+      <ng-container matColumnDef="descripcion">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'csp.convocatoria.configuracionSolicitud.descripcion' | translate}} </th>
+        <td mat-cell *matCellDef="let documentoRequerido"> {{documentoRequerido.value.tipoDocumento.descripcion}}</td>
+      </ng-container>
+
+      <!-- Tipo de observaciones Column -->
+      <ng-container matColumnDef="observaciones">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{'csp.convocatoria.configuracionSolicitud.observaciones' | translate}} </th>
+        <td mat-cell *matCellDef="let documentoRequerido">{{documentoRequerido.value.observaciones}}</td>
+      </ng-container>
+
+      <!-- Acciones Column -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef> {{'botones.acciones' | translate}}
+        </th>
+        <td mat-cell *matCellDef="let documentoRequerido;let i=index;">
+          <ng-container>
+            <button mat-button matTooltip="{{'botones.ver' | translate}}" *ngIf="formPart.readonly"
+              (click)="openModal(documentoRequerido)">
+              <mat-icon color="primary">visibility</mat-icon>
+            </button>
+            <button mat-button matTooltip="{{'botones.editar' | translate}}" *ngIf="!formPart.readonly"
+              (click)="openModal(documentoRequerido)">
+              <mat-icon color="primary">border_color</mat-icon>
+            </button>
+          </ng-container>
+          <ng-container>
+            <button mat-button matTooltip="{{'botones.borrar' | translate}}" *ngIf="!formPart.readonly"
+              (click)="deactivateDocumento(documentoRequerido)">
+              <mat-icon color="warn">highlight_off</mat-icon>
+            </button>
+          </ng-container>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+
+    </table>
+
+
+    <mat-paginator [pageSizeOptions]="numPage" showFirstLastButtons>
+    </mat-paginator>
+
+    <div class="separation-button" *ngIf="!formPart.readonly">
+      <button color="three" aria-label="Center Align" md-button mat-raised-button (click)="openModal()"
+        *ngIf="formGroup.controls.fasePresentacionSolicitudes.value?.tipoFase">
+        <mat-icon color="accent">add_circle</mat-icon>
+        {{'csp.convocatoria.configuracionSolicitud.añadir'| translate}}
+      </button>
+    </div>
+
+  </div>
+
+
+  <form class="separation-button" [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs"
+    [fxLayout]="fxLayoutProperties.layout" [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+    <!-- Tipo Formulario Solicitud -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field>
+        <mat-label>{{'csp.convocatoria.configuracionSolicitud.formularioSolicitud' | translate}}</mat-label>
+        <mat-select matNativeControl formControlName="formularioSolicitud">
+          <mat-option [value]="null"></mat-option>
+          <mat-option *ngFor="let formularioSolicitud of FORMULARIO_SOLICITUD_MAP | keyvalue"
+            [value]="formularioSolicitud.key">
+            {{ formularioSolicitud.value | translate}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Importe Máximo Solicitud -->
+    <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+      [fxFlexOrder]="fxFlexProperties.order">
+      <mat-form-field class="input-form">
+        <mat-label>{{'csp.convocatoria.configuracionSolicitud.importeMaximoSolicitud' | translate}}</mat-label>
+        <input matInput formControlName="importeMaximoSolicitud" type="number" id="importeMaximoSolicitud" min="0"
+          placeholder="{{'csp.convocatoria.configuracionSolicitud.importeMaximoSolicitud' | translate}}" maxlength="50">
+        <mat-error *ngIf="formGroup.controls.importeMaximoSolicitud.errors?.required">
+          {{'csp.convocatoria.configuracionSolicitud.maxlength' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+  </form>
+
+</section>

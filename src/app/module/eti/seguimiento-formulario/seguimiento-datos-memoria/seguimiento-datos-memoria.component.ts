@@ -3,7 +3,6 @@ import { FormFragmentComponent } from '@core/component/fragment.component';
 import { IMemoriaWithPersona } from '@core/models/eti/memoria-with-persona';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { NGXLogger } from 'ngx-logger';
 import { SeguimientoFormularioActionService } from '../seguimiento-formulario.action.service';
 import { SeguimientoListadoAnteriorMemoriaComponent } from '../seguimiento-listado-anterior-memoria/seguimiento-listado-anterior-memoria.component';
 
@@ -20,11 +19,9 @@ export class SeguimientoDatosMemoriaComponent extends FormFragmentComponent<IMem
   @ViewChild('evaluaciones') evaluaciones: SeguimientoListadoAnteriorMemoriaComponent;
 
   constructor(
-    protected readonly logger: NGXLogger,
     private actionService: SeguimientoFormularioActionService
   ) {
     super(actionService.FRAGMENT.MEMORIA, actionService);
-    this.logger.debug(SeguimientoDatosMemoriaComponent.name, 'constructor()', 'start');
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -41,15 +38,11 @@ export class SeguimientoDatosMemoriaComponent extends FormFragmentComponent<IMem
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-
-    this.logger.debug(SeguimientoDatosMemoriaComponent.name, 'constructor()', 'end');
   }
 
   ngAfterViewInit(): void {
-    this.logger.debug(SeguimientoDatosMemoriaComponent.name, 'ngAfterViewInit()', 'start');
     this.evaluaciones.memoriaId = this.actionService.getEvaluacion()?.memoria?.id;
     this.evaluaciones.evaluacionId = this.actionService.getEvaluacion()?.id;
     this.evaluaciones.ngAfterViewInit();
-    this.logger.debug(SeguimientoDatosMemoriaComponent.name, 'ngAfterViewInit()', 'end');
   }
 }

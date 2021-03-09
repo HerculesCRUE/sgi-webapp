@@ -1,11 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { ICodigoEconomico } from '@core/models/sge/codigo-economico';
 import { environment } from '@env';
 import { SgiRestListResult, SgiRestService } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { ICodigoEconomico } from '@core/models/sge/codigo-economico';
 
 @Injectable({
   providedIn: 'root'
@@ -13,8 +11,8 @@ import { ICodigoEconomico } from '@core/models/sge/codigo-economico';
 export class CodigoEconomicoService extends SgiRestService<string, ICodigoEconomico>{
   private static readonly MAPPING = '/codigoeconomicos';
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
-    super(CodigoEconomicoService.name, logger,
+  constructor(protected http: HttpClient) {
+    super(CodigoEconomicoService.name,
       `${environment.serviceServers.sge}${CodigoEconomicoService.MAPPING}`, http);
   }
 
@@ -23,11 +21,8 @@ export class CodigoEconomicoService extends SgiRestService<string, ICodigoEconom
    * @param codEconomicoGastosRef referencia del código económico de tipo gasto.
    */
   findByGastos(codEconomicoGastosRef?: string[]): Observable<SgiRestListResult<ICodigoEconomico>> {
-    this.logger.debug(CodigoEconomicoService.name, `findByGastos(${codEconomicoGastosRef})`, '-', 'START');
     const endpointUrl = codEconomicoGastosRef ? `${this.endpointUrl}/gastos/${codEconomicoGastosRef}` : `${this.endpointUrl}/gastos/`;
-    return this.find<ICodigoEconomico, ICodigoEconomico>(endpointUrl).pipe(
-      tap(() => this.logger.debug(CodigoEconomicoService.name, `findByGastos(${codEconomicoGastosRef})`, '-', 'END'))
-    );
+    return this.find<ICodigoEconomico, ICodigoEconomico>(endpointUrl);
   }
 
   /**
@@ -35,11 +30,8 @@ export class CodigoEconomicoService extends SgiRestService<string, ICodigoEconom
    * @param codEconomicoIngresosRef referencia del código económico de tipo ingreso.
    */
   findByIngresos(codEconomicoIngresosRef?: string[]): Observable<SgiRestListResult<ICodigoEconomico>> {
-    this.logger.debug(CodigoEconomicoService.name, `findByIngresos(${codEconomicoIngresosRef})`, '-', 'START');
     const endpointUrl = codEconomicoIngresosRef ? `${this.endpointUrl}/ingresos/${codEconomicoIngresosRef}` : `${this.endpointUrl}/ingresos/`;
-    return this.find<ICodigoEconomico, ICodigoEconomico>(endpointUrl).pipe(
-      tap(() => this.logger.debug(CodigoEconomicoService.name, `findByIngresos(${codEconomicoIngresosRef})`, '-', 'END'))
-    );
+    return this.find<ICodigoEconomico, ICodigoEconomico>(endpointUrl);
   }
 
 }

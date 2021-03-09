@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialDesignModule } from '@material/material-design.module';
@@ -18,7 +18,7 @@ describe('SeguimientoEvaluacionComponent', () => {
   let component: SeguimientoEvaluacionComponent;
   let fixture: ComponentFixture<SeguimientoEvaluacionComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
         SeguimientoEvaluacionComponent,

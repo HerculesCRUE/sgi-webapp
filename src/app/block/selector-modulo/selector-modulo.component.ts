@@ -1,8 +1,7 @@
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { NGXLogger } from 'ngx-logger';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { Module } from '@core/module';
 
 const MSG_MODULO_CSP = marker('selector-modulo.csp');
@@ -18,11 +17,10 @@ interface SelectorModulo {
   templateUrl: './selector-modulo.component.html',
   styleUrls: ['./selector-modulo.component.scss']
 })
-export class SelectorModuloComponent implements OnInit {
+export class SelectorModuloComponent {
   modulos: SelectorModulo[];
 
   constructor(
-    private logger: NGXLogger,
     public dialogRef: MatDialogRef<SelectorModuloComponent>,
     private router: Router
   ) {
@@ -40,12 +38,6 @@ export class SelectorModuloComponent implements OnInit {
         nombre: MSG_MODULO_INV
       }
     ];
-  }
-
-  ngOnInit(): void {
-    this.logger.debug(SelectorModuloComponent.name, 'ngOnInit()', 'start');
-    // this.dialogRef.updateSize('420px', '360px');
-    this.logger.debug(SelectorModuloComponent.name, 'ngOnInit()', 'end');
   }
 
   closeModal(): void {

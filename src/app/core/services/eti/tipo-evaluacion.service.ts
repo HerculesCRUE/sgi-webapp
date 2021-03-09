@@ -1,12 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '@env';
-import { SgiRestService, SgiRestListResult } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
-import { TipoEvaluacion } from '@core/models/eti/tipo-evaluacion';
 import { IDictamen } from '@core/models/eti/dictamen';
+import { TipoEvaluacion } from '@core/models/eti/tipo-evaluacion';
+import { environment } from '@env';
+import { SgiRestListResult, SgiRestService } from '@sgi/framework/http';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
 
 
 @Injectable({
@@ -15,10 +13,9 @@ import { tap } from 'rxjs/operators';
 export class TipoEvaluacionService extends SgiRestService<number, TipoEvaluacion> {
   private static readonly MAPPING = '/tipoevaluaciones';
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
+  constructor(protected http: HttpClient) {
     super(
       TipoEvaluacionService.name,
-      logger,
       `${environment.serviceServers.eti}${TipoEvaluacionService.MAPPING}`,
       http
     );
@@ -31,11 +28,7 @@ export class TipoEvaluacionService extends SgiRestService<number, TipoEvaluacion
 
   findAllDictamenByTipoEvaluacionAndRevisionMinima(
     idTipoEvaluacion: number, esRevisionMinima: boolean): Observable<SgiRestListResult<IDictamen>> {
-    this.logger.debug(TipoEvaluacionService.name, `findAllDictamenByTipoEvaluacionAndRevisionMinima()`, '-', 'start');
-    return this.find<IDictamen, IDictamen>(`${this.endpointUrl}/${idTipoEvaluacion}/dictamenes-revision-minima/${esRevisionMinima}`, null)
-      .pipe(
-        tap(() => this.logger.debug(TipoEvaluacionService.name, `findAllDictamenByTipoEvaluacionAndRevisionMinima()`, '-', 'end'))
-      );
+    return this.find<IDictamen, IDictamen>(`${this.endpointUrl}/${idTipoEvaluacion}/dictamenes-revision-minima/${esRevisionMinima}`, null);
   }
 
   /**
@@ -43,11 +36,7 @@ export class TipoEvaluacionService extends SgiRestService<number, TipoEvaluacion
    */
 
   findTipoEvaluacionMemoriaRetrospectiva(): Observable<SgiRestListResult<TipoEvaluacion>> {
-    this.logger.debug(TipoEvaluacionService.name, `findTipoEvaluacionMemoriaRetrospectiva()`, '-', 'start');
-    return this.find<TipoEvaluacion, TipoEvaluacion>(`${this.endpointUrl}/memoria-retrospectiva`, null)
-      .pipe(
-        tap(() => this.logger.debug(TipoEvaluacionService.name, `findTipoEvaluacionMemoriaRetrospectiva()`, '-', 'end'))
-      );
+    return this.find<TipoEvaluacion, TipoEvaluacion>(`${this.endpointUrl}/memoria-retrospectiva`, null);
   }
 
   /**
@@ -55,10 +44,6 @@ export class TipoEvaluacionService extends SgiRestService<number, TipoEvaluacion
    */
 
   findTipoEvaluacionSeguimientoAnualFinal(): Observable<SgiRestListResult<TipoEvaluacion>> {
-    this.logger.debug(TipoEvaluacionService.name, `findTipoEvaluacionSeguimientoAnualFinal()`, '-', 'start');
-    return this.find<TipoEvaluacion, TipoEvaluacion>(`${this.endpointUrl}/seguimiento-anual-final`, null)
-      .pipe(
-        tap(() => this.logger.debug(TipoEvaluacionService.name, `findTipoEvaluacionSeguimientoAnualFinal()`, '-', 'end'))
-      );
+    return this.find<TipoEvaluacion, TipoEvaluacion>(`${this.endpointUrl}/seguimiento-anual-final`, null);
   }
 }

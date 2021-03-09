@@ -15,12 +15,12 @@ import { takeUntil } from 'rxjs/operators';
               <thead
                 [ngClass]="field?.templateOptions?.theme?.thead?.general?.class"
                 [ngStyle]="field?.templateOptions?.theme?.thead?.general?.style">
-                 
+
                   <!-- TR -->
                   <tr id="itens_header" class="nowrap"
                     [ngClass]="field?.templateOptions?.theme?.thead?.tr?.class"
                     [ngStyle]="field?.templateOptions?.theme?.thead?.tr?.style">
-                    
+
                     <!-- TH -->
                     <ng-container *ngFor="let fieldItemHead of field?.fieldArray?.fieldGroup;let last = last;">
                       <ng-container *ngIf="!fieldItemHead.hide">
@@ -53,11 +53,11 @@ import { takeUntil } from 'rxjs/operators';
                 <ng-container *ngFor="let fieldItemBody of field.fieldGroup; let i = index;">
                   <!-- *ngIf="!fieldItemBody.hide" -->
                   <ng-container >
-                                    
+
                     <tr id="itens" class="editing hide-from-view"
                       [ngClass]="field?.templateOptions?.theme?.tbody?.tr?.class"
                       [ngStyle]="field?.templateOptions?.theme?.tbody?.tr?.style">
- 
+
                       <!-- TD -->
                       <ng-container *ngFor="let fieldItemBodyItem of fieldItemBody.fieldGroup;let last = last;">
                         <ng-container *ngIf="!(fieldItemBodyItem.hide && last) && !_hideColumnsBody(fieldItemBodyItem.key)">
@@ -184,7 +184,7 @@ import { takeUntil } from 'rxjs/operators';
     .text-truncate.vertical-scroll {
       overflow-x: scroll !important;
     }
-    
+
   `]
 })
 export class TableTypeRepetible extends FieldArrayType implements OnInit, OnDestroy {
@@ -200,7 +200,6 @@ export class TableTypeRepetible extends FieldArrayType implements OnInit, OnDest
    * On init
    */
   ngOnInit(): void {
-    console.log(this.field)
     this._assignDefaultValues();
     this._createsFirstPosition();
     this._hideColumnsHeader();
@@ -212,47 +211,40 @@ export class TableTypeRepetible extends FieldArrayType implements OnInit, OnDest
       // )
       .subscribe(el => {
         this._hideColumnsHeader();
-      })
-
+      });
   }
 
-
   /**
-     * On destroy
-     */
+   * On destroy
+   */
   ngOnDestroy(): void {
     // Unsubscribe from all subscriptions
     this._unsubscribeAll$.next();
     this._unsubscribeAll$.complete();
   }
 
-
   // -----------------------------------------------------------------------------------------------------
   // @ Public methods
   // -----------------------------------------------------------------------------------------------------
   addNewLine(): void {
     this.add(null, { _index: (this.field.fieldGroup.length + 1), _focused: {} });
-    this._removeLabelFields()
+    this._removeLabelFields();
   }
-
-
 
   // -----------------------------------------------------------------------------------------------------
   // @ Private methods
   // -----------------------------------------------------------------------------------------------------
-
   private _createsFirstPosition(): void {
     if (
       !this.field.fieldGroup ||
       (Array.isArray(this.field.fieldGroup) && !this.field.fieldGroup.length)
     ) {
       this.add(null, { _index: (this.field.fieldGroup.length + 1), _focused: {} });
-      this._removeLabelFields()
+      this._removeLabelFields();
     }
   }
 
   private _assignDefaultValues(): void {
-
     // removeLabelFields
     if (this.field.templateOptions.removeLabelFields && this.field.templateOptions.removeLabelFields !== false) {
       this.field.templateOptions.removeLabelFields = true;
@@ -261,7 +253,6 @@ export class TableTypeRepetible extends FieldArrayType implements OnInit, OnDest
       this.field.templateOptions.removeLabelFields = false;
       this._removeLabelFields();
     }
-
   }
 
   private _removeLabelFields(): void {
@@ -270,15 +261,14 @@ export class TableTypeRepetible extends FieldArrayType implements OnInit, OnDest
       Array.isArray(this.field.fieldGroup) &&
       this.field.fieldGroup.length
     ) {
-
       // Remove
       if (this.field.templateOptions.removeLabelFields) {
         this.field.fieldGroup.map(el => {
           el.fieldGroup.map(elFieldGroup => {
             elFieldGroup.templateOptions.label = null;
-          })
+          });
           return el;
-        })
+        });
       }
     }
   }
@@ -290,9 +280,9 @@ export class TableTypeRepetible extends FieldArrayType implements OnInit, OnDest
       Array.isArray(this.field.fieldArray.fieldGroup)
     ) {
       // adds +1, when the hideExpression field result is true.
-      let countControlTrue = {};
+      const countControlTrue = {};
       // total lines (formgroups)
-      let controlCountsNumberLines = this.field.fieldGroup ? this.field.fieldGroup.length : 1;
+      const controlCountsNumberLines = this.field.fieldGroup ? this.field.fieldGroup.length : 1;
       // map in the available fields per line
       this.field.fieldArray.fieldGroup.map((fgroup, index) => {
         // creates the key to use as a counting control
@@ -320,12 +310,11 @@ export class TableTypeRepetible extends FieldArrayType implements OnInit, OnDest
               // the variable countControlTrue is equal to 
               // controlCountsNumberLines
               fgroup['hide'] = countControlTrue[fgroup.key?.toString()] >= controlCountsNumberLines;
-
               // }
             }
-          })
-        })
-      })
+          });
+        });
+      });
     }
   }
 
@@ -353,21 +342,19 @@ export class TableTypeRepetible extends FieldArrayType implements OnInit, OnDest
               }
 
               if (item['hide']) {
-                _countFieldsTrue[key]++
+                _countFieldsTrue[key]++;
               }
 
               if (_countFieldsTrue[key] === _countRows && index + 1 === _countRows) {
                 _result = true;
               }
             }
-          })
+          });
         }
-      })
+      });
     }
-
     return _result;
   }
-
 }
 
 
@@ -377,7 +364,6 @@ import { Pipe, PipeTransform } from '@angular/core';
 @Pipe({ name: 'hideColumnsBody' })
 export class HideColumnsBodyPipe implements PipeTransform {
   transform(key: string, data: any): boolean {
-    console.log(key)
     let _result = false;
 
     if (!key) {
@@ -396,16 +382,15 @@ export class HideColumnsBodyPipe implements PipeTransform {
               }
 
               if (item['hide']) {
-                _countFieldsTrue[key]++
+                _countFieldsTrue[key]++;
               }
-              console.log(index + 1, _countRows, _countFieldsTrue[key])
               if (_countFieldsTrue[key] === _countRows && index + 1 === _countRows) {
                 _result = true;
               }
             }
-          })
+          });
         }
-      })
+      });
     }
 
     return _result;

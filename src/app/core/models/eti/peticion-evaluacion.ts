@@ -55,6 +55,9 @@ export interface IPeticionEvaluacion extends IPersona {
   /** Referencia persona */
   personaRef: string;
 
+  /** Flag eliminable */
+  eliminable: boolean;
+
   /** Activo */
   activo: boolean;
 }

@@ -1,11 +1,15 @@
 import { Injectable } from '@angular/core';
+import { Data } from '@angular/router';
 import { Module } from '@core/module';
-import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject } from 'rxjs';
 import { Navigation, NavigationService } from './navigation.service';
 
+export interface Title {
+  key: string;
+  params: { [key: string]: any };
+}
 export interface BreadcrumbData {
-  title: string;
+  title: Title;
   path: string;
 }
 
@@ -18,16 +22,14 @@ export class LayoutService {
   menuOpened$ = new BehaviorSubject<boolean>(true);
   menuAutoclose$ = new BehaviorSubject<boolean>(false);
   breadcrumData$ = new BehaviorSubject<BreadcrumbData[]>([]);
-  title$ = new BehaviorSubject<string>('');
+  title$ = new BehaviorSubject<Title>(undefined);
 
-  constructor(protected logger: NGXLogger, private navigationService: NavigationService) {
-    this.logger.debug(LayoutService.name, 'constructor(protected logger: NGXLogger)', 'start');
+  constructor(private navigationService: NavigationService) {
     this.navigationService.navigation$.subscribe((navigationStack) => {
       if (navigationStack.length > 0) {
         this.parseNavigationStack(navigationStack);
       }
     });
-    this.logger.debug(LayoutService.name, 'constructor(protected logger: NGXLogger)', 'end');
   }
 
   private parseNavigationStack(navigationStack: Navigation[]): void {
@@ -66,13 +68,14 @@ export class LayoutService {
       p--;
     }
 
-    for (let i = 0; i < navigationStack.length - endPositionsToDiscard; i++) {
+    const endPosition = navigationStack.length - endPositionsToDiscard;
+    for (let i = 0; i < endPosition; i++) {
       const navigation = navigationStack[i];
       if (navigation.segments && navigation.segments.length > 0) {
         urlStack.push(...navigation.segments.map((s) => s.path));
         data.push({
-          // If no title defined por navigation, find the nearest right title
-          title: navigation.routeConfig?.data?.title ? navigation.routeConfig.data.title : this.getNearestTitle(navigationStack.slice(i)),
+          // If no title defined for navigation, find the nearest right title
+          title: this.getNearestTitle(navigationStack.slice(i)),
           path: '/' + urlStack.join('/')
         });
       }
@@ -80,9 +83,12 @@ export class LayoutService {
     return data;
   }
 
-  private getNearestTitle(navigations: Navigation[]): string {
+  private getNearestTitle(navigations: Navigation[]): Title {
     const nav = navigations.find((n) => n.routeConfig?.data?.title);
-    return nav?.routeConfig?.data?.title;
+    if (nav?.routeConfig?.data?.title) {
+      return this.toTitle(nav.routeConfig.data);
+    }
+    return undefined;
   }
 
   private getActiveModule(navigationStack: Navigation[]): Module {
@@ -90,7 +96,7 @@ export class LayoutService {
     return Module.fromPath(path);
   }
 
-  private getTitle(navigationStack: Navigation[]): string {
+  private getTitle(navigationStack: Navigation[]): Title {
     if (navigationStack.length === 0) {
       return undefined;
     }
@@ -101,7 +107,23 @@ export class LayoutService {
       endPositionsToDiscard++;
       p--;
     }
-    return navigationStack[navigationStack.length - endPositionsToDiscard - 1].routeConfig?.data?.title;
+    const nav = navigationStack[navigationStack.length - endPositionsToDiscard - 1];
+    if (nav?.routeConfig?.data?.title) {
+      return this.toTitle(nav.routeConfig.data);
+    }
+    return undefined;
+  }
+
+  private toTitle(data: Data): Title {
+    let key: string;
+    let params: { [key: string]: any };
+    key = data.title;
+    if (data.titleParams) {
+      params = data.titleParams;
+    } else {
+      params = {};
+    }
+    return { key, params };
   }
 
   openMenu(): void {
@@ -115,4 +137,5 @@ export class LayoutService {
   toggleMenu(): void {
     this.menuOpened$.next(!this.menuOpened$.value);
   }
+
 }

@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { SnackBarComponent, SnackBarData } from '../../block/snack-bar/snack-bar.component';
-import { NGXLogger } from 'ngx-logger';
 
 @Injectable({
   providedIn: 'root',
@@ -10,23 +9,11 @@ export class SnackBarService {
   snackBarConfig: MatSnackBarConfig;
 
   constructor(
-    protected logger: NGXLogger,
     private snackBar: MatSnackBar,
   ) {
-    this.logger.debug(
-      SnackBarService.name,
-      'constructor(protected logger: NGXLogger, private snackBar: MatSnackBar)',
-      'start'
-    );
     this.snackBarConfig = new MatSnackBarConfig();
     this.snackBarConfig.duration = 4000;
     this.snackBarConfig.verticalPosition = 'top';
-
-    this.logger.debug(
-      SnackBarService.name,
-      'constructor(protected logger: NGXLogger, private snackBar: MatSnackBar)',
-      'end'
-    );
   }
 
   private open(msg: string, params: {}, cssClass: string): void {

@@ -14,7 +14,6 @@ export class GlobalErrorHandler implements ErrorHandler {
     // This is because the GlobalErrorHandler is registered first
     // which prevents constructor dependency injection
     const logger = this.injector.get(NGXLogger);
-    logger.debug(GlobalErrorHandler.name, 'handleError(error: Error)', 'start');
 
     const err = {
       message: error.message ? error.message : error.toString(),
@@ -24,7 +23,6 @@ export class GlobalErrorHandler implements ErrorHandler {
     // Log the error
     logger.error(err);
 
-    logger.debug(GlobalErrorHandler.name, 'handleError(error: Error)', 'end');
     // Re-throw the error
     throw error;
   }

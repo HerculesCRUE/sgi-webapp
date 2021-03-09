@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
-import { NGXLogger } from 'ngx-logger';
 import { HttpClient } from '@angular/common/http';
-import { SgiRestService } from '@sgi/framework/http';
-import { environment } from '@env';
+import { Injectable } from '@angular/core';
 import { TipoConvocatoriaReunion } from '@core/models/eti/tipo-convocatoria-reunion';
+import { environment } from '@env';
+import { SgiRestService } from '@sgi/framework/http';
 
 @Injectable({
   providedIn: 'root',
@@ -11,10 +10,9 @@ import { TipoConvocatoriaReunion } from '@core/models/eti/tipo-convocatoria-reun
 export class TipoConvocatoriaReunionService extends SgiRestService<number, TipoConvocatoriaReunion> {
   private static readonly MAPPING = '/tipoconvocatoriareuniones';
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
+  constructor(protected http: HttpClient) {
     super(
       TipoConvocatoriaReunionService.name,
-      logger,
       `${environment.serviceServers.eti}${TipoConvocatoriaReunionService.MAPPING}`,
       http
     );

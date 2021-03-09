@@ -1,16 +1,16 @@
 import { Component, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SnackBarService } from '@core/services/snack-bar.service';
-import { NGXLogger } from 'ngx-logger';
-
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActionComponent } from '@core/component/action.component';
-import { GestionSeguimientoActionService } from '../gestion-seguimiento.action.service';
-import { GESTION_SEGUIMIENTO_ROUTE_NAMES } from '../gestion-seguimiento-route-names';
 import { DialogService } from '@core/services/dialog.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import { NGXLogger } from 'ngx-logger';
 import { SeguimientoFormularioActionService } from '../../seguimiento-formulario/seguimiento-formulario.action.service';
+import { GESTION_SEGUIMIENTO_ROUTE_NAMES } from '../gestion-seguimiento-route-names';
+import { GestionSeguimientoActionService } from '../gestion-seguimiento.action.service';
 
-const MSG_BUTTON_SAVE = marker('footer.eti.evaluacion.guardar');
+
+const MSG_BUTTON_SAVE = marker('botones.aceptar');
 const MSG_SUCCESS = marker('eti.evaluacion.evaluar.correcto');
 const MSG_ERROR_SAVE = marker('eti.evaluacion.evaluar.comentarios.error.crear');
 
@@ -33,7 +33,7 @@ export class GestionSeguimientoEvaluarComponent extends ActionComponent {
   textoCrear = MSG_BUTTON_SAVE;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     route: ActivatedRoute,
     router: Router,
@@ -46,7 +46,8 @@ export class GestionSeguimientoEvaluarComponent extends ActionComponent {
   saveOrUpdate(): void {
     this.actionService.saveOrUpdate().subscribe(
       () => { },
-      () => {
+      (error) => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR_SAVE);
       },
       () => {

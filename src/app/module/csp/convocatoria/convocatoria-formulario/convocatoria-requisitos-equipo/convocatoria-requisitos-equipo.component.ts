@@ -4,7 +4,6 @@ import { IConvocatoriaRequisitoEquipo } from '@core/models/csp/convocatoria-requ
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { TranslateService } from '@ngx-translate/core';
-import { NGXLogger } from 'ngx-logger';
 import { ConvocatoriaActionService } from '../../convocatoria.action.service';
 import { ConvocatoriaRequisitosEquipoFragment } from './convocatoria-requisitos-equipo.fragment';
 
@@ -22,12 +21,10 @@ export class ConvocatoriaRequisitosEquipoComponent extends FormFragmentComponent
   fxFlexPropertiesEntidad: FxFlexProperties;
 
   constructor(
-    protected readonly logger: NGXLogger,
     protected actionService: ConvocatoriaActionService,
     public translate: TranslateService
   ) {
     super(actionService.FRAGMENT.REQUISITOS_EQUIPO, actionService);
-    this.logger.debug(ConvocatoriaRequisitosEquipoComponent.name, 'constructor()', 'start');
     this.formPart = this.fragment as ConvocatoriaRequisitosEquipoFragment;
 
     this.fxFlexProperties = new FxFlexProperties();
@@ -46,13 +43,9 @@ export class ConvocatoriaRequisitosEquipoComponent extends FormFragmentComponent
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-
-    this.logger.debug(ConvocatoriaRequisitosEquipoComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit() {
-    this.logger.debug(ConvocatoriaRequisitosEquipoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
-    this.logger.debug(ConvocatoriaRequisitosEquipoComponent.name, 'ngOnInit()', 'end');
   }
 }

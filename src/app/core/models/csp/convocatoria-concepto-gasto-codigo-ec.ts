@@ -17,9 +17,6 @@ export interface IConvocatoriaConceptoGastoCodigoEc {
   /** Fecha fin */
   fechaFin: Date;
 
-  /** Indica si se puede realizar o no cualquier acción */
-  enableAccion: boolean;
-
   /** Observaciones */
   observaciones: string;
 }

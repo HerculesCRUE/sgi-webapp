@@ -1,14 +1,12 @@
 import { IPeticionEvaluacion } from '@core/models/eti/peticion-evaluacion';
 import { FormFragment } from '@core/services/action-service';
-import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, NgControlStatus } from '@angular/forms';
 import { Observable, of, EMPTY, BehaviorSubject } from 'rxjs';
 import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
 import { NullIdValidador } from '@core/validators/null-id-validador';
 import { SgiAuthService } from '@sgi/framework/auth/public-api';
 import { catchError, map, switchMap } from 'rxjs/operators';
-import { NGXLogger } from 'ngx-logger';
-import { StatusWrapper } from '@core/utils/status-wrapper';
-import { TipoInvestigacionTuteladaService } from '@core/services/eti/tipo-investigacion-tutelada.service';
+
 
 export class PeticionEvaluacionDatosGeneralesFragment extends FormFragment<IPeticionEvaluacion> {
 
@@ -34,7 +32,8 @@ export class PeticionEvaluacionDatosGeneralesFragment extends FormFragment<IPeti
 
   protected buildFormGroup(): FormGroup {
     return this.fb.group({
-      titulo: [{ value: '', disabled: this.isEdit() }, Validators.required],
+      codigo: [{ value: '', disabled: true }, Validators.required],
+      titulo: ['', Validators.required],
       tipoActividad: [{ value: '', disabled: this.readonly }, new NullIdValidador().isValid()],
       tipoInvestigacionTutelada: [{ value: '', disabled: this.readonly }, []],
       financiacion: [{ value: '', disabled: this.readonly }, Validators.required],
@@ -62,6 +61,7 @@ export class PeticionEvaluacionDatosGeneralesFragment extends FormFragment<IPeti
 
   protected buildPatch(value: IPeticionEvaluacion): { [key: string]: any; } {
     return {
+      codigo: value.codigo,
       titulo: value.titulo,
       tipoActividad: value.tipoActividad,
       tipoInvestigacionTutelada: value.tipoInvestigacionTutelada,
@@ -77,7 +77,8 @@ export class PeticionEvaluacionDatosGeneralesFragment extends FormFragment<IPeti
 
   getValue(): IPeticionEvaluacion {
     const form = this.getFormGroup().value;
-    this.peticionEvaluacion.titulo = form.titulo;
+    this.peticionEvaluacion.codigo = form.codigo ? form.codigo : this.getFormGroup().controls.codigo.value;
+    this.peticionEvaluacion.titulo = form.titulo ? form.titulo : this.getFormGroup().controls.titulo.value;
     this.peticionEvaluacion.tipoActividad = form.tipoActividad;
     this.peticionEvaluacion.tipoInvestigacionTutelada = form.tipoInvestigacionTutelada;
     this.peticionEvaluacion.fuenteFinanciacion = form.financiacion;

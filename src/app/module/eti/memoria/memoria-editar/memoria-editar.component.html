@@ -1,4 +1,4 @@
-<mat-drawer-container class="mat-drawer-tabs">
+<mat-drawer-container class="mat-drawer-tabs" autosize>
   <mat-drawer class="tabs" mode="side" opened>
     <mat-list class="opciones-menu">
       <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.DATOS_GENERALES]"
@@ -19,9 +19,9 @@
         [fragment]="actionService.getFragment(actionService.FRAGMENT.EVALUACIONES)">
       </sgi-action-fragment-menu-item>
 
-      <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.INFORMES]"
-        [title]="'eti.memoria.informes.title' | translate"
-        [fragment]="actionService.getFragment(actionService.FRAGMENT.INFORMES)">
+      <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.VERSIONES]"
+        [title]="'eti.memoria.versiones.title' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.VERSIONES)">
       </sgi-action-fragment-menu-item>
     </mat-list>
 

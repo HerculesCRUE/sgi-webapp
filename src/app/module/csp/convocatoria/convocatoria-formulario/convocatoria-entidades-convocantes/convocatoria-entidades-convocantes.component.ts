@@ -1,17 +1,16 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
-import { NGXLogger } from 'ngx-logger';
+import { DialogService } from '@core/services/dialog.service';
+import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { ConvocatoriaActionService } from '../../convocatoria.action.service';
-import { ConvocatoriaEntidadConvocanteData, ConvocatoriaEntidadesConvocantesFragment } from './convocatoria-entidades-convocantes.fragment';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
-import { MatDialog } from '@angular/material/dialog';
 import { ConvocatoriaEntidadConvocanteModalComponent, ConvocatoriaEntidadConvocanteModalData } from '../../modals/convocatoria-entidad-convocante-modal/convocatoria-entidad-convocante-modal.component';
-import { DialogService } from '@core/services/dialog.service';
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { ConvocatoriaEntidadConvocanteData, ConvocatoriaEntidadesConvocantesFragment } from './convocatoria-entidades-convocantes.fragment';
 
 const MSG_DELETE = marker('csp.convocatoria.entidad.convocante.listado.borrar');
 
@@ -21,7 +20,7 @@ const MSG_DELETE = marker('csp.convocatoria.entidad.convocante.listado.borrar');
   styleUrls: ['./convocatoria-entidades-convocantes.component.scss']
 })
 export class ConvocatoriaEntidadesConvocantesComponent extends FragmentComponent implements OnInit, OnDestroy {
-  private formPart: ConvocatoriaEntidadesConvocantesFragment;
+  formPart: ConvocatoriaEntidadesConvocantesFragment;
   private subscriptions: Subscription[] = [];
 
   columns = ['nombre', 'cif', 'plan', 'programa', 'itemPrograma', 'acciones'];
@@ -32,43 +31,34 @@ export class ConvocatoriaEntidadesConvocantesComponent extends FragmentComponent
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
-    protected logger: NGXLogger,
     protected actionService: ConvocatoriaActionService,
     private matDialog: MatDialog,
     private dialogService: DialogService
   ) {
     super(actionService.FRAGMENT.ENTIDADES_CONVOCANTES, actionService);
-    this.logger.debug(ConvocatoriaEntidadesConvocantesComponent.name, 'constructor()', 'start');
     this.formPart = this.fragment as ConvocatoriaEntidadesConvocantesFragment;
-    this.logger.debug(ConvocatoriaEntidadesConvocantesComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(ConvocatoriaEntidadesConvocantesComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     this.subscriptions.push(this.formPart.data$.subscribe(
       (data) => {
         this.dataSource.data = data;
-        this.logger.debug(ConvocatoriaEntidadesConvocantesComponent.name, `getDataSource()`, 'end');
       })
     );
-    this.logger.debug(ConvocatoriaEntidadesConvocantesComponent.name, 'ngOnInit()', 'end');
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(ConvocatoriaEntidadesConvocantesComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
-    this.logger.debug(ConvocatoriaEntidadesConvocantesComponent.name, 'ngOnDestroy()', 'end');
   }
 
   openModal(value?: ConvocatoriaEntidadConvocanteData): void {
-    this.logger.debug(ConvocatoriaEntidadesConvocantesComponent.name, `openModal()`, 'start');
-
     const data: ConvocatoriaEntidadConvocanteModalData = {
       entidadConvocanteData: value,
-      selectedEmpresas: this.formPart.data$.value.map((convocanteData) => convocanteData.empresaEconomica)
+      selectedEmpresas: this.dataSource.data.map((convocanteData) => convocanteData.empresaEconomica),
+      readonly: this.formPart.readonly
     };
     const config = {
       width: GLOBAL_CONSTANTS.widthModalCSP,
@@ -84,21 +74,16 @@ export class ConvocatoriaEntidadesConvocantesComponent extends FragmentComponent
           this.formPart.addConvocatoriaEntidadConvocante(entidadConvocante.entidadConvocanteData);
         }
       }
-      this.logger.debug(ConvocatoriaEntidadConvocanteModalComponent.name, `openModal()`, 'end');
     });
   }
 
   deleteConvocatoriaEntidadConvocante(data: ConvocatoriaEntidadConvocanteData) {
-    this.logger.debug(ConvocatoriaEntidadConvocanteModalComponent.name,
-      `deleteConvocatoriaEntidadConvocante(${data})`, 'start');
     this.subscriptions.push(
       this.dialogService.showConfirmation(MSG_DELETE).subscribe(
         (aceptado: boolean) => {
           if (aceptado) {
             this.formPart.deleteConvocatoriaEntidadConvocante(data);
           }
-          this.logger.debug(ConvocatoriaEntidadConvocanteModalComponent.name,
-            `deleteConvocatoriaEntidadConvocante(${data})`, 'end');
         }
       )
     );

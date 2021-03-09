@@ -1,0 +1,77 @@
+<section class="entidades-convocantes-listado">
+  <h2>{{ 'title.list.entity' | translate:msgParamEntities }}</h2>
+  <!-- Entidades convocantes listado -->
+  <div>
+    <table mat-table [dataSource]="dataSource" matSort matSortActive="nombre" matSortDirection="asc"
+      class="mat-elevation-z8 table-unidad">
+      <!-- Nombre Column -->
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'csp.proyecto-entidad-convocante.nombre' | translate }}
+        </th>
+        <td mat-cell *matCellDef="let proyectoEntidadConvocanteData">
+          {{ proyectoEntidadConvocanteData.entidad.razonSocial }}
+        </td>
+      </ng-container>
+
+      <!-- Cif Column -->
+      <ng-container matColumnDef="cif">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'csp.proyecto-entidad-convocante.cif' | translate }}
+        </th>
+        <td mat-cell *matCellDef="let proyectoEntidadConvocanteData">
+          {{ proyectoEntidadConvocanteData.entidad.numeroDocumento }}
+        </td>
+      </ng-container>
+
+      <!-- Plan Column -->
+      <ng-container matColumnDef="plan">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'csp.proyecto-entidad-convocante.plan' | translate }}
+        </th>
+        <td mat-cell *matCellDef="let proyectoEntidadConvocanteData">
+          {{ proyectoEntidadConvocanteData | proyectoEntidadConvocantePlan }}
+        </td>
+      </ng-container>
+
+      <!-- Programa Convocatoria Column -->
+      <ng-container matColumnDef="programaConvocatoria">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'csp.proyecto-entidad-convocante.programa-convocatoria'
+          |
+          translate }}</th>
+        <td mat-cell *matCellDef="let proyectoEntidadConvocanteData">
+          {{ proyectoEntidadConvocanteData.programaConvocatoria?.nombre }} </td>
+      </ng-container>
+
+      <!-- Programa Column -->
+      <ng-container matColumnDef="programa">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'csp.proyecto-entidad-convocante.programa' | translate
+          }}
+        </th>
+        <td mat-cell *matCellDef="let proyectoEntidadConvocanteData">
+          {{ proyectoEntidadConvocanteData.programa?.nombre }}
+        </td>
+      </ng-container>
+
+      <!-- Acciones Column -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>{{ 'botones.acciones' | translate }}</th>
+        <td mat-cell *matCellDef="let proyectoEntidadConvocanteData">
+          <button mat-button matTooltip="{{'botones.editar' | translate}}"
+            (click)="openModal(proyectoEntidadConvocanteData)">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+          <button mat-button matTooltip="{{ 'botones.eliminar' | translate }}"
+            (click)="deleteProyectoEntidadConvocante(proyectoEntidadConvocanteData)">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+    </table>
+    <mat-paginator [pageSizeOptions]="elementsPage" showFirstLastButtons></mat-paginator>
+  </div>
+  <div class="separation-button">
+    <button color="three" md-button mat-raised-button (click)="openModal()">
+      <mat-icon color="accent">add_circle</mat-icon> {{ 'btn.add.entity' | translate:msgParamEntity }}
+    </button>
+  </div>
+</section>

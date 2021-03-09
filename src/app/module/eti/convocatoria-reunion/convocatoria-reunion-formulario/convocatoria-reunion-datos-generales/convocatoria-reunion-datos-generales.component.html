@@ -19,9 +19,10 @@
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
         <mat-label>{{'eti.convocatoriaReunion.formulario.datosGenerales.comite.titulo' | translate}}</mat-label>
-        <input type="text" [placeholder]="'eti.convocatoriaReunion.formulario.datosGenerales.comite.titulo' | translate"
+        <input (click)="getConvocantesComite()" type="text"
+          [placeholder]="'eti.convocatoriaReunion.formulario.datosGenerales.comite.titulo' | translate"
           arial-label="Number" matInput formControlName="comite" [matAutocomplete]="autocompleteComite" required
-          [readOnly]="disableCamposDatosGenerales" (click)="getConvocantesComite()">
+          [readOnly]="disableCamposDatosGenerales">
         <mat-autocomplete #autocompleteComite="matAutocomplete" [displayWith]="getComite">
           <mat-option *ngFor="let comite of filteredComites | async" [value]="comite">
             {{comite.comite}}
@@ -46,6 +47,9 @@
         <mat-datepicker #pickerFechaEvaluacion></mat-datepicker>
         <mat-error *ngIf="formGroup.controls.fechaEvaluacion.errors?.required">
           {{'eti.convocatoriaReunion.formulario.datosGenerales.fechaEvaluacion.error.vacio' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.fechaEvaluacion.errors?.after">
+          {{'eti.convocatoriaReunion.formulario.datosGenerales.fechaLimite.error.after' | translate}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -147,8 +151,8 @@
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
         <mat-label>{{'eti.convocatoriaReunion.formulario.datosGenerales.convocantes.titulo' | translate}}</mat-label>
-        <mat-select matNativeControl formControlName="convocantes" multiple>
-          <mat-option *ngFor="let convocante of formFragment.convocantes" [value]="convocante">
+        <mat-select matNativeControl formControlName="convocantes" multiple required>
+          <mat-option *ngFor="let convocante of formFragment.evaluadoresComite" [value]="convocante">
             {{convocante.nombre}} {{convocante.primerApellido}} {{convocante.segundoApellido}}
           </mat-option>
         </mat-select>

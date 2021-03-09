@@ -1,47 +1,42 @@
-import { IAsistente } from '@core/models/eti/asistente';
-import { FormFragment } from '@core/services/action-service';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { NullIdValidador } from '@core/validators/null-id-validador';
+import { IAsistente } from '@core/models/eti/asistente';
+import { IConvocatoriaReunion } from '@core/models/eti/convocatoria-reunion';
+import { IEvaluador } from '@core/models/eti/evaluador';
+import { IPersona } from '@core/models/sgp/persona';
+import { FormFragment } from '@core/services/action-service';
+import { AsistenteService } from '@core/services/eti/asistente.service';
+import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
+import { EvaluadorService } from '@core/services/eti/evaluador.service';
+import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { DateValidator } from '@core/validators/date-validator';
 import { HoraValidador } from '@core/validators/hora-validator';
 import { MinutoValidador } from '@core/validators/minuto-validator';
-import { EMPTY, from, Observable, of } from 'rxjs';
-import { catchError, map, mergeMap, switchMap, takeLast, tap } from 'rxjs/operators';
-import { IConvocatoriaReunion } from '@core/models/eti/convocatoria-reunion';
-import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
-import { IEvaluador } from '@core/models/eti/evaluador';
-import { AsistenteService } from '@core/services/eti/asistente.service';
+import { NullIdValidador } from '@core/validators/null-id-validador';
+import { RSQLSgiRestFilter, SgiRestFilterOperator, SgiRestFindOptions, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
-import { IPersona } from '@core/models/sgp/persona';
-import { SgiRestFilterType, SgiRestListResult } from '@sgi/framework/http';
-import { EvaluadorService } from '@core/services/eti/evaluador.service';
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
+import { EMPTY, from, Observable, of } from 'rxjs';
+import { catchError, map, mergeMap, switchMap, takeLast } from 'rxjs/operators';
 
 export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<IConvocatoriaReunion> {
-
   private convocatoriaReunion: IConvocatoriaReunion;
-  convocantes: IEvaluador[] = [];
   evaluadoresComite: IEvaluador[] = [];
-  asistentesOriginal: IAsistente[] = [];
+  asistentes: IAsistente[] = [];
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     private fb: FormBuilder,
     key: number,
-    private readonly convocatoriaReunionService: ConvocatoriaReunionService,
-    private readonly asistenteService: AsistenteService,
-    private readonly personaFisicaService: PersonaFisicaService,
-    private readonly evaluadorService: EvaluadorService
+    private convocatoriaReunionService: ConvocatoriaReunionService,
+    private asistenteService: AsistenteService,
+    private personaFisicaService: PersonaFisicaService,
+    private evaluadorService: EvaluadorService
   ) {
     super(key);
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'constructor()', 'start');
     this.convocatoriaReunion = {} as IConvocatoriaReunion;
     this.convocatoriaReunion.activo = true;
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'constructor()', 'end');
   }
 
   protected buildFormGroup(): FormGroup {
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'buildFormGroup()', 'start');
     const fb = this.fb.group({
       comite: ['', new NullIdValidador().isValid()],
       fechaEvaluacion: ['', Validators.required],
@@ -52,30 +47,29 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
       lugar: ['', Validators.required],
       ordenDia: ['', Validators.required],
       convocantes: ['', Validators.required],
-    });
+    },
+      {
+        validators: [
+          DateValidator.isAfter('fechaLimite', 'fechaEvaluacion')]
+      });
 
     // En control del código solo aparece al editar
     if (this.isEdit()) {
       fb.addControl('codigo', new FormControl({ value: '', disabled: true }));
     }
 
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'buildFormGroup()', 'end');
     return fb;
   }
 
   protected initializer(key: number): Observable<IConvocatoriaReunion> {
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'initializer(key: number)', 'start');
     return this.convocatoriaReunionService.findByIdWithDatosGenerales(key).pipe(
       switchMap((value) => {
         this.convocatoriaReunion = value;
         return this.loadConvocantes();
       }),
-      catchError(() => {
-        this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'initializer(key: number)', 'end');
+      catchError((error) => {
+        this.logger.error(error);
         return EMPTY;
-      }),
-      tap(() => {
-        this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'initializer(key: number)', 'end');
       })
     );
   }
@@ -84,31 +78,24 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
    * Carga los convocantes de la convocatoria
    */
   loadConvocantes(): Observable<IConvocatoriaReunion> {
-    const filterComite = {
-      field: 'comite.id',
-      type: SgiRestFilterType.EQUALS,
-      value: this.convocatoriaReunion.comite.id.toString()
+    const options: SgiRestFindOptions = {
+      filter: new RSQLSgiRestFilter('comite.id', SgiRestFilterOperator.EQUALS, this.convocatoriaReunion.comite.id.toString())
     };
-    return this.evaluadorService.findAll({ filters: [filterComite] })
-      .pipe(
-        switchMap((listadoConvocantes: SgiRestListResult<IEvaluador>) => {
-          const personaRefs = listadoConvocantes.items.map((convocante: IEvaluador) => convocante.personaRef);
-          return this.personaFisicaService.findByPersonasRefs(personaRefs)
-            .pipe(
-              map((personas: SgiRestListResult<IPersona>) => {
-                return this.loadDatosPersona(personas, listadoConvocantes.items);
-              })
-            );
-        }),
-        switchMap((convocantes: IEvaluador[]) => {
-          this.evaluadoresComite = convocantes;
-          this.convocantes = convocantes;
-          return this.loadAsistentes();
-        }),
-        switchMap(() => {
-          return of(this.convocatoriaReunion);
-        })
-      );
+    return this.evaluadorService.findAll(options).pipe(
+      switchMap((listadoConvocantes) => {
+        const personaRefs = listadoConvocantes.items.map((convocante) => convocante.personaRef);
+        return this.personaFisicaService.findByPersonasRefs(personaRefs).pipe(
+          map((personas) => this.loadDatosPersona(personas, listadoConvocantes.items))
+        );
+      }),
+      switchMap((evaluadores) => {
+        this.evaluadoresComite = evaluadores;
+        return this.loadAsistentes();
+      }),
+      switchMap(() => {
+        return of(this.convocatoriaReunion);
+      })
+    );
   }
 
   /**
@@ -119,8 +106,8 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
    */
   private loadDatosPersona(listado: SgiRestListResult<IPersona>, evaluadores: IEvaluador[]): IEvaluador[] {
     const personas = listado.items;
-    evaluadores.forEach((convocante: IEvaluador) => {
-      const datosPersonaConvocante = personas.find((persona: IPersona) => convocante.personaRef === persona.personaRef);
+    evaluadores.forEach((convocante) => {
+      const datosPersonaConvocante = personas.find((persona) => convocante.personaRef === persona.personaRef);
       convocante.nombre = datosPersonaConvocante?.nombre;
       convocante.primerApellido = datosPersonaConvocante?.primerApellido;
       convocante.segundoApellido = datosPersonaConvocante?.segundoApellido;
@@ -133,12 +120,12 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
    */
   private loadAsistentes(): Observable<SgiRestListResult<IAsistente>> {
     return this.convocatoriaReunionService.findAsistentes(this.convocatoriaReunion.id).pipe(
-      switchMap((asistentes: SgiRestListResult<IAsistente>) => {
-        this.asistentesOriginal = asistentes.items;
+      switchMap((asistentes) => {
+        this.asistentes = asistentes.items;
         const asistentesFormGroup = [];
-        const ids = asistentes.items.filter(asistente => asistente.asistencia)
-          .map((convocante: IAsistente) => convocante.evaluador.id);
-        this.convocantes.forEach((evaluador: IEvaluador) => {
+        const ids = asistentes.items.filter(asistente => asistente.asistencia).map(
+          (convocante) => convocante.evaluador.id);
+        this.evaluadoresComite.forEach((evaluador) => {
           if (ids.includes(evaluador.id)) {
             asistentesFormGroup.push(evaluador);
           }
@@ -150,7 +137,6 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
   }
 
   buildPatch(value: IConvocatoriaReunion): { [key: string]: any } {
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'buildPatch(value: IConvocatoriaReunion)', 'start');
     const result = {
       codigo: value.codigo,
       comite: value.comite,
@@ -184,7 +170,10 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
       }
     }
 
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'buildPatch(value: IConvocatoriaReunion)', 'end');
+    if (value.id) {
+      this.getFormGroup().controls.comite.disable();
+    }
+
     return result;
   }
 
@@ -196,7 +185,6 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
   }
 
   getValue(): IConvocatoriaReunion {
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'getValue()', 'start');
     const form = this.getFormGroup();
     this.convocatoriaReunion.comite = (this.getFormGroup().controls.comite.disabled) ?
       this.getFormGroup().controls.comite.value : form.controls.comite.value;
@@ -209,53 +197,39 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
     this.convocatoriaReunion.minutoInicio = form.controls.minutoInicio.value;
     this.convocatoriaReunion.lugar = form.controls.lugar.value;
     this.convocatoriaReunion.ordenDia = form.controls.ordenDia.value;
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'getValue()', 'end');
     return this.convocatoriaReunion;
   }
 
   saveOrUpdate(): Observable<number> {
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'saveOrUpdate()', 'start');
-
     const datosGenerales = this.getValue();
     const obs$ = this.isEdit() ? this.update(datosGenerales) : this.create(datosGenerales);
     return obs$.pipe(
       map((value) => {
         this.convocatoriaReunion = value;
         return value.id;
-      }),
-      tap(() => this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'saveOrUpdate()', 'end'))
+      })
     );
   }
 
   private create(datosGenerales: IConvocatoriaReunion): Observable<IConvocatoriaReunion> {
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'create(datosGenerales: IConvocatoriaReunion)', 'start');
     return this.convocatoriaReunionService.create(datosGenerales).pipe(
       switchMap((convocatoriaReunion) => {
-        return this.saveAsistentes(convocatoriaReunion);
-      }),
-      tap(() => this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'create()', 'end'))
+        return this.saveAsistentes(convocatoriaReunion, this.evaluadoresComite);
+      })
     );
   }
 
-  private saveAsistentes(convocatoriaReunion: IConvocatoriaReunion): Observable<IConvocatoriaReunion> {
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name,
-      'saveAsistentes(convocatoriaReunion: IConvocatoriaReunion)', 'start');
-
-    const asistentes: IAsistente[] = this.evaluadoresComite.map(
-      (convocante) => {
-        const asistencia = {} as IAsistente;
-        asistencia.id = null;
-        asistencia.convocatoriaReunion = convocatoriaReunion;
-        asistencia.evaluador = convocante;
-        asistencia.asistencia = false;
-        asistencia.motivo = null;
-        if (this.getFormGroup().controls.convocantes.value.includes(convocante)) {
-          asistencia.asistencia = true;
-        }
-        return asistencia;
-      }
-    );
-
+  private saveAsistentes(convocatoriaReunion: IConvocatoriaReunion, evaluadores: IEvaluador[]): Observable<IConvocatoriaReunion> {
+    const asistentes = evaluadores.map((evaluador) => {
+      const asistencia: IAsistente = {
+        asistencia: this.getFormGroup().controls.convocantes.value.includes(evaluador),
+        convocatoriaReunion,
+        evaluador,
+        id: undefined,
+        motivo: undefined
+      };
+      return asistencia;
+    });
     return from(asistentes).pipe(
       mergeMap((asistente) => {
         return this.asistenteService.create(asistente).pipe(
@@ -265,37 +239,30 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
         );
       }),
       takeLast(1),
-      map(() => convocatoriaReunion),
-      tap(() => this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name,
-        'saveAsistentes(convocatoriaReunion: IConvocatoriaReunion)', 'end'))
+      map(() => convocatoriaReunion)
     );
   }
 
   private update(datosGenerales: IConvocatoriaReunion): Observable<IConvocatoriaReunion> {
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'update(datosGenerales: IConvocatoriaReunion)', 'start');
     return this.convocatoriaReunionService.update(datosGenerales.id, datosGenerales).pipe(
       switchMap((convocatoriaReunion) => {
-        this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name, 'update(datosGenerales: IConvocatoriaReunion)', 'end');
         return this.updateAsistentes(convocatoriaReunion);
       })
     );
   }
 
   private updateAsistentes(convocatoriaReunion: IConvocatoriaReunion): Observable<IConvocatoriaReunion> {
-    this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name,
-      'updateAsistentes(convocatoriaReunion: IConvocatoriaReunion)', 'start');
-
-    const convocantes: IEvaluador[] = this.getFormGroup().controls.convocantes.value;
-    this.asistentesOriginal.forEach(asistente => {
+    const evaluadores: IEvaluador[] = this.getFormGroup().controls.convocantes.value;
+    this.asistentes.forEach(asistente => {
       asistente.asistencia = false;
-      convocantes.forEach(evaluador => {
+      evaluadores.forEach(evaluador => {
         if (asistente.evaluador.id === evaluador.id) {
           asistente.asistencia = true;
         }
       });
     });
 
-    return from(this.asistentesOriginal).pipe(
+    return from(this.asistentes).pipe(
       mergeMap((asistente) => {
         return this.asistenteService.update(asistente.id, asistente).pipe(
           map((createdAsistente) => {
@@ -304,9 +271,7 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
         );
       }),
       takeLast(1),
-      map(() => convocatoriaReunion),
-      tap(() => this.logger.debug(ConvocatoriaReunionDatosGeneralesFragment.name,
-        'saveAsistentes(convocatoriaReunion: IConvocatoriaReunion)', 'end'))
+      map(() => convocatoriaReunion)
     );
   }
 }

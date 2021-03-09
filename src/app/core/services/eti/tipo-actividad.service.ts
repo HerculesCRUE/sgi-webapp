@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
-import { SgiRestService } from '@sgi/framework/http';
-import { ITipoActividad } from '@core/models/eti/tipo-actividad';
-import { NGXLogger } from 'ngx-logger';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { ITipoActividad } from '@core/models/eti/tipo-actividad';
 import { environment } from '@env';
+import { SgiRestService } from '@sgi/framework/http';
 
 @Injectable({
   providedIn: 'root'
@@ -11,10 +10,9 @@ import { environment } from '@env';
 export class TipoActividadService extends SgiRestService<number, ITipoActividad> {
   private static readonly MAPPING = '/tipoactividades';
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
+  constructor(protected http: HttpClient) {
     super(
       TipoActividadService.name,
-      logger,
       `${environment.serviceServers.eti}${TipoActividadService.MAPPING}`,
       http
     );

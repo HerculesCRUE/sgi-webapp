@@ -1,16 +1,13 @@
 import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
-import { IPeticionEvaluacion } from '@core/models/eti/peticion-evaluacion';
 import { IPersona } from '@core/models/sgp/persona';
 import { Fragment } from '@core/services/action-service';
-import { EquipoTrabajoService } from '@core/services/eti/equipo-trabajo.service';
 import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
-import { Observable, of, BehaviorSubject, from, zip, merge } from 'rxjs';
-import { map, mergeMap, endWith, switchMap, tap, takeLast } from 'rxjs/operators';
 import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { SgiAuthService } from '@sgi/framework/auth';
 import { SgiRestListResult } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
+import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
+import { map, mergeMap, switchMap, takeLast, tap } from 'rxjs/operators';
 
 export class EquipoInvestigadorListadoFragment extends Fragment {
 
@@ -21,9 +18,7 @@ export class EquipoInvestigadorListadoFragment extends Fragment {
 
   constructor(
     key: number,
-    private logger: NGXLogger,
     private personaFisicaService: PersonaFisicaService,
-    private equipoTrabajoService: EquipoTrabajoService,
     private peticionEvaluacionService: PeticionEvaluacionService,
     private sgiAuthService: SgiAuthService
   ) {
@@ -33,13 +28,10 @@ export class EquipoInvestigadorListadoFragment extends Fragment {
   }
 
   onInitialize(): void {
-    this.logger.debug(EquipoInvestigadorListadoFragment.name, 'onInitialize()', 'start');
     this.loadEquiposTrabajo(this.getKey() as number);
-    this.logger.debug(EquipoInvestigadorListadoFragment.name, 'onInitialize()', 'end');
   }
 
   loadEquiposTrabajo(idPeticionEvaluacion: number): void {
-    this.logger.debug(EquipoInvestigadorListadoFragment.name, 'loadEquiposTrabajo(idPeticionEvaluacion: number)', 'start');
     if (!this.isInitialized() || this.selectedIdPeticionEvaluacion !== idPeticionEvaluacion) {
       this.selectedIdPeticionEvaluacion = idPeticionEvaluacion;
 
@@ -98,13 +90,11 @@ export class EquipoInvestigadorListadoFragment extends Fragment {
       equiposTrabajoRecuperados$.subscribe((equiposTrabajo) => {
         this.setComplete(true);
         this.equiposTrabajo$.next(equiposTrabajo);
-        this.logger.debug(EquipoInvestigadorListadoFragment.name, 'loadEquiposTrabajo(idPeticionEvaluacion: number)', 'end');
       });
     }
   }
 
   saveOrUpdate(): Observable<void> {
-    this.logger.debug(EquipoInvestigadorListadoFragment.name, 'saveOrUpdate()', 'start');
     return merge(
       this.deleteEquipos(),
       this.createEquipos()
@@ -114,8 +104,7 @@ export class EquipoInvestigadorListadoFragment extends Fragment {
         if (this.isSaveOrUpdateComplete) {
           this.setChanges(false);
         }
-      }),
-      tap(() => this.logger.debug(EquipoInvestigadorListadoFragment.name, 'saveOrUpdate()', 'end'))
+      })
     );
   }
 
@@ -125,7 +114,6 @@ export class EquipoInvestigadorListadoFragment extends Fragment {
    * @param equipoTrabajo un equipoTrabajo
    */
   addEquipoTrabajo(equipoTrabajo: IEquipoTrabajo): void {
-    this.logger.debug(EquipoInvestigadorListadoFragment.name, 'addEquipoTrabajo(equipoTrabajo: IEquipoTrabajo)', 'start');
     const wrapped = new StatusWrapper<IEquipoTrabajo>(equipoTrabajo);
     wrapped.setCreated();
     const current = this.equiposTrabajo$.value;
@@ -133,7 +121,6 @@ export class EquipoInvestigadorListadoFragment extends Fragment {
     this.equiposTrabajo$.next(current);
     this.setChanges(true);
     this.setComplete(true);
-    this.logger.debug(EquipoInvestigadorListadoFragment.name, 'addEquipoTrabajo(equipoTrabajo: IEquipoTrabajo)', 'end');
   }
 
   /**
@@ -142,7 +129,6 @@ export class EquipoInvestigadorListadoFragment extends Fragment {
    * @param equipoTrabajo un equipoTrabajo
    */
   deleteEquipoTrabajo(equipoTrabajo: StatusWrapper<IEquipoTrabajo>): void {
-    this.logger.debug(EquipoInvestigadorListadoFragment.name, 'deleteEquipoTrabajo(equipoTrabajo: StatusWrapper<IEquipoTrabajo>)', 'start');
     const current = this.equiposTrabajo$.value;
     const index = current.findIndex((value) => value === equipoTrabajo);
     if (index >= 0) {
@@ -155,8 +141,6 @@ export class EquipoInvestigadorListadoFragment extends Fragment {
       this.equiposTrabajo$.next(current);
       this.setChanges(true);
     }
-
-    this.logger.debug(EquipoInvestigadorListadoFragment.name, 'deleteEquipoTrabajo(equipoTrabajo: StatusWrapper<IEquipoTrabajo>)', 'end');
   }
 
   /**
@@ -165,12 +149,9 @@ export class EquipoInvestigadorListadoFragment extends Fragment {
    * @return observable con el investigador actual.
    */
   private getInvestigadorActual(): Observable<IEquipoTrabajo> {
-    this.logger.debug(EquipoInvestigadorListadoFragment.name, 'getInvestigadorActual()', 'start');
-
     return this.personaFisicaService.getInformacionBasica(this.sgiAuthService.authStatus$?.getValue()?.userRefId)
       .pipe(
         map((persona: IPersona) => {
-          this.logger.debug(EquipoInvestigadorListadoFragment.name, 'getInvestigadorActual()', 'end');
           return {
             id: null,
             peticionEvaluacion: null,
@@ -189,9 +170,7 @@ export class EquipoInvestigadorListadoFragment extends Fragment {
   }
 
   private deleteEquipos(): Observable<void> {
-    this.logger.debug(EquipoInvestigadorListadoFragment.name, 'deleteEquipos()', 'start');
     if (this.deletedEquiposTrabajo.length === 0) {
-      this.logger.debug(EquipoInvestigadorListadoFragment.name, 'deleteEquipos()', 'end');
       return of(void 0);
     }
     return from(this.deletedEquiposTrabajo).pipe(
@@ -208,10 +187,8 @@ export class EquipoInvestigadorListadoFragment extends Fragment {
   }
 
   private createEquipos(): Observable<void> {
-    this.logger.debug(EquipoInvestigadorListadoFragment.name, 'createEquipos()', 'start');
     const createdEquipos = this.equiposTrabajo$.value.filter((equipo) => equipo.created);
     if (createdEquipos.length === 0) {
-      this.logger.debug(EquipoInvestigadorListadoFragment.name, 'createEquipos()', 'end');
       return of(void 0);
     }
 

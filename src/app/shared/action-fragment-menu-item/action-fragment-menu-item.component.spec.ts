@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ActionFragmentMenuItemComponent } from './action-fragment-menu-item.component';
 import TestUtils from '@core/utils/test-utils';
@@ -10,7 +10,7 @@ describe('ActionFragmentMenuItemComponent', () => {
   let component: ActionFragmentMenuItemComponent;
   let fixture: ComponentFixture<ActionFragmentMenuItemComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         LoggerTestingModule,

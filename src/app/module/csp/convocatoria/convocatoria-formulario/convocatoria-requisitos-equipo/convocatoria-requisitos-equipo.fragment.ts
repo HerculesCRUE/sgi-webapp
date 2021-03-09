@@ -1,11 +1,10 @@
-import { FormFragment } from '@core/services/action-service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { IConvocatoria } from '@core/models/csp/convocatoria';
+import { IConvocatoriaRequisitoEquipo } from '@core/models/csp/convocatoria-requisito-equipo';
+import { FormFragment } from '@core/services/action-service';
+import { ConvocatoriaRequisitoEquipoService } from '@core/services/csp/convocatoria-requisito-equipo.service';
 import { Observable, of } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
-import { NGXLogger } from 'ngx-logger';
-import { IConvocatoria } from '@core/models/csp/convocatoria';
-import { ConvocatoriaRequisitoEquipoService } from '@core/services/csp/convocatoria-requisito-equipo.service';
-import { IConvocatoriaRequisitoEquipo } from '@core/models/csp/convocatoria-requisito-equipo';
 
 export class ConvocatoriaRequisitosEquipoFragment extends FormFragment<IConvocatoriaRequisitoEquipo> {
 
@@ -13,17 +12,17 @@ export class ConvocatoriaRequisitosEquipoFragment extends FormFragment<IConvocat
 
   constructor(
     private fb: FormBuilder,
-    private readonly logger: NGXLogger,
     key: number,
-    private convocatoriaRequisitoEquipoService: ConvocatoriaRequisitoEquipoService) {
+    private convocatoriaRequisitoEquipoService: ConvocatoriaRequisitoEquipoService,
+    public readonly: boolean
+  ) {
     super(key, true);
     this.setComplete(true);
     this.requisitoEquipo = {} as IConvocatoriaRequisitoEquipo;
   }
 
   protected buildFormGroup(): FormGroup {
-    this.logger.debug(ConvocatoriaRequisitosEquipoFragment.name, 'buildFormGroup()', 'start');
-    return this.fb.group({
+    const form = this.fb.group({
       nivelAcademicoRef: ['', Validators.maxLength(50)],
       aniosNivelAcademico: ['', Validators.compose(
         [Validators.min(0), Validators.max(9999)])],
@@ -43,15 +42,17 @@ export class ConvocatoriaRequisitosEquipoFragment extends FormFragment<IConvocat
         [Validators.min(0), Validators.max(9999)])],
       otrosRequisitos: ['']
     });
+    if (this.readonly) {
+      form.disable();
+    }
+    return form;
   }
 
   protected initializer(key: number): Observable<IConvocatoriaRequisitoEquipo> {
-    this.logger.debug(ConvocatoriaRequisitosEquipoFragment.name, 'initializer(key: number)', 'start');
     if (this.getKey()) {
       return this.convocatoriaRequisitoEquipoService.findById(key).pipe(
         switchMap((requisitoEquipo) => {
           this.requisitoEquipo = requisitoEquipo;
-          this.logger.debug(ConvocatoriaRequisitosEquipoFragment.name, 'initializer(key: number)', 'end');
           return of(this.requisitoEquipo);
         })
       );
@@ -59,7 +60,6 @@ export class ConvocatoriaRequisitosEquipoFragment extends FormFragment<IConvocat
   }
 
   buildPatch(value: IConvocatoriaRequisitoEquipo): { [key: string]: any } {
-    this.logger.debug(ConvocatoriaRequisitosEquipoFragment.name, 'buildPatch(value: IConvocatoriaRequisitoEquipo)', 'start');
     return {
       nivelAcademicoRef: value ? value.nivelAcademicoRef : null,
       aniosNivelAcademico: value ? value.aniosNivelAcademico : null,
@@ -76,7 +76,6 @@ export class ConvocatoriaRequisitosEquipoFragment extends FormFragment<IConvocat
   }
 
   getValue(): IConvocatoriaRequisitoEquipo {
-    this.logger.debug(ConvocatoriaRequisitosEquipoFragment.name, 'getValue()', 'start');
     if (this.requisitoEquipo === null) {
       this.requisitoEquipo = {} as IConvocatoriaRequisitoEquipo;
     }
@@ -92,12 +91,10 @@ export class ConvocatoriaRequisitosEquipoFragment extends FormFragment<IConvocat
     this.requisitoEquipo.numMaximoCompetitivosActivos = form.numMaximoCompetitivosActivos;
     this.requisitoEquipo.numMaximoNoCompetitivosActivos = form.numMaximoNoCompetitivosActivos;
     this.requisitoEquipo.otrosRequisitos = form.otrosRequisitos;
-    this.logger.debug(ConvocatoriaRequisitosEquipoFragment.name, 'getValue()', 'end');
     return this.requisitoEquipo;
   }
 
   saveOrUpdate(): Observable<number> {
-    this.logger.debug(ConvocatoriaRequisitosEquipoFragment.name, 'saveOrUpdate()', 'start');
     const datosrequisitoEquipo = this.getValue();
     datosrequisitoEquipo.convocatoria = {
       id: this.getKey()
@@ -107,29 +104,20 @@ export class ConvocatoriaRequisitosEquipoFragment extends FormFragment<IConvocat
     return obs.pipe(
       map((value) => {
         this.requisitoEquipo = value;
-        this.logger.debug(ConvocatoriaRequisitosEquipoFragment.name, 'saveOrUpdate()', 'end');
         return this.requisitoEquipo.id;
       })
     );
   }
 
   private create(requisitoEquipo: IConvocatoriaRequisitoEquipo): Observable<IConvocatoriaRequisitoEquipo> {
-    this.logger.debug(ConvocatoriaRequisitosEquipoFragment.name,
-      `${this.create.name}(requisitoEquipo: ${requisitoEquipo})`, 'start');
     return this.convocatoriaRequisitoEquipoService.create(requisitoEquipo).pipe(
-      tap(result => this.requisitoEquipo = result),
-      tap(() => this.logger.debug(ConvocatoriaRequisitosEquipoFragment.name,
-        `${this.create.name}(requisitoEquipo: ${requisitoEquipo})`, 'end'))
+      tap(result => this.requisitoEquipo = result)
     );
   }
 
   private update(requisitoEquipo: IConvocatoriaRequisitoEquipo): Observable<IConvocatoriaRequisitoEquipo> {
-    this.logger.debug(ConvocatoriaRequisitosEquipoFragment.name,
-      `${this.update.name}(requisitoEquipo: ${requisitoEquipo})`, 'start');
     return this.convocatoriaRequisitoEquipoService.update(Number(this.getKey()), requisitoEquipo).pipe(
-      tap(result => this.requisitoEquipo = result),
-      tap(() => this.logger.debug(ConvocatoriaRequisitosEquipoFragment.name,
-        `${this.update.name}(requisitoEquipo: ${requisitoEquipo})`, 'end'))
+      tap(result => this.requisitoEquipo = result)
     );
   }
 

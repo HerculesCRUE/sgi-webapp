@@ -1,19 +1,18 @@
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatTree, MatTreeNestedDataSource } from '@angular/material/tree';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { FragmentComponent } from '@core/component/fragment.component';
 import { IAreaTematica } from '@core/models/csp/area-tematica';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { DialogService } from '@core/services/dialog.service';
-import { NGXLogger } from 'ngx-logger';
-import { Subscription } from 'rxjs';
-import { FragmentComponent } from '@core/component/fragment.component';
-import { AreaTematicaArbolFragment, NodeArea } from './area-tematica-arbol.fragment';
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { MatCheckboxChange } from '@angular/material/checkbox';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { Subscription } from 'rxjs';
 import { AreaTematicaActionService } from '../../area-tematica.action.service';
+import { AreaTematicaArbolFragment, NodeArea } from './area-tematica-arbol.fragment';
 
 const MSG_DELETE = marker('csp.area.tematica.arbol.listado.borrar');
 
@@ -50,12 +49,10 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
   hasChild = (_: number, node: NodeArea) => node.childs.length > 0;
 
   constructor(
-    protected readonly logger: NGXLogger,
     private readonly dialogService: DialogService,
     public actionService: AreaTematicaActionService
   ) {
     super(actionService.FRAGMENT.AREAS_ARBOL, actionService);
-    this.logger.debug(AreaTematicaArbolComponent.name, 'constructor()', 'start');
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -68,12 +65,10 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
     this.fxLayoutProperties.xs = 'column';
 
     this.formPart = this.fragment as AreaTematicaArbolFragment;
-    this.logger.debug(AreaTematicaArbolComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit() {
     super.ngOnInit();
-    this.logger.debug(AreaTematicaArbolComponent.name, 'ngOnInit()', 'start');
     this.formPart.areas$.subscribe((programas) => {
       this.dataSource.data = programas;
     });
@@ -82,27 +77,20 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
       descripcion: new FormControl('', [Validators.required, Validators.maxLength(50)]),
     });
     this.switchToNone();
-    this.logger.debug(AreaTematicaArbolComponent.name, 'ngOnInit()', 'end');
   }
 
   ngOnDestroy() {
-    this.logger.debug(AreaTematicaArbolComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
-    this.logger.debug(AreaTematicaArbolComponent.name, 'ngOnDestroy()', 'end');
   }
 
   showNodeDetails(node: NodeArea) {
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.showNodeDetails.name}(node: ${node})`, 'start');
     this.viewingNode = node;
     this.switchToView();
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.showNodeDetails.name}(node: ${node})`, 'end');
   }
 
   hideNodeDetails() {
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.hideNodeDetails.name}()`, 'start');
     this.viewMode = VIEW_MODE.NONE;
     this.viewingNode = undefined;
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.hideNodeDetails.name}()`, 'end');
   }
 
   onCheckNode(node: NodeArea, $event: MatCheckboxChange) {
@@ -115,28 +103,22 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
   }
 
   switchToNew() {
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.switchToNew.name}()`, 'start');
     const newNode = new NodeArea(new StatusWrapper<IAreaTematica>({
       padre: {} as IAreaTematica
     } as IAreaTematica));
     this.viewMode = VIEW_MODE.NEW;
     this.viewingNode = newNode;
     this.loadDetails(this.viewingNode);
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.switchToNew.name}()`, 'end');
   }
 
   switchToEdit() {
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.switchToEdit.name}()`, 'start');
     this.viewMode = VIEW_MODE.EDIT;
     this.loadDetails(this.viewingNode);
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.switchToEdit.name}()`, 'end');
   }
 
   switchToView() {
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.switchToView.name}()`, 'start');
     this.viewMode = VIEW_MODE.VIEW;
     this.loadDetails(this.viewingNode);
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.switchToView.name}()`, 'end');
   }
 
   private switchToNone() {
@@ -147,8 +129,6 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
   }
 
   private loadDetails(node: NodeArea) {
-    this.logger.debug(AreaTematicaArbolComponent.name,
-      `${this.loadDetails.name}()`, 'start');
     if (this.viewMode === VIEW_MODE.NEW || this.viewMode === VIEW_MODE.EDIT) {
       this.formGroup.get('nombre').enable();
       this.formGroup.get('descripcion').enable();
@@ -160,9 +140,6 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
     this.formGroup.reset();
     this.formGroup.get('nombre').patchValue(node?.area?.value?.nombre);
     this.formGroup.get('descripcion').patchValue(node?.area?.value?.descripcion);
-
-    this.logger.debug(AreaTematicaArbolComponent.name,
-      `${this.loadDetails.name}()`, 'start');
   }
 
   cancelDetail() {
@@ -202,8 +179,6 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
   }
 
   private addNode(node: NodeArea) {
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.addNode.name}()`, 'start');
-
     node.area.setCreated();
     if (this.checkedNode) {
       this.checkedNode.addChild(node);
@@ -216,12 +191,9 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
     }
     this.formPart.setChanges(true);
     this.switchToNone();
-
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.addNode.name}()`, 'end');
   }
 
   private updateNode(node: NodeArea) {
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.updateNode.name}()`, 'start');
     if (!node.area.created) {
       node.area.setEdited();
     }
@@ -234,13 +206,9 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
     this.refreshTree(this.formPart.areas$.value);
     this.formPart.setChanges(true);
     this.switchToView();
-
-    this.logger.debug(AreaTematicaArbolComponent.name, `${this.updateNode.name}()`, 'end');
   }
 
   deleteDetail() {
-    this.logger.debug(AreaTematicaArbolComponent.name,
-      `${this.deleteDetail.name}()`, 'start');
     this.subscriptions.push(
       this.dialogService.showConfirmation(MSG_DELETE).subscribe(
         (aceptado: boolean) => {
@@ -260,7 +228,5 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
         }
       )
     );
-    this.logger.debug(AreaTematicaArbolComponent.name,
-      `${this.deleteDetail.name}()`, 'end');
   }
 }

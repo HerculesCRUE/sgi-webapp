@@ -9,11 +9,11 @@ import { ROUTE_NAMES } from '@core/route.names';
 import { ProgramaService } from '@core/services/csp/programa.service';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { SgiRestFilter, SgiRestFilterType, SgiRestListResult } from '@sgi/framework/http';
+import { SgiAuthService } from '@sgi/framework/auth';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { SgiAuthService } from '@sgi/framework/auth';
 
 const MSG_ERROR = marker('csp.plan.investigacion.listado.error');
 const MSG_BUTTON_NEW = marker('footer.csp.plan.investigacion.crear');
@@ -38,14 +38,13 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
   programas$: Observable<IPrograma[]>;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     private readonly programaService: ProgramaService,
     private readonly dialogService: DialogService,
     public authService: SgiAuthService,
   ) {
-    super(logger, snackBarService, MSG_ERROR);
-    this.logger.debug(PlanInvestigacionListadoComponent.name, 'constructor()', 'start');
+    super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -56,38 +55,29 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-    this.logger.debug(PlanInvestigacionListadoComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(PlanInvestigacionListadoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.formGroup = new FormGroup({
       nombre: new FormControl(''),
       activo: new FormControl('true')
     });
-    this.filter = this.createFilters();
-    this.logger.debug(PlanInvestigacionListadoComponent.name, 'ngOnInit()', 'end');
+    this.filter = this.createFilter();
   }
 
   onClearFilters() {
-    this.logger.debug(PlanInvestigacionListadoComponent.name, `${this.onClearFilters.name}()`, 'start');
     this.formGroup.controls.activo.setValue('true');
     this.formGroup.controls.nombre.setValue('');
     this.onSearch();
-    this.logger.debug(PlanInvestigacionListadoComponent.name, `${this.onClearFilters.name}()`, 'end');
   }
 
   protected createObservable(): Observable<SgiRestListResult<IPrograma>> {
-    this.logger.debug(PlanInvestigacionListadoComponent.name, `${this.createObservable.name}()`, 'start');
     const observable$ = this.programaService.findTodos(this.getFindOptions());
-    this.logger.debug(PlanInvestigacionListadoComponent.name, `${this.createObservable.name}()`, 'end');
     return observable$;
   }
 
   protected initColumns(): void {
-    this.logger.debug(PlanInvestigacionListadoComponent.name, `${this.initColumns.name}()`, 'start');
-
     let columns = ['nombre', 'descripcion', 'activo', 'acciones'];
 
     if (!this.authService.hasAuthorityForAnyUO('CSP-PI-ACT')) {
@@ -95,24 +85,20 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
     }
 
     this.columnas = columns;
-    this.logger.debug(PlanInvestigacionListadoComponent.name, `${this.initColumns.name}()`, 'end');
   }
 
   protected loadTable(reset?: boolean): void {
-    this.logger.debug(PlanInvestigacionListadoComponent.name, `${this.loadTable.name}(${reset})`, 'start');
     this.programas$ = this.getObservableLoadTable(reset);
-    this.logger.debug(PlanInvestigacionListadoComponent.name, `${this.loadTable.name}(${reset})`, 'end');
   }
 
-  protected createFilters(): SgiRestFilter[] {
-    this.logger.debug(PlanInvestigacionListadoComponent.name, `${this.createFilters.name}()`, 'start');
-    const filtros = [];
-    this.addFiltro(filtros, 'nombre', SgiRestFilterType.LIKE, this.formGroup.controls.nombre.value);
-    if (this.formGroup.controls.activo.value !== 'todos') {
-      this.addFiltro(filtros, 'activo', SgiRestFilterType.EQUALS, this.formGroup.controls.activo.value);
+  protected createFilter(): SgiRestFilter {
+    const controls = this.formGroup.controls;
+    const filter = new RSQLSgiRestFilter('nombre', SgiRestFilterOperator.LIKE_ICASE, controls.nombre.value);
+    if (controls.activo.value !== 'todos') {
+      filter.and('activo', SgiRestFilterOperator.EQUALS, controls.activo.value);
     }
-    this.logger.debug(PlanInvestigacionListadoComponent.name, `${this.createFilters.name}()`, 'end');
-    return filtros;
+
+    return filter;
   }
 
   /**
@@ -120,7 +106,6 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
    * @param plan plan
    */
   desactivePlan(plan: IPrograma): void {
-    this.logger.debug(PlanInvestigacionListadoComponent.name, `${this.desactivePlan.name}()`, 'start');
     const subcription = this.dialogService.showConfirmation(MSG_DEACTIVATE).pipe(
       switchMap((accept) => {
         if (accept) {
@@ -131,13 +116,10 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_DEACTIVATE);
           this.loadTable();
-          this.logger.debug(PlanInvestigacionListadoComponent.name,
-            `${this.desactivePlan.name}(plan: ${plan})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_DEACTIVATE);
-          this.logger.error(PlanInvestigacionListadoComponent.name,
-            `${this.desactivePlan.name}(plan: ${plan})`, 'error');
         }
       );
     this.suscripciones.push(subcription);
@@ -148,9 +130,6 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
    * @param plan plan
    */
   activePlan(plan: IPrograma): void {
-    this.logger.debug(PlanInvestigacionListadoComponent.name,
-      `${this.activePlan.name}(plan: ${plan})`, 'start');
-
     const suscription = this.dialogService.showConfirmation(MSG_REACTIVE).pipe(
       switchMap((accept) => {
         if (accept) {
@@ -163,14 +142,11 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_REACTIVE);
           this.loadTable();
-          this.logger.debug(PlanInvestigacionListadoComponent.name,
-            `${this.activePlan.name}(plan: ${plan})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           plan.activo = false;
           this.snackBarService.showError(MSG_ERROR_REACTIVE);
-          this.logger.error(PlanInvestigacionListadoComponent.name,
-            `${this.activePlan.name}(plan: ${plan})`, 'error');
         }
       );
     this.suscripciones.push(suscription);

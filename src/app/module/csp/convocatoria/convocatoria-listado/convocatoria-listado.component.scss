@@ -31,10 +31,6 @@
     }
     .buttons-final {
       padding: 10px 0px 10px 0px;
-      @media only screen and (min-width: 1300px) {
-        right: 0;
-        position: absolute;
-      }
       .filter-button {
         button {
           margin-right: 15px;

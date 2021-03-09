@@ -1,22 +1,23 @@
 import { Injectable } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
 import { IPeticionEvaluacion } from '@core/models/eti/peticion-evaluacion';
 import { ActionService, IFragment } from '@core/services/action-service';
 import { EquipoTrabajoService } from '@core/services/eti/equipo-trabajo.service';
-import { SgiAuthService } from '@sgi/framework/auth/';
+import { MemoriaService } from '@core/services/eti/memoria.service';
 import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
 import { TareaService } from '@core/services/eti/tarea.service';
-import { PeticionEvaluacionDatosGeneralesFragment } from './peticion-evaluacion-formulario/peticion-evaluacion-datos-generales/peticion-evaluacion-datos-generales.fragment';
+import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { StatusWrapper } from '@core/utils/status-wrapper';
+import { SgiAuthService } from '@sgi/framework/auth/';
+import { NGXLogger } from 'ngx-logger';
+import { from, Observable, of, throwError } from 'rxjs';
+import { concatMap, filter, switchMap, takeLast, tap } from 'rxjs/operators';
 import { EquipoInvestigadorListadoFragment } from './peticion-evaluacion-formulario/equipo-investigador/equipo-investigador-listado/equipo-investigador-listado.fragment';
 import { MemoriasListadoFragment } from './peticion-evaluacion-formulario/memorias-listado/memorias-listado.fragment';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
-import { NGXLogger } from 'ngx-logger';
+import { PeticionEvaluacionDatosGeneralesFragment } from './peticion-evaluacion-formulario/peticion-evaluacion-datos-generales/peticion-evaluacion-datos-generales.fragment';
 import { PeticionEvaluacionTareasFragment } from './peticion-evaluacion-formulario/peticion-evaluacion-tareas/peticion-evaluacion-tareas-listado/peticion-evaluacion-tareas-listado.fragment';
-import { StatusWrapper } from '@core/utils/status-wrapper';
-import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
-import { Observable, throwError, from, of } from 'rxjs';
-import { filter, concatMap, switchMap, tap, takeLast } from 'rxjs/operators';
 
 
 @Injectable()
@@ -39,14 +40,15 @@ export class PeticionEvaluacionActionService extends ActionService {
 
 
   constructor(
+    private readonly logger: NGXLogger,
     fb: FormBuilder,
     protected readonly peticionEvaluacionService: PeticionEvaluacionService,
     private readonly route: ActivatedRoute,
     private readonly sgiAuthService: SgiAuthService,
-    protected readonly logger: NGXLogger,
     protected readonly personaFisicaService: PersonaFisicaService,
     protected readonly equipoTrabajoService: EquipoTrabajoService,
-    protected readonly tareaService: TareaService
+    protected readonly tareaService: TareaService,
+    protected readonly memoriaService: MemoriaService
   ) {
     super();
 
@@ -62,9 +64,9 @@ export class PeticionEvaluacionActionService extends ActionService {
       new PeticionEvaluacionDatosGeneralesFragment(
         fb, this.peticionEvaluacion?.id, peticionEvaluacionService, sgiAuthService, this.readonly);
     this.equipoInvestigadorListado = new EquipoInvestigadorListadoFragment(
-      this.peticionEvaluacion?.id, logger, personaFisicaService, equipoTrabajoService, peticionEvaluacionService, sgiAuthService);
-    this.memoriasListado = new MemoriasListadoFragment(this.peticionEvaluacion?.id, peticionEvaluacionService);
-    this.tareas = new PeticionEvaluacionTareasFragment(this.peticionEvaluacion?.id, logger, personaFisicaService, tareaService,
+      this.peticionEvaluacion?.id, personaFisicaService, peticionEvaluacionService, sgiAuthService);
+    this.memoriasListado = new MemoriasListadoFragment(this.peticionEvaluacion?.id, peticionEvaluacionService, memoriaService);
+    this.tareas = new PeticionEvaluacionTareasFragment(this.peticionEvaluacion?.id, personaFisicaService, tareaService,
       peticionEvaluacionService, this.equipoInvestigadorListado, this.memoriasListado);
 
     this.addFragment(this.FRAGMENT.DATOS_GENERALES, this.datosGenerales);
@@ -94,9 +96,7 @@ export class PeticionEvaluacionActionService extends ActionService {
    * @param equipoTrabajo el equipo de trabajo.
    */
   public eliminarTareasEquipoTrabajo(equipoTrabajo: StatusWrapper<IEquipoTrabajo>): void {
-    this.logger.debug(PeticionEvaluacionActionService.name, 'eliminarTareasNoPersistidasEquipoTrabajo(idEquipoTrabajo: number)', 'start');
     this.tareas.deleteTareasEquipoTrabajo(equipoTrabajo);
-    this.logger.debug(PeticionEvaluacionActionService.name, 'eliminarTareasNoPersistidasEquipoTrabajo(idEquipoTrabajo: number)', 'end');
   }
 
   saveOrUpdate(): Observable<void> {

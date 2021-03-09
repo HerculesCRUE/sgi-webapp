@@ -16,7 +16,7 @@
             <mat-label>{{'csp.convocatoria.seguimiento.cientifico.modal.numPeriodo' | translate}}</mat-label>
             <input matInput formControlName="numPeriodo" type="text" id="numPeriodo"
               placeholder="{{'csp.convocatoria.seguimiento.cientifico.modal.numPeriodo' | translate}}" readonly
-              maxlength="100" disabled>
+              maxlength="100">
             <mat-error *ngIf="formGroup.controls.numPeriodo.errors?.required">
               {{'csp.convocatoria.seguimiento.cientifico.modal.numPeriodo.requerido' | translate}}
             </mat-error>
@@ -147,8 +147,9 @@
     </form>
   </main>
   <div id="modals-buttons" class="float-right" mat-dialog-actions>
-    <button color="accent" md-button mat-raised-button type="submit" (click)="saveOrUpdate()">
-      Guardar</button>
-    <button class="link-cancelar" mat-button (click)="closeModal()" type="button">Cancelar</button>
+    <button color="accent" md-button mat-raised-button type="submit" (click)="saveOrUpdate()" *ngIf="!data.readonly">
+      {{textSaveOrUpdate | translate}}</button>
+    <button class="link-cancelar" mat-button (click)="closeModal()"
+      type="button">{{'botones.cancelar' | translate}}</button>
   </div>
 </div>

@@ -75,9 +75,12 @@
           <mat-form-field class="input-form">
             <mat-label>{{'csp.plan.investigacion.programa.nombre' | translate}}</mat-label>
             <input matInput type="text" placeholder="{{'csp.plan.investigacion.programa.nombre' | translate}}"
-              formControlName="nombre">
+              formControlName="nombre" required>
             <mat-error *ngIf="formGroup.get('nombre').errors?.required">
               {{'csp.plan.investigacion.programa.nombre.error' | translate}}
+            </mat-error>
+            <mat-error *ngIf="formGroup.get('nombre').errors?.maxlength">
+              {{'csp.plan.investigacion.programa.maximo.error' | translate}}
             </mat-error>
           </mat-form-field>
         </div>
@@ -88,6 +91,9 @@
             <mat-label>{{'csp.plan.investigacion.programa.descripcion' | translate}}</mat-label>
             <textarea matInput type="text" placeholder="{{'csp.plan.investigacion.programa.descripcion' | translate}}"
               formControlName="descripcion"></textarea>
+            <mat-error *ngIf="formGroup.get('descripcion').errors?.maxlength">
+              {{'csp.plan.investigacion.programa.maximo.error' | translate}}
+            </mat-error>
           </mat-form-field>
         </div>
       </div>

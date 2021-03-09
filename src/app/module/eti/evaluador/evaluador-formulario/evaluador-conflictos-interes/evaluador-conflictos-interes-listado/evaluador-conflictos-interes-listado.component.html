@@ -2,16 +2,19 @@
   <table class="mat-elevation-z8 table-evaluador-conflictos-interes" mat-table [dataSource]="datasource" matSort
     matSortActive="id" matSortDirection="asc" matSortDisableClear>
 
-    <!-- Persona identificadorNumero -->
-    <ng-container matColumnDef="identificadorNumero">
-      <th mat-header-cell *matHeaderCellDef> {{'eti.evaluador.conflictosInteres.listado.identificador' | translate}}
+    <!-- Persona identificador -->
+    <ng-container matColumnDef="identificador">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'eti.evaluador.conflictosInteres.listado.identificador' | translate}}
       </th>
-      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.identificadorNumero}} </td>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.identificadorNumero}}{{wrapper.value.identificadorLetra}}
+      </td>
     </ng-container>
 
     <!-- Persona nombre y apellidos -->
-    <ng-container matColumnDef="nombre">
-      <th mat-header-cell *matHeaderCellDef> {{'eti.evaluador.conflictosInteres.listado.persona' | translate}}
+    <ng-container matColumnDef="nombreCompleto">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'eti.evaluador.conflictosInteres.listado.persona' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.nombre}}
         {{wrapper.value.primerApellido}}
@@ -37,7 +40,7 @@
   </table>
   <!-- Botón añadir petición de evaluación -->
   <div class="separation-button">
-    <button color="three" (click)="openModalAddConflicto()" mat-button>
+    <button color="three" (click)="openModalAddConflicto()" mat-raised-button>
       <mat-icon>add_box</mat-icon>
       {{'eti.evaluador.conflictosInteres.formulario.listado.nuevoConflictoInteres' | translate}}
     </button>

@@ -1,23 +1,22 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NGXLogger } from 'ngx-logger';
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
-import { ComiteService } from '@core/services/eti/comite.service';
-import { SnackBarService } from '@core/services/snack-bar.service';
-import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { FormFragmentComponent } from '@core/component/fragment.component';
-import { IMemoria } from '@core/models/eti/memoria';
-import { IComite } from '@core/models/eti/comite';
-import { startWith, map, tap } from 'rxjs/operators';
-import { Observable, Subscription } from 'rxjs';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { MemoriaDatosGeneralesFragment } from './memoria-datos-generales.fragment';
-import { MemoriaActionService } from '../../memoria.action.service';
-import { TipoMemoria } from '@core/models/eti/tipo-memoria';
+import { FormFragmentComponent } from '@core/component/fragment.component';
+import { IComite } from '@core/models/eti/comite';
+import { IMemoria } from '@core/models/eti/memoria';
 import { TipoEstadoMemoria } from '@core/models/eti/tipo-estado-memoria';
+import { TipoMemoria } from '@core/models/eti/tipo-memoria';
 import { IPersona } from '@core/models/sgp/persona';
+import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
+import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
+import { ComiteService } from '@core/services/eti/comite.service';
 import { TipoMemoriaService } from '@core/services/eti/tipo-memoria.service';
-import { FormControl } from '@angular/forms';
+import { SnackBarService } from '@core/services/snack-bar.service';
 import { NullIdValidador } from '@core/validators/null-id-validador';
+import { NGXLogger } from 'ngx-logger';
+import { Observable, Subscription } from 'rxjs';
+import { map, startWith, tap } from 'rxjs/operators';
+import { MemoriaActionService } from '../../memoria.action.service';
+import { MemoriaDatosGeneralesFragment } from './memoria-datos-generales.fragment';
 
 const MSG_ERROR_INIT_ = marker('eti.memoria.datosGenerales.error.init');
 const TEXT_USER_TITLE = marker('eti.memoria.datosGenerales.buscador.solicitante');
@@ -50,7 +49,7 @@ export class MemoriaDatosGeneralesComponent extends FormFragmentComponent<IMemor
   private subscriptions: Subscription[] = [];
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     private readonly comiteService: ComiteService,
     private readonly snackBarService: SnackBarService,
     private readonly tipoMemoriaService: TipoMemoriaService,
@@ -73,16 +72,13 @@ export class MemoriaDatosGeneralesComponent extends FormFragmentComponent<IMemor
 
   ngOnInit(): void {
     super.ngOnInit();
-    this.logger.debug(MemoriaDatosGeneralesComponent.name, 'ngOnInit()', 'start');
     this.loadComites();
-    this.logger.debug(MemoriaDatosGeneralesComponent.name, 'ngOnInit()', 'end');
   }
 
   loadComites() {
     this.subscriptions.push(this.comiteService.findAll().subscribe(
       (res) => {
         this.comites = res.items;
-        this.logger.debug(MemoriaDatosGeneralesComponent.name, 'loadComites()', 'start');
         this.filteredComites = this.formGroup.controls.comite.valueChanges
           .pipe(
             startWith(''),
@@ -96,9 +92,9 @@ export class MemoriaDatosGeneralesComponent extends FormFragmentComponent<IMemor
             })
           );
       },
-      () => {
+      (error) => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR_INIT_);
-        this.logger.debug(MemoriaDatosGeneralesComponent.name, 'loadComites()', 'end');
       }
     ));
   }
@@ -183,8 +179,6 @@ export class MemoriaDatosGeneralesComponent extends FormFragmentComponent<IMemor
    * @param comite Comité seleccionado.
    */
   selectComite(comite: IComite): void {
-
-    this.logger.debug(MemoriaDatosGeneralesComponent.name, 'selectComite()', 'start');
     this.datosGeneralesFragment.showCodOrganoCompetente = comite.comite === 'CEEA' ? true : false;
     this.datosGeneralesFragment.showTitulo = comite.comite === 'CEEA' ? true : false;
 
@@ -204,9 +198,9 @@ export class MemoriaDatosGeneralesComponent extends FormFragmentComponent<IMemor
             })
           );
       },
-      () => {
+      (error) => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR_INIT_);
-        this.logger.debug(MemoriaDatosGeneralesComponent.name, 'selectComite()', 'end');
       }
     );
   }
@@ -218,8 +212,6 @@ export class MemoriaDatosGeneralesComponent extends FormFragmentComponent<IMemor
    * @param comite Comité seleccionado.
    */
   selectTipoMemoria(tipoMemoria: TipoMemoria): void {
-    this.logger.debug(MemoriaDatosGeneralesComponent.name, 'selectTipoMemoria()', 'start');
-
     this.datosGeneralesFragment.showMemoriaOriginal = tipoMemoria.id === 2 ? true : false;
     if (tipoMemoria.id === 2) {
       this.formGroup.controls.memoriaOriginal.setValidators(new NullIdValidador().isValid());
@@ -237,9 +229,9 @@ export class MemoriaDatosGeneralesComponent extends FormFragmentComponent<IMemor
               })
             );
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_INIT_);
-          this.logger.debug(MemoriaDatosGeneralesComponent.name, 'selectTipoMemoria()', 'end');
         }
       );
     } else {
@@ -249,8 +241,6 @@ export class MemoriaDatosGeneralesComponent extends FormFragmentComponent<IMemor
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(MemoriaDatosGeneralesComponent.name, 'ngOnDestroy()', 'start');
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
-    this.logger.debug(MemoriaDatosGeneralesComponent.name, 'ngOnDestroy()', 'end');
   }
 }

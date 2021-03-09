@@ -1,31 +1,31 @@
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { Component, OnInit, ViewChild, } from '@angular/core';
-import { MatSort } from '@angular/material/sort';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
-import { FormGroup, FormControl } from '@angular/forms';
-import { Observable, of, Subscription, } from 'rxjs';
-import { NGXLogger } from 'ngx-logger';
-
-import { SgiRestFilter, SgiRestFilterType, SgiRestListResult } from '@sgi/framework/http';
-import { map, catchError, startWith, } from 'rxjs/operators';
-
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
-import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-
+import { MatSort } from '@angular/material/sort';
+import { ActivatedRoute, Router } from '@angular/router';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { IActaEvaluaciones } from '@core/models/eti/acta-evaluaciones';
 import { IComite } from '@core/models/eti/comite';
 import { TipoEstadoActa } from '@core/models/eti/tipo-estado-acta';
-
-import { ComiteService } from '@core/services/eti/comite.service';
-import { SnackBarService } from '@core/services/snack-bar.service';
-import { TipoEstadoActaService } from '@core/services/eti/tipo-estado-acta.service';
-
-import { IActaEvaluaciones } from '@core/models/eti/acta-evaluaciones';
-import { ActaService } from '@core/services/eti/acta.service';
+import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
+import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ROUTE_NAMES } from '@core/route.names';
-import { Router, ActivatedRoute } from '@angular/router';
+import { ActaService } from '@core/services/eti/acta.service';
+import { ComiteService } from '@core/services/eti/comite.service';
 import { EvaluacionService } from '@core/services/eti/evaluacion.service';
-import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { TipoEstadoActaService } from '@core/services/eti/tipo-estado-acta.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
 import { DateUtils } from '@core/utils/date-utils';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
+import { NGXLogger } from 'ngx-logger';
+import { Observable, of, Subscription } from 'rxjs';
+import { catchError, map, startWith } from 'rxjs/operators';
+
+
+
+
+
 
 const MSG_BUTTON_NEW = marker('footer.eti.acta.crear');
 const MSG_ERROR = marker('eti.acta.listado.error');
@@ -64,7 +64,7 @@ export class ActaListadoComponent extends AbstractTablePaginationComponent<IActa
   textoCrear = MSG_BUTTON_NEW;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     private readonly actasService: ActaService,
     protected readonly snackBarService: SnackBarService,
     private readonly comiteService: ComiteService,
@@ -74,7 +74,7 @@ export class ActaListadoComponent extends AbstractTablePaginationComponent<IActa
     private route: ActivatedRoute,
   ) {
 
-    super(logger, snackBarService, MSG_ERROR);
+    super(snackBarService, MSG_ERROR);
 
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
@@ -91,8 +91,6 @@ export class ActaListadoComponent extends AbstractTablePaginationComponent<IActa
 
 
   ngOnInit(): void {
-    this.logger.debug(ActaListadoComponent.name, 'ngOnInit()', 'start');
-
     super.ngOnInit();
     this.formGroup = new FormGroup({
       comite: new FormControl('', []),
@@ -102,64 +100,43 @@ export class ActaListadoComponent extends AbstractTablePaginationComponent<IActa
       tipoEstadoActa: new FormControl('', [])
     });
 
-
     this.getComites();
 
     this.getTipoEstadoActas();
-
-    this.logger.debug(ActaListadoComponent.name, 'ngOnInit()', 'end');
   }
 
   protected createObservable(): Observable<SgiRestListResult<IActaEvaluaciones>> {
-    this.logger.debug(ActaListadoComponent.name, 'createObservable()', 'start');
     const observable$ = this.actasService.findActivasWithEvaluaciones(this.getFindOptions());
-    this.logger.debug(ActaListadoComponent.name, 'createObservable()', 'end');
     return observable$;
   }
 
   protected initColumns(): void {
-    this.logger.debug(ActaListadoComponent.name, 'initColumns()', 'start');
-    this.displayedColumns = ['comite', 'fechaEvaluacion', 'numero', 'convocatoria',
+    this.displayedColumns = ['convocatoriaReunion.comite', 'convocatoriaReunion.fechaEvaluacion', 'numero', 'convocatoriaReunion.tipoConvocatoriaReunion',
       'numeroIniciales', 'numeroRevisiones', 'numeroTotal', 'estadoActual.nombre', 'acciones'];
-    this.logger.debug(ActaListadoComponent.name, 'initColumns()', 'end');
   }
 
-  protected createFilters(): SgiRestFilter[] {
-    this.logger.debug(ActaListadoComponent.name, 'createFilters()', 'start');
-
-    const filtro: SgiRestFilter[] = [];
-    this.addFiltro(filtro, 'convocatoriaReunion.comite.id', SgiRestFilterType.EQUALS, this.formGroup.controls.comite.value.id);
-
-
-
-    if (this.formGroup.controls.fechaEvaluacionInicio) {
-      const fechaFilter = DateUtils.getFechaFinDia(this.formGroup.controls.fechaEvaluacionInicio.value);
-      this.addFiltro(filtro, 'convocatoriaReunion.fechaEvaluacion',
-        SgiRestFilterType.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fechaFilter));
-
+  protected createFilter(): SgiRestFilter {
+    const controls = this.formGroup.controls;
+    const filter = new RSQLSgiRestFilter('convocatoriaReunion.comite.id', SgiRestFilterOperator.EQUALS, controls.comite.value?.id?.toString());
+    if (controls.fechaEvaluacionInicio) {
+      const fechaFilter = DateUtils.getFechaFinDia(controls.fechaEvaluacionInicio.value);
+      filter.and('convocatoriaReunion.fechaEvaluacion',
+        SgiRestFilterOperator.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fechaFilter));
     }
-
-    if (this.formGroup.controls.fechaEvaluacionFin) {
-      const fechaFilter = DateUtils.getFechaFinDia(this.formGroup.controls.fechaEvaluacionFin.value);
-      this.addFiltro(filtro, 'convocatoriaReunion.fechaEvaluacion',
-        SgiRestFilterType.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fechaFilter));
-
+    if (controls.fechaEvaluacionFin) {
+      const fechaFilter = DateUtils.getFechaFinDia(controls.fechaEvaluacionFin.value);
+      filter.and('convocatoriaReunion.fechaEvaluacion',
+        SgiRestFilterOperator.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fechaFilter));
     }
+    filter
+      .and('convocatoriaReunion.numeroActa', SgiRestFilterOperator.EQUALS, controls.numeroActa?.value.toString())
+      .and('estadoActual.id', SgiRestFilterOperator.EQUALS, controls.tipoEstadoActa.value?.id?.toString());
 
-    this.addFiltro(filtro, 'convocatoriaReunion.numeroActa',
-      SgiRestFilterType.EQUALS, this.formGroup.controls.numeroActa.value);
-
-    this.addFiltro(filtro, 'estadoActual.id',
-      SgiRestFilterType.EQUALS, this.formGroup.controls.tipoEstadoActa.value);
-
-    this.logger.debug(ActaListadoComponent.name, 'createFilters()', 'end');
-    return filtro;
+    return filter;
   }
 
   protected loadTable(reset?: boolean) {
-    this.logger.debug(ActaListadoComponent.name, 'loadTable()', 'start');
     this.actas$ = this.getObservableLoadTable(reset);
-    this.logger.debug(ActaListadoComponent.name, 'loadTable()', 'end');
   }
 
   /**
@@ -168,9 +145,7 @@ export class ActaListadoComponent extends AbstractTablePaginationComponent<IActa
    * returns nombre comité
    */
   getComite(comite: IComite): string {
-
     return comite?.comite;
-
   }
 
   /**
@@ -179,19 +154,13 @@ export class ActaListadoComponent extends AbstractTablePaginationComponent<IActa
    * returns nombre tipo estado acta
    */
   getTipoEstadoActa(estado: TipoEstadoActa): string {
-
     return estado?.nombre;
-
   }
 
   /**
    * Recupera un listado de los comités que hay en el sistema.
    */
   getComites(): void {
-    this.logger.debug(ActaListadoComponent.name,
-      'getComites()',
-      'start');
-
     this.comitesSubscription = this.comiteService.findAll().subscribe(
       (response) => {
         this.comiteListado = response.items;
@@ -202,20 +171,12 @@ export class ActaListadoComponent extends AbstractTablePaginationComponent<IActa
             map(value => this._filterComite(value))
           );
       });
-
-    this.logger.debug(ActaListadoComponent.name,
-      'getComites()',
-      'end');
   }
 
   /**
    * Recupera un listado de los tipos de estados de acta que hay en el sistema.
    */
   getTipoEstadoActas(): void {
-    this.logger.debug(ActaListadoComponent.name,
-      'getTipoEstadoActa()',
-      'start');
-
     this.tipoEstadoActaSubscription = this.tipoEstadoActaService.findAll().subscribe(
       (response) => {
         this.tipoEstadoActaListado = response.items;
@@ -226,10 +187,6 @@ export class ActaListadoComponent extends AbstractTablePaginationComponent<IActa
             map(value => this._filterTipoEstado(value))
           );
       });
-
-    this.logger.debug(ActaListadoComponent.name,
-      'getTipoEstadoActa()',
-      'end');
   }
 
 
@@ -273,27 +230,18 @@ export class ActaListadoComponent extends AbstractTablePaginationComponent<IActa
    * @param actaId id del acta a finalizar.
    */
   finishActa(actaId: number) {
-    this.logger.debug(ActaListadoComponent.name,
-      'finishActa()',
-      'start');
     this.finalizarSubscription = this.actasService.finishActa(actaId).subscribe((acta) => {
       this.snackBarService.showSuccess(MSG_FINALIZAR_SUCCESS);
       this.loadTable(false);
     },
-      catchError(() => {
+      catchError((error) => {
+        this.logger.error(error);
         // On error reset pagination values
         this.paginator.firstPage();
         this.totalElementos = 0;
         this.snackBarService.showError(MSG_FINALIZAR_ERROR);
-        this.logger.debug(ActaListadoComponent.name, 'loadTable()', 'end');
         return of([]);
       }));
-
-
-    this.logger.debug(ActaListadoComponent.name,
-      'finishActa()',
-      'end');
-
   }
 
   /**

@@ -33,17 +33,22 @@
       <!-- Modalidad Column -->
       <ng-container matColumnDef="itemPrograma">
         <th mat-header-cell *matHeaderCellDef>{{'csp.convocatoria.entidades.convocantes.modalidad' | translate}}</th>
-        <td mat-cell *matCellDef="let data" > {{data.modalidad?.nombre}} </td>
+        <td mat-cell *matCellDef="let data"> {{data.modalidad?.nombre}} </td>
       </ng-container>
 
       <!-- Acciones Column -->
       <ng-container matColumnDef="acciones">
         <th mat-header-cell *matHeaderCellDef>{{'botones.acciones' | translate}}</th>
         <td mat-cell *matCellDef="let data">
-          <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModal(data)">
+          <button mat-button matTooltip="{{'botones.ver' | translate}}" *ngIf="formPart.readonly"
+            (click)="openModal(data)">
+            <mat-icon color="primary">visibility</mat-icon>
+          </button>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" *ngIf="!formPart.readonly"
+            (click)="openModal(data)">
             <mat-icon color="primary">border_color</mat-icon>
           </button>
-          <button mat-button matTooltip="{{'botones.eliminar' | translate}}"
+          <button mat-button matTooltip="{{'botones.eliminar' | translate}}" *ngIf="!formPart.readonly"
             (click)="deleteConvocatoriaEntidadConvocante(data)">
             <mat-icon color="warn">highlight_off</mat-icon>
           </button>
@@ -55,7 +60,7 @@
     <mat-paginator [pageSizeOptions]="elementsPage" showFirstLastButtons></mat-paginator>
   </div>
   <div class="separation-button">
-    <button color="three" md-button mat-raised-button (click)="openModal()">
+    <button color="three" md-button mat-raised-button *ngIf="!formPart.readonly" (click)="openModal()">
       <mat-icon color="accent">add_circle</mat-icon> {{'csp.convocatoria.entidades-convocantes.crear' | translate}}
     </button>
   </div>

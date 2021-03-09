@@ -5,7 +5,7 @@ import { environment } from '@env';
 import { SgiRestService } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -13,10 +13,9 @@ import { catchError, tap } from 'rxjs/operators';
 export class ConvocatoriaRequisitoIPService extends SgiRestService<number, IConvocatoriaRequisitoIP> {
   private static readonly MAPPING = '/convocatoria-requisitoips';
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
+  constructor(private readonly logger: NGXLogger, protected http: HttpClient) {
     super(
       ConvocatoriaRequisitoIPService.name,
-      logger,
       `${environment.serviceServers.csp}${ConvocatoriaRequisitoIPService.MAPPING}`,
       http
     );
@@ -27,14 +26,13 @@ export class ConvocatoriaRequisitoIPService extends SgiRestService<number, IConv
    * @param id convocatoria
    */
   getRequisitoIPConvocatoria(id: number): Observable<IConvocatoriaRequisitoIP> {
-    this.logger.debug(ConvocatoriaRequisitoIPService.name, `getRequisitoIP(${id})`, '-', 'start');
     const endpointUrl = `${this.endpointUrl}/${id}`;
     return this.http.get<IConvocatoriaRequisitoIP>(endpointUrl)
       .pipe(
-        catchError(() => {
+        catchError((err) => {
+          this.logger.error(err);
           return of({} as IConvocatoriaRequisitoIP);
-        }),
-        tap(() => this.logger.debug(ConvocatoriaRequisitoIPService.name, `getRequisitoIP(${id})`, '-', 'end'))
+        })
       );
   }
 }

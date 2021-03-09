@@ -10,16 +10,18 @@ import { TableType } from './types/table-type.component';
 import { TableTypeRepetible } from './types/table-type-repetible.component';
 import { SharedModule } from '@shared/shared.module';
 import { requiredChecked } from './validators/utils.validator';
-import { PanelWrapperComponent } from './wrappers/panel-wrapper';
-import { TitleDivWrapperComponent } from './wrappers/title-div.wrapper';
+import { PanelWrapperComponent } from './wrappers/panel/panel.wrapper';
+import { TitleDivWrapperComponent } from './wrappers/title-div/title-div.wrapper';
 import { FormlyMatDatepickerModule } from '@ngx-formly/material/datepicker';
+import { InfoDivWrapperComponent } from './wrappers/info-div/info-div.wrapper';
 
 @NgModule({
   declarations: [
     TableType,
     TableTypeRepetible,
     PanelWrapperComponent,
-    TitleDivWrapperComponent
+    TitleDivWrapperComponent,
+    InfoDivWrapperComponent
   ],
   imports: [
     SharedModule,
@@ -48,6 +50,10 @@ import { FormlyMatDatepickerModule } from '@ngx-formly/material/datepicker';
         {
           name: 'title-div',
           component: TitleDivWrapperComponent
+        },
+        {
+          name: 'info-div',
+          component: InfoDivWrapperComponent
         }
       ],
       validators: [

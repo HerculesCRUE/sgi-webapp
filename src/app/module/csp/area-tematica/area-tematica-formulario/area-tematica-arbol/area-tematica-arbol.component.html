@@ -75,7 +75,7 @@
           <mat-form-field class="input-form">
             <mat-label>{{'csp.area.tematica.arbol.nombre' | translate}}</mat-label>
             <input #input matInput type="text" placeholder="{{'csp.area.tematica.arbol.nombre' | translate}}"
-              formControlName="nombre">
+              formControlName="nombre" required>
             <mat-hint align="end">{{input.value?.length || 0}}/5</mat-hint>
             <mat-error *ngIf="formGroup.get('nombre').errors?.required">
               {{'csp.area.tematica.arbol.nombre.error' | translate}}

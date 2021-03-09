@@ -7,7 +7,6 @@ import { ITipoUnidadGestion } from '@core/models/csp/tipos-configuracion';
 import { UnidadGestionService } from '@core/services/csp/unidad-gestion.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { SgiRestListResult } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
@@ -26,15 +25,12 @@ export class ModeloEjecucionTipoUnidadGestionModalComponent extends
   tipoUnidad$: Observable<ITipoUnidadGestion[]>;
 
   constructor(
-    protected readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     public readonly matDialogRef: MatDialogRef<ModeloEjecucionTipoUnidadGestionModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: IModeloEjecucionTipoUnidadModal,
     private readonly unidadGestionService: UnidadGestionService,
   ) {
-    super(logger, snackBarService, matDialogRef, data.modeloTipoUnidad);
-    this.logger.debug(ModeloEjecucionTipoUnidadGestionModalComponent.name, 'constructor()', 'start');
-    this.logger.debug(ModeloEjecucionTipoUnidadGestionModalComponent.name, 'constructor()', 'end');
+    super(snackBarService, matDialogRef, data.modeloTipoUnidad);
   }
 
   ngOnInit(): void {
@@ -55,19 +51,15 @@ export class ModeloEjecucionTipoUnidadGestionModalComponent extends
   }
 
   protected getFormGroup(): FormGroup {
-    this.logger.debug(ModeloEjecucionTipoUnidadGestionModalComponent.name, `${this.getFormGroup.name}()`, 'start');
     const formGroup = new FormGroup({
       tipoUnidad: new FormControl(this.data.modeloTipoUnidad?.unidadGestion)
     });
-    this.logger.debug(ModeloEjecucionTipoUnidadGestionModalComponent.name, `${this.getFormGroup.name}()`, 'end');
     return formGroup;
   }
 
   protected getDatosForm(): IModeloUnidad {
-    this.logger.debug(ModeloEjecucionTipoUnidadGestionModalComponent.name, `${this.getDatosForm.name}()`, 'start');
     const modeloTipoUnidadGestion = this.data.modeloTipoUnidad;
     modeloTipoUnidadGestion.unidadGestion = this.formGroup.get('tipoUnidad').value;
-    this.logger.debug(ModeloEjecucionTipoUnidadGestionModalComponent.name, `${this.getDatosForm.name}()`, 'end');
     return modeloTipoUnidadGestion;
   }
 }

@@ -21,13 +21,12 @@ export interface IConvocatoriaConceptoGasto {
   /** Permitido */
   permitido: boolean;
 
-  /** Número de meses */
-  numMeses: number;
+  /** Mes inicial */
+  mesInicial: number;
+
+  /** Mes final */
+  mesFinal: number;
 
   /** Porcentaje coste indirecto */
   porcentajeCosteIndirecto: number;
-
-  /** Indica si se puede realizar o no cualquier acción */
-  enableAccion: boolean;
-
 }

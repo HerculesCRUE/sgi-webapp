@@ -1,25 +1,25 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { IFuenteFinanciacion } from '@core/models/csp/fuente-financiacion';
+import { ITipoAmbitoGeografico } from '@core/models/csp/tipo-ambito-geografico';
+import { ITipoOrigenFuenteFinanciacion } from '@core/models/csp/tipo-origen-fuente-financiacion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
+import { FuenteFinanciacionService } from '@core/services/csp/fuente-financiacion.service';
+import { TipoAmbitoGeograficoService } from '@core/services/csp/tipo-ambito-geografico.service';
+import { TipoOrigenFuenteFinanciacionService } from '@core/services/csp/tipo-origen-fuente-financiacion.service';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
-import { SgiRestListResult, SgiRestFilter, SgiRestFilterType } from '@sgi/framework/http';
+import { SgiAuthService } from '@sgi/framework/auth';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
-import { switchMap, map, startWith } from 'rxjs/operators';
-import { FuenteFinanciacionService } from '@core/services/csp/fuente-financiacion.service';
-import { IFuenteFinanciacion } from '@core/models/csp/fuente-financiacion';
-import { ITipoOrigenFuenteFinanciacion } from '@core/models/csp/tipo-origen-fuente-financiacion';
-import { TipoOrigenFuenteFinanciacionService } from '@core/services/csp/tipo-origen-fuente-financiacion.service';
+import { map, startWith, switchMap } from 'rxjs/operators';
 import { FuenteFinanciacionModalComponent } from '../fuente-financiacion-modal/fuente-financiacion-modal.component';
-import { TipoAmbitoGeograficoService } from '@core/services/csp/tipo-ambito-geografico.service';
-import { ITipoAmbitoGeografico } from '@core/models/csp/tipo-ambito-geografico';
-import { SgiAuthService } from '@sgi/framework/auth';
 
 const MSG_ERROR = marker('csp.fuenteFinanciacion.listado.error');
 const MSG_DEACTIVATE = marker('csp.fuenteFinanciacion.desactivar');
@@ -51,7 +51,7 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
   private origenFiltered: ITipoOrigenFuenteFinanciacion[];
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     private readonly fuenteFinanciacionService: FuenteFinanciacionService,
     private ambitoGeograficoService: TipoAmbitoGeograficoService,
@@ -60,8 +60,7 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
     public authService: SgiAuthService,
     private readonly dialogService: DialogService
   ) {
-    super(logger, snackBarService, MSG_ERROR);
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, 'constructor()', 'start');
+    super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -72,34 +71,27 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, 'ngOnInit()', 'start');
     super.ngOnInit();
     this.formGroup = new FormGroup({
       nombre: new FormControl(''),
       ambitoGeografico: new FormControl(''),
       origen: new FormControl(''),
-      activo: new FormControl(true)
+      activo: new FormControl('true')
     });
-    this.filter = this.createFilters();
+    this.filter = this.createFilter();
     this.loadAmbitosGeograficos();
     this.loadOrigenes();
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, 'ngOnInit()', 'end');
   }
 
   protected createObservable(): Observable<SgiRestListResult<IFuenteFinanciacion>> {
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, 'createObservable()', 'start');
     const observable$ = this.fuenteFinanciacionService.findTodos(this.getFindOptions());
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, 'createObservable()', 'end');
     return observable$;
   }
 
   protected initColumns(): void {
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, 'initColumns()', 'start');
-
     let columns = ['nombre', 'descripcion', 'tipoAmbitoGeografico.nombre',
       'tipoOrigenFuenteFinanciacion.nombre', 'fondoEstructural', 'activo', 'acciones'];
 
@@ -108,41 +100,34 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
     }
 
     this.columnas = columns;
-
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, 'initColumns()', 'end');
   }
 
   protected loadTable(reset?: boolean): void {
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, `loadTable(${reset})`, 'start');
     this.fuenteFinanciacion$ = this.getObservableLoadTable(reset);
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, `loadTable(${reset})`, 'end');
   }
 
-  protected createFilters(): SgiRestFilter[] {
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, `${this.createFilters.name}()`, 'start');
-    const filtros = [];
-    this.addFiltro(filtros, 'nombre', SgiRestFilterType.LIKE, this.formGroup.controls.nombre.value);
-    if (this.formGroup.controls.activo.value !== 'todos') {
-      this.addFiltro(filtros, 'activo', SgiRestFilterType.EQUALS, this.formGroup.controls.activo.value);
+  protected createFilter(): SgiRestFilter {
+    const controls = this.formGroup.controls;
+    const filter = new RSQLSgiRestFilter('nombre', SgiRestFilterOperator.LIKE_ICASE, controls.nombre.value);
+    if (controls.activo.value !== 'todos') {
+      filter.and('activo', SgiRestFilterOperator.EQUALS, controls.activo.value);
     }
-    this.addFiltro(filtros, 'tipoAmbitoGeografico.nombre', SgiRestFilterType.LIKE, this.formGroup.controls.ambitoGeografico.value.nombre);
-    this.addFiltro(filtros, 'tipoOrigenFuenteFinanciacion.nombre', SgiRestFilterType.LIKE, this.formGroup.controls.origen.value.nombre);
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, `${this.createFilters.name}()`, 'end');
-    return filtros;
+    filter
+      .and('tipoAmbitoGeografico.nombre', SgiRestFilterOperator.LIKE_ICASE, controls.ambitoGeografico.value.nombre)
+      .and('tipoOrigenFuenteFinanciacion.nombre', SgiRestFilterOperator.LIKE_ICASE, controls.origen.value.nombre);
+
+    return filter;
   }
 
   onClearFilters() {
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, `${this.onClearFilters.name}()`, 'start');
-    this.formGroup.controls.activo.setValue(true);
+    this.formGroup.controls.activo.setValue('true');
     this.formGroup.controls.nombre.setValue('');
     this.formGroup.controls.ambitoGeografico.setValue('');
     this.formGroup.controls.origen.setValue('');
     this.onSearch();
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, `${this.onClearFilters.name}()`, 'end');
   }
 
   private loadAmbitosGeograficos() {
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, 'loadAmbitosGeograficos()', 'start');
     this.suscripciones.push(
       this.ambitoGeograficoService.findAll().subscribe(
         (res: SgiRestListResult<ITipoAmbitoGeografico>) => {
@@ -153,19 +138,16 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
               startWith(''),
               map(value => this.filtroAmbitoGeografico(value))
             );
-          this.logger.debug(FuenteFinanciacionListadoComponent.name, 'loadAmbitosGeograficos()', 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_INIT);
-          this.logger.debug(FuenteFinanciacionListadoComponent.name, 'loadAmbitosGeograficos()', 'end');
         }
       )
     );
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, 'loadAmbitosGeograficos()', 'end');
   }
 
   private loadOrigenes() {
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, 'loadOrigenes()', 'start');
     this.suscripciones.push(
       this.tipoOrigenFuenteFinanciacionService.findAll().subscribe(
         (res: SgiRestListResult<ITipoOrigenFuenteFinanciacion>) => {
@@ -176,15 +158,13 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
               startWith(''),
               map(value => this.filtroOrigen(value))
             );
-          this.logger.debug(FuenteFinanciacionListadoComponent.name, 'loadOrigenes()', 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_INIT);
-          this.logger.debug(FuenteFinanciacionListadoComponent.name, 'loadOrigenes()', 'end');
         }
       )
     );
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, 'loadOrigenes()', 'end');
   }
 
   /**
@@ -193,7 +173,6 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
    * @returns nombre de un ámbito geográfico.
    */
   getAmbitoGeografico(ambitoGeografico?: ITipoAmbitoGeografico): string | undefined {
-    console.log(typeof ambitoGeografico);
     return typeof ambitoGeografico === 'string' ? ambitoGeografico : ambitoGeografico?.nombre;
   }
 
@@ -233,7 +212,6 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
    * @param fuenteFinanciacion Fuente de Financiación
    */
   openModal(fuenteFinanciacion?: IFuenteFinanciacion): void {
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, `${this.openModal.name}(fuenteFinanciacion?: IFuenteFinanciacion)`, 'start');
     const config = {
       width: GLOBAL_CONSTANTS.widthModalCSP,
       maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
@@ -251,12 +229,11 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
               this.snackBarService.showSuccess(fuenteFinanciacion ? MSG_UPDATE : MSG_SAVE);
               this.loadTable();
             },
-            () => {
+            (error) => {
+              this.logger.error(error);
               this.snackBarService.showError(fuenteFinanciacion ? MSG_ERROR_UPDATE : MSG_ERROR_SAVE);
-            },
-            () => {
-              this.logger.debug(FuenteFinanciacionModalComponent.name, `${this.openModal.name}(fuenteFinanciacion?: IFuenteFinanciacion)`, 'end');
-            });
+            }
+          );
         }
       });
   }
@@ -266,9 +243,6 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
    * @param fuenteFinanciacion  Fuente de Financiación.
    */
   deactivateFuenteFinanciacion(fuenteFinanciacion: IFuenteFinanciacion): void {
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, `${this.deactivateFuenteFinanciacion.name}()`, 'start');
-    this.logger.debug(FuenteFinanciacionListadoComponent.name,
-      `${this.deactivateFuenteFinanciacion.name}(fuenteFinanciacion: ${fuenteFinanciacion})`, 'start');
     const subcription = this.dialogService.showConfirmation(MSG_DEACTIVATE)
       .pipe(switchMap((accept) => {
         if (accept) {
@@ -280,13 +254,10 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_DEACTIVATE);
           this.loadTable();
-          this.logger.debug(FuenteFinanciacionListadoComponent.name,
-            `${this.deactivateFuenteFinanciacion.name}(fuenteFinanciacion: ${fuenteFinanciacion})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_DEACTIVATE);
-          this.logger.debug(FuenteFinanciacionListadoComponent.name,
-            `${this.deactivateFuenteFinanciacion.name}(fuenteFinanciacion: ${fuenteFinanciacion})`, 'end');
         }
       );
     this.suscripciones.push(subcription);
@@ -297,9 +268,6 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
    * @param fuenteFinanciacion  Fuente de Financiación.
    */
   activateFuenteFinanciacion(fuenteFinanciacion: IFuenteFinanciacion): void {
-    this.logger.debug(FuenteFinanciacionListadoComponent.name, `${this.activateFuenteFinanciacion.name}()`, 'start');
-    this.logger.debug(FuenteFinanciacionListadoComponent.name,
-      `${this.activateFuenteFinanciacion.name}(fuenteFinanciacion: ${fuenteFinanciacion})`, 'start');
     const subcription = this.dialogService.showConfirmation(MSG_REACTIVE)
       .pipe(switchMap((accept) => {
         if (accept) {
@@ -311,13 +279,10 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
         () => {
           this.snackBarService.showSuccess(MSG_SUCCESS_REACTIVE);
           this.loadTable();
-          this.logger.debug(FuenteFinanciacionListadoComponent.name,
-            `${this.activateFuenteFinanciacion.name}(fuenteFinanciacion: ${fuenteFinanciacion})`, 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_REACTIVE);
-          this.logger.debug(FuenteFinanciacionListadoComponent.name,
-            `${this.activateFuenteFinanciacion.name}(fuenteFinanciacion: ${fuenteFinanciacion})`, 'end');
         }
       );
     this.suscripciones.push(subcription);

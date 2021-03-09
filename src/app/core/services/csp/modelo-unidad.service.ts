@@ -1,14 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { IModeloUnidad } from '@core/models/csp/modelo-unidad';
-import { environment } from '@env';
-import { SgiRestFindOptions, SgiRestListResult, SgiMutableRestService } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
 import { IModeloEjecucion } from '@core/models/csp/tipos-configuracion';
 import { IUnidadGestion } from '@core/models/usr/unidad-gestion';
+import { environment } from '@env';
 import { SgiBaseConverter } from '@sgi/framework/core';
+import { SgiMutableRestService, SgiRestFindOptions, SgiRestListResult } from '@sgi/framework/http';
+import { Observable } from 'rxjs';
 
 
 export interface IModeloUnidadBackend {
@@ -53,10 +51,9 @@ export class ModeloUnidadService extends
     }
   }();
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
+  constructor(protected http: HttpClient) {
     super(
       ModeloUnidadService.name,
-      logger,
       `${environment.serviceServers.csp}${ModeloUnidadService.MAPPING}`,
       http, ModeloUnidadService.CONVERTER
     );
@@ -67,10 +64,7 @@ export class ModeloUnidadService extends
    * @param options opciones de búsqueda.
    */
   findTodos(options?: SgiRestFindOptions): Observable<SgiRestListResult<IModeloUnidad>> {
-    this.logger.debug(ModeloUnidadService.name, `${this.findTodos.name}(`, '-', 'START');
-    return this.find<IModeloUnidadBackend, IModeloUnidad>(`${this.endpointUrl}/todos`, options).pipe(
-      tap(() => this.logger.debug(ModeloUnidadService.name, `${this.findTodos.name}()`, '-', 'END'))
-    );
+    return this.find<IModeloUnidadBackend, IModeloUnidad>(`${this.endpointUrl}/todos`, options);
   }
 
 }

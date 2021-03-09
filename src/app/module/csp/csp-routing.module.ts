@@ -7,9 +7,12 @@ import { SgiAuthGuard } from '@sgi/framework/auth';
 import { CspRootComponent } from './csp-root/csp-root.component';
 import { CSP_ROUTE_NAMES } from './csp-route-names';
 import { CspInicioComponent } from './csp-inicio/csp-inicio.component';
+import { MSG_PARAMS } from '@core/i18n';
 
 const MSG_ROOT_TITLE = marker('csp.root.title');
 const MSG_CONVOCATORIA_TITLE = marker('menu.principal.csp.convocatoria');
+const MSG_CONVOCATORIA_CONCEPTO_GASTO_TITLE = marker('menu.principal.csp.convocatoria-concepto-gasto');
+const MSG_SOLICITUD_TITLE = marker('menu.principal.csp.solicitudes');
 const MSG_TIPO_ENLACE_TITLE = marker('menu.principal.csp.tipo.enlace');
 const MSG_TIPO_HITO_TITLE = marker('menu.principal.csp.tipo.hito');
 const MSG_TIPO_FINALIDAD_TITLE = marker('menu.principal.csp.tipo.finalidad');
@@ -21,6 +24,12 @@ const MSG_TIPO_FINANCIACION_TITLE = marker('menu.principal.csp.tipo.financiacion
 
 const MSG_FUENTE_FINANCIACION_TITLE = marker('menu.principal.csp.fuenteFinanciacion');
 const MSG_AREA_TEMATICA_TITLE = marker('menu.principal.csp.area.tematica');
+const PROYECTO_KEY = marker('csp.proyecto');
+const MSG_SOLICITUD_PROYECTO_SOCIO = marker('menu.principal.csp.solicitud-proyecto-socio');
+const MSG_PROYECTO_SOCIO_TITLE = marker('menu.principal.csp.proyecto-socio');
+const MSG_PROYECTO_PERIODO_SEGUIMIENTO_TITLE = marker('menu.principal.csp.proyecto-periodo-seguimiento');
+const MSG_PROYECTO_PRORROGA_TITLE = marker('menu.principal.csp.proyecto-prorroga');
+const MSG_SOLICITUD_PROYECTO_PRESUPUESTO = marker('menu.principal.csp.solicitud-proyecto-presupuesto');
 
 const routes: SgiRoutes = [
   {
@@ -46,7 +55,74 @@ const routes: SgiRoutes = [
           ),
         canActivate: [SgiAuthGuard],
         data: {
-          title: MSG_CONVOCATORIA_TITLE,
+          title: MSG_CONVOCATORIA_TITLE
+        }
+      },
+      {
+        path: CSP_ROUTE_NAMES.CONVOCATORIA_CONCEPTO_GASTO,
+        loadChildren: () =>
+          import('./convocatoria-concepto-gasto/convocatoria-concepto-gasto.module').then(
+            (m) => m.ConvocatoriaConceptoGastoModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: MSG_CONVOCATORIA_CONCEPTO_GASTO_TITLE,
+        }
+      },
+      {
+        path: CSP_ROUTE_NAMES.SOLICITUD,
+        loadChildren: () =>
+          import('./solicitud/solicitud.module').then(
+            (m) => m.SolicitudModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: MSG_SOLICITUD_TITLE
+        }
+      },
+      {
+        path: CSP_ROUTE_NAMES.PROYECTO,
+        loadChildren: () =>
+          import('./proyecto/proyecto.module').then(
+            (m) => m.ProyectoModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: PROYECTO_KEY,
+          titleParams: MSG_PARAMS.CARDINALIRY.PLURAL
+        }
+      },
+      {
+        path: CSP_ROUTE_NAMES.PROYECTO_SOCIO,
+        loadChildren: () =>
+          import('./proyecto-socio/proyecto-socio.module').then(
+            (m) => m.ProyectoSocioModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: MSG_PROYECTO_SOCIO_TITLE
+        }
+      },
+      {
+        path: CSP_ROUTE_NAMES.PROYECTO_SEGUIMIENTO_CIENTIFICO,
+        loadChildren: () =>
+          import('./proyecto-periodo-seguimiento/proyecto-periodo-seguimiento.module').then(
+            (m) => m.ProyectoPeriodoSeguimientoModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: MSG_PROYECTO_PERIODO_SEGUIMIENTO_TITLE
+        }
+      },
+      {
+        path: CSP_ROUTE_NAMES.PROYECTO_PRORROGA,
+        loadChildren: () =>
+          import('./proyecto-prorroga/proyecto-prorroga.module').then(
+            (m) => m.ProyectoProrrogaModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: MSG_PROYECTO_PRORROGA_TITLE
         }
       },
       {
@@ -57,7 +133,7 @@ const routes: SgiRoutes = [
           ),
         canActivate: [SgiAuthGuard],
         data: {
-          title: MSG_TIPO_DOCUMENTO_TITLE,
+          title: MSG_TIPO_DOCUMENTO_TITLE
         }
       },
       {
@@ -68,7 +144,7 @@ const routes: SgiRoutes = [
           ),
         canActivate: [SgiAuthGuard],
         data: {
-          title: MSG_TIPO_FINALIDAD_TITLE,
+          title: MSG_TIPO_FINALIDAD_TITLE
         }
       },
       {
@@ -79,7 +155,7 @@ const routes: SgiRoutes = [
           ),
         canActivate: [SgiAuthGuard],
         data: {
-          title: MSG_MODELO_EJECUCION_TITLE,
+          title: MSG_MODELO_EJECUCION_TITLE
         }
       },
       {
@@ -90,7 +166,7 @@ const routes: SgiRoutes = [
           ),
         canActivate: [SgiAuthGuard],
         data: {
-          title: MSG_TIPO_ENLACE_TITLE,
+          title: MSG_TIPO_ENLACE_TITLE
         }
 
       },
@@ -102,7 +178,7 @@ const routes: SgiRoutes = [
           ),
         canActivate: [SgiAuthGuard],
         data: {
-          title: MSG_TIPO_HITO_TITLE,
+          title: MSG_TIPO_HITO_TITLE
         }
       },
       {
@@ -113,7 +189,7 @@ const routes: SgiRoutes = [
           ),
         canActivate: [SgiAuthGuard],
         data: {
-          title: MSG_CONVOCATORIA_TITLE,
+          title: MSG_CONVOCATORIA_TITLE
         }
       },
       {
@@ -125,7 +201,6 @@ const routes: SgiRoutes = [
         canActivate: [SgiAuthGuard],
         data: {
           title: MSG_PLAN_INVESTIGACION_TITLE
-
         }
       },
       {
@@ -136,7 +211,7 @@ const routes: SgiRoutes = [
           ),
         canActivate: [SgiAuthGuard],
         data: {
-          title: MSG_GESTION_CONCEPTO_GASTO_TITLE,
+          title: MSG_GESTION_CONCEPTO_GASTO_TITLE
         }
       },
       {
@@ -147,7 +222,7 @@ const routes: SgiRoutes = [
           ),
         canActivate: [SgiAuthGuard],
         data: {
-          title: MSG_TIPO_FINANCIACION_TITLE,
+          title: MSG_TIPO_FINANCIACION_TITLE
         }
       },
       {
@@ -158,7 +233,7 @@ const routes: SgiRoutes = [
           ),
         canActivate: [SgiAuthGuard],
         data: {
-          title: MSG_FUENTE_FINANCIACION_TITLE,
+          title: MSG_FUENTE_FINANCIACION_TITLE
         }
       },
       {
@@ -169,7 +244,51 @@ const routes: SgiRoutes = [
           ),
         canActivate: [SgiAuthGuard],
         data: {
-          title: MSG_AREA_TEMATICA_TITLE,
+          title: MSG_AREA_TEMATICA_TITLE
+        }
+      },
+      {
+        path: CSP_ROUTE_NAMES.SOLICITUD_PROYECTO_SOCIO,
+        loadChildren: () =>
+          import('./solicitud-proyecto-socio/solicitud-proyecto-socio.module').then(
+            (m) => m.SolicitudProyectoSocioModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: MSG_SOLICITUD_PROYECTO_SOCIO
+        }
+      },
+      {
+        path: CSP_ROUTE_NAMES.PROYECTO_SOCIO_PERIODO_JUSTIFICACION,
+        loadChildren: () =>
+          import('./proyecto-socio-periodo-justificacion/proyecto-socio-periodo-justificacion.module').then(
+            (m) => m.ProyectoSocioPeriodoJustificacionModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: MSG_SOLICITUD_PROYECTO_SOCIO
+        }
+      },
+      {
+        path: CSP_ROUTE_NAMES.SOLICITUD_PROYECTO_PRESUPUESTO,
+        loadChildren: () =>
+          import('./solicitud-proyecto-presupuesto/solicitud-proyecto-presupuesto.module').then(
+            (m) => m.SolicitudProyectoPresupuestoModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: MSG_SOLICITUD_PROYECTO_PRESUPUESTO
+        }
+      },
+      {
+        path: CSP_ROUTE_NAMES.SOLICITUD_PROYECTO_PRESUPUESTO_AJENA,
+        loadChildren: () =>
+          import('./solicitud-proyecto-presupuesto/solicitud-proyecto-presupuesto-ajena.module').then(
+            (m) => m.SolicitudProyectoPresupuestoAjenaModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: MSG_SOLICITUD_PROYECTO_PRESUPUESTO
         }
       },
       { path: '**', component: null }

@@ -2,35 +2,35 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { IPlazosFases } from '@core/models/csp/plazos-fases';
+import { IConvocatoriaFase } from '@core/models/csp/convocatoria-fase';
+import { IModeloTipoFase } from '@core/models/csp/modelo-tipo-fase';
+import { ITipoFase } from '@core/models/csp/tipos-configuracion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ModeloEjecucionService } from '@core/services/csp/modelo-ejecucion.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
+import { DateUtils } from '@core/utils/date-utils';
 import { FormGroupUtil } from '@core/utils/form-group-util';
+import { DateValidator } from '@core/validators/date-validator';
+import { NullIdValidador } from '@core/validators/null-id-validador';
+import { IRange, RangeValidator } from '@core/validators/range-validator';
 import { SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
-import { Observable, Subscription, of } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
-import { IConvocatoriaFase } from '@core/models/csp/convocatoria-fase';
-import { DateValidator } from '@core/validators/date-validator';
-import { IModeloTipoFase } from '@core/models/csp/modelo-tipo-fase';
-import { ConvocatoriaService } from '@core/services/csp/convocatoria.service';
-import { ITipoFase } from '@core/models/csp/tipos-configuracion';
-import { RangeValidator } from '@core/validators/range-validator';
-import { DateUtils } from '@core/utils/date-utils';
+import { Observable, Subscription } from 'rxjs';
+import { map, startWith, tap } from 'rxjs/operators';
 
 const MSG_ERROR_FORM_GROUP = marker('form-group.error');
 const MSG_ERROR_INIT = marker('csp.convocatoria.plazos.fases.error.cargar');
 const MSG_ERROR_TIPOS = marker('csp.convocatoria.tipo.fases.error.cargar');
-
+const MSG_ANADIR = marker('botones.aniadir');
+const MSG_ACEPTAR = marker('botones.aceptar');
 export interface ConvocatoriaPlazosFaseModalComponentData {
-  plazos: any;
+  plazos: IConvocatoriaFase[];
   plazo: IConvocatoriaFase;
   idModeloEjecucion: number;
+  readonly: boolean;
 }
 @Component({
-  selector: 'sgi-convocatoria-plazos-fase-modal',
   templateUrl: './convocatoria-plazos-fase-modal.component.html',
   styleUrls: ['./convocatoria-plazos-fase-modal.component.scss']
 })
@@ -41,24 +41,26 @@ export class ConvocatoriaPlazosFaseModalComponent implements OnInit, OnDestroy {
   fxFlexProperties2: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
   fxLayoutProperties2: FxLayoutProperties;
-
-  FormGroupUtil = FormGroupUtil;
   modeloTipoFases$: Observable<IModeloTipoFase[]>;
 
   private modeloTipoFasesFiltered: IModeloTipoFase[];
+  private suscripciones: Subscription[] = [];
 
-  suscripciones: Subscription[];
+  textSaveOrUpdate: string;
+
+  /** ngx-mat-datetime-picker */
+  showSeconds = true;
+  defaultTimeStart = [0, 0, 0];
+  defaultTimeEnd = [23, 59, 59];
+  /** ngx-mat-datetime-picker */
 
   constructor(
     private readonly logger: NGXLogger,
-    private readonly snackBarService: SnackBarService,
-    @Inject(MAT_DIALOG_DATA) private data: ConvocatoriaPlazosFaseModalComponentData,
-    public readonly matDialogRef: MatDialogRef<ConvocatoriaPlazosFaseModalComponent>,
-    private readonly modeloEjecucionService: ModeloEjecucionService,
-    private readonly convocatoriaService: ConvocatoriaService
+    private snackBarService: SnackBarService,
+    @Inject(MAT_DIALOG_DATA) public data: ConvocatoriaPlazosFaseModalComponentData,
+    public matDialogRef: MatDialogRef<ConvocatoriaPlazosFaseModalComponent>,
+    private modeloEjecucionService: ModeloEjecucionService,
   ) {
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'constructor()', 'start');
-
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.layout = 'row';
     this.fxLayoutProperties.layoutAlign = 'row';
@@ -80,87 +82,95 @@ export class ConvocatoriaPlazosFaseModalComponent implements OnInit, OnDestroy {
     this.fxFlexProperties2.md = '0 1 calc(50%-10px)';
     this.fxFlexProperties2.gtMd = '0 1 calc(50%-10px)';
     this.fxFlexProperties2.order = '3';
-
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'ngOnInit()', 'start');
-    this.suscripciones = [];
     this.initFormGroup();
     this.loadTipoFases();
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'ngOnInit()', 'start');
+    this.textSaveOrUpdate = this.data.plazo.fechaInicio ? MSG_ACEPTAR : MSG_ANADIR;
   }
 
   /**
    * Inicializa formulario de creación/edición de plazos y fases
    */
   private initFormGroup() {
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'initFormGroup()', 'start');
-
-    const rangosFasesExistentes = this.data.plazos
-      .filter(fase => fase.value.fechaInicio !== this.data.plazos.fechaInicio)
-      .map(fase => {
-        return {
-          inicio: DateUtils.fechaToDate(fase.value.fechaInicio).getTime(),
-          fin: DateUtils.fechaToDate(fase.value.fechaFin).getTime()
-        };
-      });
-
     this.formGroup = new FormGroup({
       fechaInicio: new FormControl(this.data?.plazo?.fechaInicio, [Validators.required]),
-      fechaFin: new FormControl(this.data?.plazo?.fechaFin, [Validators.required]),
-      tipoFase: new FormControl(this.data?.plazo?.tipoFase, [Validators.required]),
+      fechaFin: new FormControl(this.data?.plazo?.fechaFin, Validators.required),
+      tipoFase: new FormControl(this.data?.plazo?.tipoFase, [Validators.required, new NullIdValidador().isValid()]),
       observaciones: new FormControl(this.data?.plazo?.observaciones, [Validators.maxLength(250)])
-    },
-      {
-        validators: [
-          DateValidator.isAfter('fechaInicio', 'fechaFin'),
-          DateValidator.isBefore('fechaFin', 'fechaInicio'),
-          RangeValidator.notOverlaps('fechaInicio', 'fechaFin', rangosFasesExistentes)
-        ],
-      });
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'initFormGroup()', 'end');
+    });
+
+    if (this.data.readonly) {
+      this.formGroup.disable();
+    }
+
+    this.createValidatorDate(this.data?.plazo?.tipoFase);
+
+    const suscription = this.formGroup.controls.tipoFase.valueChanges.pipe(tap((value) => this.createValidatorDate(value))).subscribe();
+    this.suscripciones.push(suscription);
+  }
+
+  /**
+   * Validacion del rango de fechas a la hora de seleccionar
+   * un tipo de fase en el modal
+   * @param tipoFase convocatoria tipoFase
+   */
+  private createValidatorDate(tipoFase: ITipoFase | string): void {
+    let rangoFechas: IRange[] = [];
+    if (tipoFase && typeof tipoFase !== 'string') {
+      const convocatoriasFases = this.data.plazos.filter(plazo =>
+        plazo.tipoFase.id === (tipoFase as ITipoFase).id &&
+        (plazo.fechaInicio !== this.data.plazo.fechaInicio && plazo.fechaFin !== this.data.plazo.fechaFin));
+      rangoFechas = convocatoriasFases.map(
+        fase => {
+          const rango: IRange = {
+            inicio: DateUtils.fechaToDate(fase.fechaInicio).getTime(),
+            fin: DateUtils.fechaToDate(fase.fechaFin).getTime()
+          };
+          return rango;
+        }
+      );
+    }
+    this.formGroup.setValidators([
+      DateValidator.isAfter('fechaInicio', 'fechaFin'),
+      DateValidator.isBefore('fechaFin', 'fechaInicio'),
+      RangeValidator.notOverlaps('fechaInicio', 'fechaFin', rangoFechas)
+    ]);
   }
 
   loadTipoFases() {
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'loadTipoFases()', 'start');
-    this.suscripciones.push(this.modeloEjecucionService.findModeloTipoFase(this.data.idModeloEjecucion).subscribe(
-      (res: SgiRestListResult<IModeloTipoFase>) => {
-        this.modeloTipoFasesFiltered = res.items;
-        this.modeloTipoFases$ = this.formGroup.controls.tipoFase.valueChanges
-          .pipe(
-            startWith(''),
-            map(value => this.filtroTipoPlazosFase(value))
-          );
-        this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'loadTipoFases()', 'end');
-      },
-      () => {
-        if (this.data.idModeloEjecucion) {
-          this.snackBarService.showError(MSG_ERROR_INIT);
-        } else {
-          this.snackBarService.showError(MSG_ERROR_TIPOS);
-        }
-        this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'loadTipoFases()', 'end');
-      })
+    this.suscripciones.push(
+      this.modeloEjecucionService.findModeloTipoFaseModeloEjecucionConvocatoria(this.data.idModeloEjecucion).subscribe(
+        (res: SgiRestListResult<IModeloTipoFase>) => {
+          this.modeloTipoFasesFiltered = res.items;
+          this.modeloTipoFases$ = this.formGroup.controls.tipoFase.valueChanges
+            .pipe(
+              startWith(''),
+              map(value => this.filtroTipoPlazosFase(value))
+            );
+        },
+        (error) => {
+          this.logger.error(error);
+          if (this.data.idModeloEjecucion) {
+            this.snackBarService.showError(MSG_ERROR_INIT);
+          } else {
+            this.snackBarService.showError(MSG_ERROR_TIPOS);
+          }
+        })
     );
-
-
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'loadTipoFases()', 'end');
   }
 
   /**
    * Actualizar o guardar datos
    */
   saveOrUpdate(): void {
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'saveOrUpdate()', 'start');
     if (FormGroupUtil.valid(this.formGroup)) {
       this.loadDatosForm();
       this.closeModal(this.data.plazo);
     } else {
       this.snackBarService.showError(MSG_ERROR_FORM_GROUP);
     }
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'saveOrUpdate()', 'end');
   }
 
   /**
@@ -169,12 +179,10 @@ export class ConvocatoriaPlazosFaseModalComponent implements OnInit, OnDestroy {
    * @returns Comentario con los datos del formulario
    */
   private loadDatosForm(): void {
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'loadDatosForm()', 'start');
     this.data.plazo.fechaInicio = FormGroupUtil.getValue(this.formGroup, 'fechaInicio');
     this.data.plazo.fechaFin = FormGroupUtil.getValue(this.formGroup, 'fechaFin');
     this.data.plazo.tipoFase = FormGroupUtil.getValue(this.formGroup, 'tipoFase');
     this.data.plazo.observaciones = FormGroupUtil.getValue(this.formGroup, 'observaciones');
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'loadDatosForm()', 'end');
   }
 
   /**
@@ -183,7 +191,6 @@ export class ConvocatoriaPlazosFaseModalComponent implements OnInit, OnDestroy {
    * @returns nombre de plazos fase
    */
   getTipoPlazosFase(tipoFase?: ITipoFase): string | undefined {
-    console.log(tipoFase);
     return typeof tipoFase === 'string' ? tipoFase : tipoFase?.nombre;
   }
 
@@ -194,7 +201,8 @@ export class ConvocatoriaPlazosFaseModalComponent implements OnInit, OnDestroy {
    */
   filtroTipoPlazosFase(value: string): IModeloTipoFase[] {
     const filterValue = value.toString().toLowerCase();
-    return this.modeloTipoFasesFiltered.filter(modeloTipoFase => modeloTipoFase.tipoFase?.nombre?.toLowerCase().includes(filterValue));
+    return this.modeloTipoFasesFiltered.filter(modeloTipoFase =>
+      modeloTipoFase.tipoFase?.nombre?.toLowerCase().includes(filterValue));
   }
 
   /**
@@ -202,16 +210,11 @@ export class ConvocatoriaPlazosFaseModalComponent implements OnInit, OnDestroy {
    *
    */
   closeModal(plazos?: IConvocatoriaFase): void {
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'closeModal()', 'start');
     this.matDialogRef.close(plazos);
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'closeModal()', 'end');
   }
 
   ngOnDestroy(): void {
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'ngOnDestroy()', 'start');
     this.suscripciones?.forEach(x => x.unsubscribe());
-    this.logger.debug(ConvocatoriaPlazosFaseModalComponent.name, 'ngOnDestroy()', 'end');
   }
-
 
 }

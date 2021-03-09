@@ -1,6 +1,6 @@
 import { Observable, BehaviorSubject, Subscription, throwError, from, of } from 'rxjs';
 import { FormGroup, AbstractControl, FormControl } from '@angular/forms';
-import { OnDestroy } from '@angular/core';
+import { Directive, OnDestroy } from '@angular/core';
 import { mergeMap, tap, filter, switchMap, takeLast } from 'rxjs/operators';
 
 export interface IActionService {
@@ -37,7 +37,7 @@ export interface IActionService {
   getActionLinks(): ActionLink[];
 }
 
-interface GroupStatus {
+export interface GroupStatus {
   /**
    * The nested form group is filled. Only meaningful on creation
    */
@@ -237,12 +237,12 @@ export interface ActionLink {
   routerLink: string | string[];
 }
 
-
 export abstract class Fragment implements IFragment {
-  status$: BehaviorSubject<FragmentStatus>;
+  readonly status$: BehaviorSubject<FragmentStatus>;
   private key: number | string;
   private edit: boolean;
-  private initialized: boolean;
+  readonly initialized$: BehaviorSubject<boolean>;
+  protected subscriptions: Subscription[] = [];
 
   /**
    * Default constructor
@@ -252,6 +252,7 @@ export abstract class Fragment implements IFragment {
     this.key = key;
     this.edit = key ? true : false;
     this.status$ = new BehaviorSubject<FragmentStatus>({ errors: false, changes: false, complete: false, edit: this.edit });
+    this.initialized$ = new BehaviorSubject<boolean>(false);
   }
 
   isEdit(): boolean {
@@ -259,9 +260,9 @@ export abstract class Fragment implements IFragment {
   }
 
   initialize(): void {
-    if (!this.initialized) {
+    if (!this.initialized$.value) {
       this.onInitialize();
-      this.initialized = true;
+      this.initialized$.next(true);
     }
   }
 
@@ -283,7 +284,7 @@ export abstract class Fragment implements IFragment {
   }
 
   isInitialized(): boolean {
-    return this.initialized;
+    return this.initialized$.value;
   }
 
   refreshInitialState(transitionToEdit?: boolean): void {
@@ -293,7 +294,9 @@ export abstract class Fragment implements IFragment {
     this.status$.next({ errors: false, changes: false, complete: false, edit: this.isEdit() });
   }
 
-  destroy(): void { }
+  destroy(): void {
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
+  }
 
   setComplete(value: boolean): void {
     const current = this.status$.value;
@@ -337,12 +340,12 @@ export abstract class Fragment implements IFragment {
 }
 
 export abstract class FormFragment<T> implements IFormFragment<T> {
-  status$: BehaviorSubject<FragmentStatus>;
+  readonly status$: BehaviorSubject<FragmentStatus>;
   private formStatus: GroupStatus;
   private complementStatus: FragmentStatus;
   private auxiliarStatus: boolean;
   private group: IGroup;
-  private initialized: boolean;
+  readonly initialized$: BehaviorSubject<boolean>;
   protected subscriptions: Subscription[] = [];
   private key: number | string;
   private edit: boolean;
@@ -360,6 +363,7 @@ export abstract class FormFragment<T> implements IFormFragment<T> {
     this.status$ = new BehaviorSubject<FragmentStatus>({ errors: false, changes: false, complete: false, edit: this.edit });
     this.formStatus = { changes: false, errors: false, complete: false };
     this.complementStatus = { errors: false, changes: false, complete: !this.edit && !enableComplementaryStatus, edit: this.edit };
+    this.initialized$ = new BehaviorSubject<boolean>(false);
   }
 
   /**
@@ -388,7 +392,7 @@ export abstract class FormFragment<T> implements IFormFragment<T> {
   }
 
   initialize(): void {
-    if (!this.initialized) {
+    if (!this.initialized$.value) {
       this.group.load(this.buildFormGroup());
       if (this.key) {
         this.initializer(this.key).subscribe((initialValue) => {
@@ -408,7 +412,7 @@ export abstract class FormFragment<T> implements IFormFragment<T> {
         }));
       }
 
-      this.initialized = true;
+      this.initialized$.next(true);
     }
   }
 
@@ -417,7 +421,7 @@ export abstract class FormFragment<T> implements IFormFragment<T> {
   }
 
   isInitialized(): boolean {
-    return this.initialized;
+    return this.initialized$.value;
   }
 
   /**
@@ -530,6 +534,8 @@ export class Group implements IGroup {
   private initialState: any;
   private subscriptions: Subscription[] = [];
   private editing: boolean;
+  private forcingUpdate = false;
+  initialized = false;
 
   load(form: FormGroup): void {
     this.form = form;
@@ -537,33 +543,37 @@ export class Group implements IGroup {
   }
 
   initialize(): void {
-    this.subscriptions.push(this.form.valueChanges.subscribe((ev) => {
-      if (this.editing) {
-        this.checkChanges();
-        if (this.isValid()) {
-          this.publishComplete(true);
+    if (!this.initialized) {
+      this.subscriptions.push(this.form.valueChanges.subscribe((ev) => {
+        if (this.editing) {
+          this.checkChanges();
+          if (this.isValid()) {
+            this.publishComplete(true);
+          }
         }
-      }
-      else {
-        this.publishChanges(true);
-      }
-    }));
+        else if (!this.forcingUpdate) {
+          this.publishChanges(true);
+        }
+        this.forcingUpdate = false;
+      }));
 
-    this.subscriptions.push(this.form.statusChanges.subscribe((ev) => {
-      this.checkErrors();
-      if (!this.editing) {
-        if (this.isValid() && !this.hasErrors()) {
-          this.publishComplete(true);
+      this.subscriptions.push(this.form.statusChanges.subscribe((ev) => {
+        this.checkErrors();
+        if (!this.editing) {
+          if (this.isValid() && !this.hasErrors()) {
+            this.publishComplete(true);
+          }
+          else {
+            this.publishComplete(false);
+          }
         }
-        else {
-          this.publishComplete(false);
-        }
-      }
-    }));
+      }));
+      this.initialized = true;
+    }
   }
 
   patch(value: { [key: string]: any }) {
-    this.form.patchValue(value, { onlySelf: false, emitEvent: false });
+    this.form.patchValue(value, { onlySelf: false, emitEvent: true });
     this.initialState = this.form.value;
     this.editing = true;
   }
@@ -664,6 +674,7 @@ export class Group implements IGroup {
     if (markAllTouched) {
       this.form.markAllAsTouched();
     }
+    this.forcingUpdate = true;
     this.form.updateValueAndValidity({ onlySelf: false, emitEvent: true });
   }
 
@@ -720,6 +731,8 @@ export class Group implements IGroup {
   }
 }
 
+@Directive()
+// tslint:disable-next-line: directive-class-suffix
 export abstract class ActionService implements IActionService, OnDestroy {
 
   private fragments = new Map<string, IFragment>();

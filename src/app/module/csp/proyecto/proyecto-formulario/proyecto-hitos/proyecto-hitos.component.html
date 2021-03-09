@@ -1,0 +1,65 @@
+<section class="proyecto-hitos">
+  <h2>{{'csp.proyecto.hitos.title' | translate}}</h2>
+
+  <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSource" matSort matSortActive="id"
+    matSortDirection="asc" matSortDisableClear>
+
+    <!-- Tipo hito Column -->
+    <ng-container matColumnDef="tipoHito">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.hitos.tipo.hito' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.tipoHito.nombre}} </td>
+    </ng-container>
+
+    <!-- Fecha Column -->
+    <ng-container matColumnDef="fecha">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.hitos.fecha' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.fecha | date:'dd/MM/yyyy'}} </td>
+    </ng-container>
+
+    <!-- Comentario Column -->
+    <ng-container matColumnDef="comentario">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.hitos.comentario' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.comentario}} </td>
+    </ng-container>
+
+    <!-- Aviso Column -->
+    <ng-container matColumnDef="aviso">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.hitos.aviso' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{wrapper.value.generaAviso ? ('label.si' | translate) : 'label.no' | translate}} </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'columna.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let hito">
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" *ngIf="!formPart.readonly"
+            (click)="openModal(hito)">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}" *ngIf="!formPart.readonly"
+            (click)="deleteHito(hito)">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+  </table>
+
+  <mat-paginator [pageSizeOptions]="elementosPagina" showFirstLastButtons>
+  </mat-paginator>
+
+  <div class="separation-button">
+    <!-- Botón añadir hitos -->
+    <button color="three" mat-button mat-raised-button *ngIf="!formPart.readonly" (click)="openModal()">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.proyecto.hitos.añadir' | translate}}
+    </button>
+  </div>
+</section>

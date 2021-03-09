@@ -1,12 +1,9 @@
 import { IConvocatoria } from './convocatoria';
-import { IFuenteFinanciacion } from './fuente-financiacion';
-import { ITipoFinanciacion } from './tipos-configuracion';
+import { IEntidadFinanciadora } from './entidad-financiadora';
 
-export interface IConvocatoriaEntidadFinanciadora {
-  id: number;
-  entidadRef: string;
+export interface IConvocatoriaEntidadFinanciadora extends IEntidadFinanciadora {
+  /**
+   * Convocatoria
+   */
   convocatoria: IConvocatoria;
-  fuenteFinanciacion: IFuenteFinanciacion;
-  tipoFinanciacion: ITipoFinanciacion;
-  porcentajeFinanciacion: number;
 }

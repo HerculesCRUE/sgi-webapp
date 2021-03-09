@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { NGXLogger } from 'ngx-logger';
 
 @Component({
   selector: 'sgi-csp-inicio',
@@ -8,12 +7,10 @@ import { NGXLogger } from 'ngx-logger';
 })
 export class CspInicioComponent implements OnInit {
 
-  constructor(private logger: NGXLogger) {
+  constructor() {
   }
 
   ngOnInit(): void {
-    this.logger.debug(CspInicioComponent.name, 'ngOnInit()', 'start');
-    this.logger.debug(CspInicioComponent.name, 'ngOnInit()', 'end');
   }
 
 }

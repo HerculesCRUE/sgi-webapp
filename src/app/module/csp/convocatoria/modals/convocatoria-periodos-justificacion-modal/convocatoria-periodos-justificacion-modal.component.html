@@ -33,18 +33,18 @@
 
           <mat-form-field class="input-form" fxFill>
             <mat-label>{{'csp.convocatoria.periodoJustificacion.modal.tipo' | translate}}</mat-label>
-            <mat-select matNativeControl formControlName="tipoJustificacion">
-              <mat-option *ngFor="let tipo of tiposJustificacion" [value]="tipo">
-                {{ tipo | translate}}
+            <mat-select matNativeControl formControlName="tipo" required>
+              <mat-option *ngFor="let tipo of TIPO_MAP | keyvalue" [value]="tipo.key">
+                {{ tipo.value | translate}}
               </mat-option>
             </mat-select>
-            <mat-error *ngIf="formGroup.controls.tipoJustificacion.errors?.required">
+            <mat-error *ngIf="formGroup.controls.tipo.errors?.required">
               {{'csp.convocatoria.periodoJustificacion.modal.tipoJustificacion.requerido' | translate}}
             </mat-error>
-            <mat-error *ngIf="formGroup.controls.tipoJustificacion.errors?.notAllowed">
+            <mat-error *ngIf="formGroup.controls.tipo.errors?.notAllowed">
               {{'csp.convocatoria.periodoJustificacion.modal.tipoJustificacion.tipoFinalDuplicado' | translate}}
             </mat-error>
-            <mat-error *ngIf="formGroup.controls.tipoJustificacion.errors?.finalNotLast">
+            <mat-error *ngIf="formGroup.controls.tipo.errors?.finalNotLast">
               {{'csp.convocatoria.periodoJustificacion.modal.tipoJustificacion.tipoFinalNoUltimo' | translate}}
             </mat-error>
           </mat-form-field>
@@ -173,8 +173,9 @@
     </form>
   </main>
   <div id="modals-buttons" class="float-right" mat-dialog-actions>
-    <button color="accent" md-button mat-raised-button type="submit" (click)="saveOrUpdate()">
-      Guardar</button>
-    <button class="link-cancelar" mat-button (click)="closeModal()" type="button">Cancelar</button>
+    <button color="accent" md-button mat-raised-button type="submit" (click)="saveOrUpdate()" *ngIf="!data.readonly">
+      {{textSaveOrUpdate | translate}}</button>
+    <button class="link-cancelar" mat-button (click)="closeModal()"
+      type="button">{{'botones.cancelar' | translate}}</button>
   </div>
 </div>

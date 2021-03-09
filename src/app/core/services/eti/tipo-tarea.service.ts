@@ -1,9 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '@env';
-import { NGXLogger } from 'ngx-logger';
-import { SgiRestService } from '@sgi/framework/http';
 import { TipoTarea } from '@core/models/eti/tipo-tarea';
+import { environment } from '@env';
+import { SgiRestService } from '@sgi/framework/http';
 
 @Injectable({
   providedIn: 'root'
@@ -11,10 +10,9 @@ import { TipoTarea } from '@core/models/eti/tipo-tarea';
 export class TipoTareaService extends SgiRestService<number, TipoTarea> {
   private static readonly MAPPING = '/tipostarea';
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
+  constructor(protected http: HttpClient) {
     super(
       TipoTareaService.name,
-      logger,
       `${environment.serviceServers.eti}${TipoTareaService.MAPPING}`,
       http
     );

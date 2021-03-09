@@ -1,21 +1,18 @@
-import { Fragment } from '@core/services/action-service';
-import { Observable, of, BehaviorSubject, from, merge, concat } from 'rxjs';
-import { map, mergeMap, endWith, switchMap, tap, takeLast } from 'rxjs/operators';
+import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
+import { IMemoria } from '@core/models/eti/memoria';
 import { ITarea } from '@core/models/eti/tarea';
+import { Fragment } from '@core/services/action-service';
+import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
 import { TareaService } from '@core/services/eti/tarea.service';
 import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { SgiRestFilter, SgiRestFilterType, SgiRestListResult } from '@sgi/framework/http';
-import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
-import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
-import { IMemoria } from '@core/models/eti/memoria';
+import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
+import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
 import { EquipoInvestigadorListadoFragment } from '../../equipo-investigador/equipo-investigador-listado/equipo-investigador-listado.fragment';
-import { NGXLogger } from 'ngx-logger';
 import { MemoriasListadoFragment } from '../../memorias-listado/memorias-listado.fragment';
 export class PeticionEvaluacionTareasFragment extends Fragment {
 
   tareas$: BehaviorSubject<StatusWrapper<ITarea>[]> = new BehaviorSubject<StatusWrapper<ITarea>[]>([]);
-  filter: SgiRestFilter[];
 
   private deletedTareas: StatusWrapper<ITarea>[] = [];
   equiposTrabajo: IEquipoTrabajo[] = [];
@@ -23,7 +20,6 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
 
   constructor(
     key: number,
-    private logger: NGXLogger,
     private personaFisicaService: PersonaFisicaService,
     private tareaService: TareaService,
     private peticionEvaluacionService: PeticionEvaluacionService,
@@ -95,7 +91,6 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
    * @param tarea una tarea
    */
   deleteTarea(tarea: StatusWrapper<ITarea>): void {
-    this.logger.debug(PeticionEvaluacionTareasFragment.name, 'deleteEquipoTrabajo(equipoTrabajo: StatusWrapper<IEquipoTrabajo>)', 'start');
     const current = this.tareas$.value;
     const index = current.findIndex((value) => value === tarea);
     if (index >= 0) {
@@ -103,17 +98,13 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
         current[index].setDeleted();
         this.deletedTareas.push(current[index]);
       }
-
       current.splice(index, 1);
       this.tareas$.next(current);
       this.setChanges(true);
     }
-
-    this.logger.debug(PeticionEvaluacionTareasFragment.name, 'deleteEquipoTrabajo(equipoTrabajo: StatusWrapper<IEquipoTrabajo>)', 'end');
   }
 
   saveOrUpdate(): Observable<void> {
-    this.logger.debug(PeticionEvaluacionTareasFragment.name, 'saveOrUpdate()', 'start');
     return merge(
       this.deleteTareas(),
       this.updateTareas(),
@@ -124,8 +115,7 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
         if (this.isSaveOrUpdateComplete()) {
           this.setChanges(false);
         }
-      }),
-      tap(() => this.logger.debug(PeticionEvaluacionTareasFragment.name, 'saveOrUpdate()', 'end'))
+      })
     );
   }
 
@@ -135,7 +125,6 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
    * @param wrapperEquipoTrabajo un equipoTrabajo.
    */
   deleteTareasEquipoTrabajo(wrapperEquipoTrabajo: StatusWrapper<IEquipoTrabajo>): void {
-    this.logger.debug(PeticionEvaluacionTareasFragment.name, 'deleteTareasEquipoTrabajo(wrapperEquipoTrabajo: StatusWrapper<IEquipoTrabajo>)', 'start');
     const current = this.tareas$.value;
 
     const currentWithoutTareasEquipoTrabajo = current.filter((wrapper) =>
@@ -148,14 +137,10 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
       const hasChanges = currentWithoutTareasEquipoTrabajo.some((wrapper) => wrapper.touched);
       this.setChanges(hasChanges);
     }
-
-    this.logger.debug(PeticionEvaluacionTareasFragment.name, 'deleteTareasEquipoTrabajo(wrapperEquipoTrabajo: StatusWrapper<IEquipoTrabajo>)', 'end');
   }
 
   private deleteTareas(): Observable<void> {
-    this.logger.debug(PeticionEvaluacionTareasFragment.name, 'deleteTareas()', 'start');
     if (this.deletedTareas.length === 0) {
-      this.logger.debug(PeticionEvaluacionTareasFragment.name, 'deleteTareas()', 'end');
       return of(void 0);
     }
     return from(this.deletedTareas).pipe(
@@ -172,10 +157,8 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
   }
 
   private updateTareas(): Observable<void> {
-    this.logger.debug(PeticionEvaluacionTareasFragment.name, 'updateTareas()', 'start');
     const editedTareas = this.tareas$.value.filter((tarea) => tarea.edited);
     if (editedTareas.length === 0) {
-      this.logger.debug(PeticionEvaluacionTareasFragment.name, 'updateTareas()', 'end');
       return of(void 0);
     }
 
@@ -191,10 +174,8 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
   }
 
   private createTareas(): Observable<void> {
-    this.logger.debug(PeticionEvaluacionTareasFragment.name, 'createTareas()', 'start');
     const createdTareas = this.tareas$.value.filter((tarea) => tarea.created);
     if (createdTareas.length === 0) {
-      this.logger.debug(PeticionEvaluacionTareasFragment.name, 'createTareas()', 'end');
       return of(void 0);
     }
 

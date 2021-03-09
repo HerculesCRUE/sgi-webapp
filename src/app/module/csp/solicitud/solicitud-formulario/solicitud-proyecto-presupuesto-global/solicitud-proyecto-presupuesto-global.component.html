@@ -1,0 +1,109 @@
+<section class="solicitud-proyecto-desglose-presupuesto-global">
+  <!-- Error no ISolicitudProyectoDatos -->
+  <div *ngIf="!formPart.existsDatosProyecto" class="info-message">
+    {{'csp.solicitud.desglose-presupuesto-global.error.proyecto.datos' | translate}}
+  </div>
+
+  <mat-label>{{'csp.solicitud.desglose-presupuesto-global.partidas-gasto' | translate}}</mat-label>
+
+  <table class="mat-elevation-z8 table-desglose-presupuesto-global" mat-table [dataSource]="dataSource" matSort
+    matSortActive="id" matSortDirection="asc" matSortDisableClear>
+    <!-- Concepto de gasto Column -->
+    <ng-container matColumnDef="conceptoGasto">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.solicitud.desglose-presupuesto-global.concepto-gasto' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{wrapper.value.conceptoGasto.nombre}}
+      </td>
+    </ng-container>
+
+    <!-- Anualidad Column -->
+    <ng-container matColumnDef="anualidad">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.solicitud.desglose-presupuesto-global.anualidad' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{wrapper.value.anualidad | translate}}
+      </td>
+    </ng-container>
+
+    <!-- Importe Column -->
+    <ng-container matColumnDef="importe">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.solicitud.desglose-presupuesto-global.importe' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{wrapper.value.importeSolicitado}}
+      </td>
+    </ng-container>
+
+    <!-- Observaciones Column -->
+    <ng-container matColumnDef="observaciones">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.solicitud.desglose-presupuesto-global.observaciones' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        {{wrapper.value.observaciones}}
+      </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'columna.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper">
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.ver' | translate}}" (click)="openModal(wrapper)"
+            *ngIf="formPart.readonly">
+            <mat-icon color="primary">visibility</mat-icon>
+          </button>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModal(wrapper)"
+            *ngIf="!formPart.readonly">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deletePartidaGasto(wrapper)"
+            *ngIf="!formPart.readonly">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <mat-paginator [pageSizeOptions]="elementsPage" showFirstLastButtons>
+  </mat-paginator>
+
+  <div class="separation-button" *ngIf="formPart.existsDatosProyecto && !formPart.readonly">
+    <button color="three" mat-button mat-raised-button (click)="openModal()">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.solicitud.desglose-presupuesto-global.añadir' | translate}}
+    </button>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <form [formGroup]="formPart.formGroup">
+    <div ngClass.gt-xs="ml-10">
+      <!-- Total del presupuesto -->
+      <div class="col">
+        <mat-form-field>
+          <mat-label>{{'csp.solicitud.desglose-presupuesto-global.total-presupuesto' | translate}}</mat-label>
+          <input matInput type="text"
+            placeholder="{{'csp.solicitud.desglose-presupuesto-global.total-presupuesto' | translate}}"
+            formControlName="totalPresupuesto">
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="buttons-final">
+      <div class="col filter-button" *ngIf="!formPart.readonly">
+        <button color="primary" aria-label="Center Align" md-button mat-raised-button>
+          {{'csp.solicitud.desglose-presupuesto-global.presupuesto-completo'| translate}}
+        </button>
+      </div>
+    </div>
+  </form>
+
+</section>

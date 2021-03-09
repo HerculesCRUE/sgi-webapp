@@ -14,7 +14,7 @@
         <a *sgiHasAuthorityForAnyUO="'ETI-PEV-VR-INV'" mat-list-item
           [routerLink]="[INV_ROUTE_NAMES.PETICIONES_EVALUACION]"
           [routerLinkActive]="['is-active']">{{'menu.principal.inv.peticionesEvaluacion' | translate}}</a>
-        <a *sgiHasAuthorityForAnyUO="'ETI-MEM-VR'" mat-list-item [routerLink]="[INV_ROUTE_NAMES.MEMORIAS]"
+        <a *sgiHasAuthorityForAnyUO="'ETI-PEV-VR-INV'" mat-list-item [routerLink]="[INV_ROUTE_NAMES.MEMORIAS]"
           [routerLinkActive]="['is-active']">{{'menu.principal.inv.memorias' | translate}}</a>
         <a *sgiHasAuthorityForAnyUO="'ETI-EVC-VR-INV'" mat-list-item [routerLink]="[INV_ROUTE_NAMES.EVALUACIONES]"
           [routerLinkActive]="['is-active']">{{'menu.principal.inv.evaluaciones' | translate}}</a>
@@ -36,7 +36,7 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
       <div class="opciones-accordion" *ngIf="opened">
-        <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-CONV-V-INV'"
+        <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-CONV-V-INV'" [routerLink]="[INV_ROUTE_NAMES.CONVOCATORIAS]"
           [routerLinkActive]="['is-active']">{{'menu.principal.inv.convocatoria' | translate}}</a>
         <a mat-list-item [routerLinkActive]="['is-active']">{{'menu.principal.inv.solicitudes' | translate}}</a>
         <a mat-list-item [routerLinkActive]="['is-active']">{{'menu.principal.inv.proyectos' | translate}}</a>

@@ -1,16 +1,16 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { IDocumentacionMemoria } from '@core/models/eti/documentacion-memoria';
+import { IEvaluacion } from '@core/models/eti/evaluacion';
 import { IEvaluacionWithNumComentario } from '@core/models/eti/evaluacion-with-num-comentarios';
+import { IInforme } from '@core/models/eti/informe';
 import { IMemoria } from '@core/models/eti/memoria';
+import { IMemoriaPeticionEvaluacion } from '@core/models/eti/memoriaPeticionEvaluacion';
 import { environment } from '@env';
 import { SgiRestFindOptions, SgiRestListResult, SgiRestService } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
-import { IMemoriaPeticionEvaluacion } from '@core/models/eti/memoriaPeticionEvaluacion';
-import { IEvaluacion } from '@core/models/eti/evaluacion';
-import { IInforme } from '@core/models/eti/informe';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -19,8 +19,8 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
 
   private static readonly MAPPING = '/memorias';
 
-  constructor(logger: NGXLogger, protected http: HttpClient) {
-    super(MemoriaService.name, logger, `${environment.serviceServers.eti}${MemoriaService.MAPPING}`, http);
+  constructor(private readonly logger: NGXLogger, protected http: HttpClient) {
+    super(MemoriaService.name, `${environment.serviceServers.eti}${MemoriaService.MAPPING}`, http);
   }
 
   /**
@@ -30,12 +30,8 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    */
   getDocumentaciones(
     idMemoria: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IDocumentacionMemoria>> {
-    this.logger.debug(MemoriaService.name, `getDocumentaciones(${idMemoria}, ${options ? JSON.stringify(options) : options})`, 'start');
     return this.find<IDocumentacionMemoria, IDocumentacionMemoria>(
-      `${this.endpointUrl}/${idMemoria}/documentaciones`, options).pipe(
-        tap(() => this.logger.debug(MemoriaService.name,
-          `getDocumentaciones(${idMemoria},  ${options ? JSON.stringify(options) : options})`, 'end'))
-      );
+      `${this.endpointUrl}/${idMemoria}/documentaciones`, options);
   }
 
   /**
@@ -47,12 +43,8 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
   getDocumentacionesTipoEvaluacion(
     idMemoria: number, idTipoEvaluacion: number,
     options?: SgiRestFindOptions): Observable<SgiRestListResult<IDocumentacionMemoria>> {
-    this.logger.debug(MemoriaService.name, `getDocumentacionesTipoEvaluacion(${idMemoria},${idTipoEvaluacion}, ${options ? JSON.stringify(options) : options})`, 'start');
     return this.find<IDocumentacionMemoria, IDocumentacionMemoria>(
-      `${this.endpointUrl}/${idMemoria}/documentaciones/${idTipoEvaluacion}`, options).pipe(
-        tap(() => this.logger.debug(MemoriaService.name,
-          `getDocumentacionesTipoEvaluacion(${idMemoria}, ${idTipoEvaluacion}, ${options ? JSON.stringify(options) : options})`, 'end'))
-      );
+      `${this.endpointUrl}/${idMemoria}/documentaciones/${idTipoEvaluacion}`, options);
   }
 
   /**
@@ -63,13 +55,8 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    */
   getEvaluacionesAnteriores(memoriaId: number, evaluacionId: number, options?: SgiRestFindOptions):
     Observable<SgiRestListResult<IEvaluacionWithNumComentario>> {
-    this.logger.debug(MemoriaService.name,
-      `getEvaluacionesAnteriores(${memoriaId}, ${evaluacionId}, ${options ? JSON.stringify(options) : options})`, '-', 'start');
     return this.find<IEvaluacionWithNumComentario, IEvaluacionWithNumComentario>
-      (`${this.endpointUrl}/${memoriaId}/evaluaciones-anteriores/${evaluacionId}`, options).pipe(
-        tap(() => this.logger.debug(MemoriaService.name,
-          `getEvaluacionesAnteriores(${memoriaId}, ${evaluacionId}, ${options ? JSON.stringify(options) : options})`, '-', 'end'))
-      );
+      (`${this.endpointUrl}/${memoriaId}/evaluaciones-anteriores/${evaluacionId}`, options);
   }
 
   /**
@@ -81,10 +68,7 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    */
   findAllMemoriasAsignablesConvocatoria(idConvocatoria: number, options?: SgiRestFindOptions):
     Observable<SgiRestListResult<IMemoria>> {
-    this.logger.debug(MemoriaService.name, `findAllMemoriasAsignablesConvocatoria(${idConvocatoria})`, '-', 'START');
-    return this.find<IMemoria, IMemoria>(`${this.endpointUrl}/asignables/${idConvocatoria}`, options).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `findAllMemoriasAsignablesConvocatoria(${idConvocatoria})`, '-', 'END'))
-    );
+    return this.find<IMemoria, IMemoria>(`${this.endpointUrl}/asignables/${idConvocatoria}`, options);
   }
 
   /**
@@ -95,10 +79,7 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    */
   findAllAsignablesTipoConvocatoriaSeguimiento(options?: SgiRestFindOptions):
     Observable<SgiRestListResult<IMemoria>> {
-    this.logger.debug(MemoriaService.name, `findAllAsignablesTipoConvocatoriaSeguimiento()`, '-', 'START');
-    return this.find<IMemoria, IMemoria>(`${this.endpointUrl}/tipo-convocatoria-seg`, options).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `findAllAsignablesTipoConvocatoriaSeguimiento()`, '-', 'END'))
-    );
+    return this.find<IMemoria, IMemoria>(`${this.endpointUrl}/tipo-convocatoria-seg`, options);
   }
 
 
@@ -111,26 +92,23 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    */
   findAllAsignablesTipoConvocatoriaOrdExt(options?: SgiRestFindOptions):
     Observable<SgiRestListResult<IMemoria>> {
-    this.logger.debug(MemoriaService.name, `findAllAsignablesTipoConvocatoriaOrdExt()`, '-', 'START');
-    return this.find<IMemoria, IMemoria>(`${this.endpointUrl}/tipo-convocatoria-ord-ext`, options).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `findAllAsignablesTipoConvocatoriaOrdExt()`, '-', 'END'))
-    );
+    return this.find<IMemoria, IMemoria>(`${this.endpointUrl}/tipo-convocatoria-ord-ext`, options);
   }
 
-  findAllByPersonaRef(options?: SgiRestFindOptions):
-    Observable<SgiRestListResult<IMemoria>> {
-    this.logger.debug(MemoriaService.name, `findAllByPersonaRef()`, '-', 'START');
-    return this.find<IMemoria, IMemoria>(`${this.endpointUrl}/persona`, options).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `findAllByPersonaRef()`, '-', 'END'))
-    );
+  /**
+   * Devuelve todas las memorias de una persona en la que es creador de la petición de evaluación
+   *  o responsable de una memoria
+   * @param options opciones de búsqueda
+   * @return las memorias
+   */
+  findAllMemoriasEvaluacionByPersonaRef(options?: SgiRestFindOptions):
+    Observable<SgiRestListResult<IMemoriaPeticionEvaluacion>> {
+    return this.find<IMemoriaPeticionEvaluacion, IMemoriaPeticionEvaluacion>(`${this.endpointUrl}/persona`, options);
   }
 
   findAll(options?: SgiRestFindOptions):
     Observable<SgiRestListResult<IMemoriaPeticionEvaluacion>> {
-    this.logger.debug(MemoriaService.name, `findAll()`, '-', 'START');
-    return this.find<IMemoriaPeticionEvaluacion, IMemoriaPeticionEvaluacion>(`${this.endpointUrl}`, options).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `findAll()`, '-', 'END'))
-    );
+    return this.find<IMemoriaPeticionEvaluacion, IMemoriaPeticionEvaluacion>(`${this.endpointUrl}`, options);
   }
   /**
    * Devuelve toda la documentación por tipo de formulario de una memoria.
@@ -138,12 +116,8 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @param id id de la memoria.
    */
   findDocumentacionFormulario(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IDocumentacionMemoria>> {
-    this.logger.debug(MemoriaService.name, `findDocumentacionFormulario(${id}, ${options ? JSON.stringify(options) : options})`, 'start');
     return this.find<IDocumentacionMemoria, IDocumentacionMemoria>(
-      `${this.endpointUrl}/${id}/documentacion-formulario`, options).pipe(
-        tap(() => this.logger.debug(MemoriaService.name,
-          `findDocumentacionFormulario(${id}, ${options ? JSON.stringify(options) : options})`, 'end'))
-      );
+      `${this.endpointUrl}/${id}/documentacion-formulario`, options);
   }
 
 
@@ -153,12 +127,8 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @param id id de la memoria.
    */
   findDocumentacionSeguimientoAnual(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IDocumentacionMemoria>> {
-    this.logger.debug(MemoriaService.name, `findDocumentacionSeguimientoAnual(${id}, ${options ? JSON.stringify(options) : options})`, 'start');
     return this.find<IDocumentacionMemoria, IDocumentacionMemoria>(
-      `${this.endpointUrl}/${id}/documentacion-seguimiento-anual`, options).pipe(
-        tap(() => this.logger.debug(MemoriaService.name,
-          `findDocumentacionSeguimientoAnual(${id}, ${options ? JSON.stringify(options) : options})`, 'end'))
-      );
+      `${this.endpointUrl}/${id}/documentacion-seguimiento-anual`, options);
   }
 
 
@@ -168,12 +138,8 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @param id id de la memoria.
    */
   findDocumentacionSeguimientoFinal(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IDocumentacionMemoria>> {
-    this.logger.debug(MemoriaService.name, `findDocumentacionSeguimientoFinal(${id}, ${options ? JSON.stringify(options) : options})`, 'start');
     return this.find<IDocumentacionMemoria, IDocumentacionMemoria>(
-      `${this.endpointUrl}/${id}/documentacion-seguimiento-final`, options).pipe(
-        tap(() => this.logger.debug(MemoriaService.name,
-          `findDocumentacionSeguimientoFinal(${id}, ${options ? JSON.stringify(options) : options})`, 'end'))
-      );
+      `${this.endpointUrl}/${id}/documentacion-seguimiento-final`, options);
   }
 
 
@@ -183,45 +149,27 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @param id id de la memoria.
    */
   findDocumentacionRetrospectiva(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IDocumentacionMemoria>> {
-    this.logger.debug(MemoriaService.name,
-      `findDocumentacionRetrospectiva(${id}, ${options ? JSON.stringify(options) : options})`, 'start');
     return this.find<IDocumentacionMemoria, IDocumentacionMemoria>(
-      `${this.endpointUrl}/${id}/documentacion-retrospectiva`, options).pipe(
-        tap(() => this.logger.debug(MemoriaService.name,
-          `findDocumentacionRetrospectiva(${id}, ${options ? JSON.stringify(options) : options})`, 'end'))
-      );
+      `${this.endpointUrl}/${id}/documentacion-retrospectiva`, options);
   }
 
 
   createDocumentacionInicial(id: number, documentacionMemoria: IDocumentacionMemoria): Observable<IDocumentacionMemoria> {
-    this.logger.debug(MemoriaService.name, `createDocumentacionInicial(${id}, ${documentacionMemoria})`, '-', 'start');
-    return this.http.post<IDocumentacionMemoria>(`${this.endpointUrl}/${id}/documentacion-inicial`, documentacionMemoria).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `createDocumentacionInicial(${id}, ${documentacionMemoria})`, '-', 'end'))
-    );
+    return this.http.post<IDocumentacionMemoria>(`${this.endpointUrl}/${id}/documentacion-inicial`, documentacionMemoria);
 
   }
 
   createDocumentacionSeguimientoAnual(id: number, documentacionMemoria: IDocumentacionMemoria): Observable<IDocumentacionMemoria> {
-    this.logger.debug(MemoriaService.name, `createDocumentacionSeguimientoAnual(${id}, ${documentacionMemoria})`, '-', 'start');
-    return this.http.post<IDocumentacionMemoria>(`${this.endpointUrl}/${id}/documentacion-seguimiento-anual`, documentacionMemoria).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `createDocumentacionSeguimientoAnual(${id}, ${documentacionMemoria})`, '-', 'end'))
-    );
+    return this.http.post<IDocumentacionMemoria>(`${this.endpointUrl}/${id}/documentacion-seguimiento-anual`, documentacionMemoria);
 
   }
 
   createDocumentacionSeguimientoFinal(id: number, documentacionMemoria: IDocumentacionMemoria): Observable<IDocumentacionMemoria> {
-    this.logger.debug(MemoriaService.name, `createDocumentacionSeguimientoFinal(${id}, ${documentacionMemoria})`, '-', 'start');
-    return this.http.post<IDocumentacionMemoria>(`${this.endpointUrl}/${id}/documentacion-seguimiento-final`, documentacionMemoria).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `createDocumentacionSeguimientoFinal(${id}, ${documentacionMemoria})`, '-', 'end'))
-    );
-
+    return this.http.post<IDocumentacionMemoria>(`${this.endpointUrl}/${id}/documentacion-seguimiento-final`, documentacionMemoria);
   }
 
   createDocumentacionRetrospectiva(id: number, documentacionMemoria: IDocumentacionMemoria): Observable<IDocumentacionMemoria> {
-    this.logger.debug(MemoriaService.name, `createDocumentacionRetrospectiva(${id}, ${documentacionMemoria})`, '-', 'start');
-    return this.http.post<IDocumentacionMemoria>(`${this.endpointUrl}/${id}/documentacion-retrospectiva`, documentacionMemoria).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `createDocumentacionRetrospectiva(${id}, ${documentacionMemoria})`, '-', 'end'))
-    );
+    return this.http.post<IDocumentacionMemoria>(`${this.endpointUrl}/${id}/documentacion-retrospectiva`, documentacionMemoria);
 
   }
 
@@ -234,29 +182,18 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @returns observable para eliminar documentación de seguimiento anual.
    */
   deleteDocumentacionInicial(idMemoria: number, idDocumentacionMemoria: number): Observable<void> {
-    this.logger.debug(MemoriaService.name, `deleteDocumentacionInicial(${idMemoria}, ${idDocumentacionMemoria})`, '-', 'START');
     return this.http.delete<void>(`${this.endpointUrl}/${idMemoria}/documentacion-inicial/${idDocumentacionMemoria}`).pipe(
       catchError((error: HttpErrorResponse) => {
-        this.logger.error(MemoriaService.name,
-          `deleteDocumentacionInicial(${idMemoria}, ${idDocumentacionMemoria}):`, error);
+        this.logger.error(error);
         return throwError(error);
-      }),
-
-      tap(_ => {
-        this.logger.debug(MemoriaService.name,
-          `deleteDocumentacionInicial(${idMemoria}, ${idDocumentacionMemoria})`, '-', 'END');
       })
     );
   }
 
   updateDocumentacion(
     id: number, documentacionMemoria: IDocumentacionMemoria, idDocumentacionMemoria: number): Observable<IDocumentacionMemoria> {
-    this.logger.debug(MemoriaService.name, `updateDocumentacion(${id}, ${documentacionMemoria}, ${idDocumentacionMemoria})`, '-', 'start');
     return this.http.put<IDocumentacionMemoria>
-      (`${this.endpointUrl}/${id}/documentacion-inicial/${idDocumentacionMemoria}`, documentacionMemoria).pipe(
-        tap(() =>
-          this.logger.debug(MemoriaService.name, `updateDocumentacion(${id}, ${documentacionMemoria}, ${idDocumentacionMemoria})`, '-', 'end'))
-      );
+      (`${this.endpointUrl}/${id}/documentacion-inicial/${idDocumentacionMemoria}`, documentacionMemoria);
   }
 
 
@@ -266,25 +203,7 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @param memoriaId id memoria.
    */
   getEvaluacionesMemoria(memoriaId: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IEvaluacion>> {
-    this.logger.debug(MemoriaService.name, `getEvaluacionesMemoria(${memoriaId}, ${options ? JSON.stringify(options) : options})`, '-', 'start');
-    return this.find<IEvaluacion, IEvaluacion>(`${this.endpointUrl}/${memoriaId}/evaluaciones`, options).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `getEvaluacionesMemoria(${memoriaId}, ${options ? JSON.stringify(options) : options})`, '-', 'end'))
-    );
-  }
-
-
-  /**
-   * Devuelve todos las memorias de responsable y creador a partir de una persona ref
-   *
-   * @param options opciones de busqueda.
-   */
-  findAllByPersonaRefPeticionEvaluacion(options?: SgiRestFindOptions):
-    Observable<SgiRestListResult<IMemoriaPeticionEvaluacion>> {
-    this.logger.debug(MemoriaService.name, `findAllByPersonaRefPeticionEvaluacion()`, '-', 'START');
-    return this.find<IMemoriaPeticionEvaluacion, IMemoriaPeticionEvaluacion>(
-      `${this.endpointUrl}/persona/peticion-evaluacion`, options).pipe(
-        tap(() => this.logger.debug(MemoriaService.name, `findAllByPersonaRefPeticionEvaluacion()`, '-', 'END'))
-      );
+    return this.find<IEvaluacion, IEvaluacion>(`${this.endpointUrl}/${memoriaId}/evaluaciones`, options);
   }
 
   /**
@@ -293,13 +212,7 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @return listado de informes.
    */
   findInformesSecretaria(id: number): Observable<SgiRestListResult<IInforme>> {
-    this.logger.debug(MemoriaService.name, `findInformesSecretaria()`, '-', 'start');
-    return this.find<IInforme, IInforme>(`${this.endpointUrl}/${id}/informes`)
-      .pipe(
-        tap(() => {
-          this.logger.debug(MemoriaService.name, `findInformesSecretaria()`, '-', 'end');
-        })
-      );
+    return this.find<IInforme, IInforme>(`${this.endpointUrl}/${id}/informes`);
   }
 
   /**
@@ -311,17 +224,10 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @returns observable para eliminar documentación de seguimiento anual.
    */
   deleteDocumentacionSeguimientoAnual(idMemoria: number, idDocumentacionMemoria: number): Observable<void> {
-    this.logger.debug(MemoriaService.name, `deleteDocumentacionSeguimientoAnual(${idMemoria}, ${idDocumentacionMemoria})`, '-', 'START');
     return this.http.delete<void>(`${this.endpointUrl}/${idMemoria}/documentacion-seguimiento-anual/${idDocumentacionMemoria}`).pipe(
       catchError((error: HttpErrorResponse) => {
-        this.logger.error(MemoriaService.name,
-          `deleteDocumentacionSeguimientoAnual(${idMemoria}, ${idDocumentacionMemoria}):`, error);
+        this.logger.error(error);
         return throwError(error);
-      }),
-
-      tap(_ => {
-        this.logger.debug(MemoriaService.name,
-          `deleteDocumentacionSeguimientoAnual(${idMemoria}, ${idDocumentacionMemoria})`, '-', 'END');
       })
     );
   }
@@ -335,17 +241,10 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @returns observable para eliminar documentación de seguimiento final.
    */
   deleteDocumentacionSeguimientoFinal(idMemoria: number, idDocumentacionMemoria: number): Observable<void> {
-    this.logger.debug(MemoriaService.name, `deleteDocumentacionSeguimientoFinal(${idMemoria}, ${idDocumentacionMemoria})`, '-', 'START');
     return this.http.delete<void>(`${this.endpointUrl}/${idMemoria}/documentacion-seguimiento-final/${idDocumentacionMemoria}`).pipe(
       catchError((error: HttpErrorResponse) => {
-        this.logger.error(MemoriaService.name,
-          `deleteDocumentacionSeguimientoFinal(${idMemoria}, ${idDocumentacionMemoria}):`, error);
+        this.logger.error(error);
         return throwError(error);
-      }),
-
-      tap(_ => {
-        this.logger.debug(MemoriaService.name,
-          `deleteDocumentacionSeguimientoFinal(${idMemoria}, ${idDocumentacionMemoria})`, '-', 'END');
       })
     );
   }
@@ -359,17 +258,10 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @returns observable para eliminar documentación de retrospectiva.
    */
   deleteDocumentacionRetrospectiva(idMemoria: number, idDocumentacionMemoria: number): Observable<void> {
-    this.logger.debug(MemoriaService.name, `deleteDocumentacionRetrospectiva(${idMemoria}, ${idDocumentacionMemoria})`, '-', 'START');
     return this.http.delete<void>(`${this.endpointUrl}/${idMemoria}/documentacion-retrospectiva/${idDocumentacionMemoria}`).pipe(
       catchError((error: HttpErrorResponse) => {
-        this.logger.error(MemoriaService.name,
-          `deleteDocumentacionRetrospectiva(${idMemoria}, ${idDocumentacionMemoria}):`, error);
+        this.logger.error(error);
         return throwError(error);
-      }),
-
-      tap(_ => {
-        this.logger.debug(MemoriaService.name,
-          `deleteDocumentacionRetrospectiva(${idMemoria}, ${idDocumentacionMemoria})`, '-', 'END');
       })
     );
   }
@@ -379,10 +271,7 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @param id identificador de la memoria
    */
   recuperarEstadoAnterior(id: number): Observable<IMemoria> {
-    this.logger.debug(MemoriaService.name, `recuperarEstadoAnterior(${id})`, '-', 'start');
-    return this.http.get<IMemoria>(`${this.endpointUrl}/${id}/recuperar-estado-anterior`).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `recuperarEstadoAnterior(${id})`, '-', 'end'))
-    );
+    return this.http.get<IMemoria>(`${this.endpointUrl}/${id}/recuperar-estado-anterior`);
   }
 
   /**
@@ -391,10 +280,7 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @param memoriaId id memoria.
    */
   enviarSecretaria(memoriaId: number): Observable<void> {
-    this.logger.debug(MemoriaService.name, `enviarSecretaria(${memoriaId})`, '-', 'start');
-    return this.http.put<void>(`${this.endpointUrl}/${memoriaId}/enviar-secretaria`, null).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `enviarSecretaria(${memoriaId})`, '-', 'end'))
-    );
+    return this.http.put<void>(`${this.endpointUrl}/${memoriaId}/enviar-secretaria`, null);
   }
 
   /**
@@ -403,10 +289,7 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @param memoriaId id memoria.
    */
   enviarSecretariaRetrospectiva(memoriaId: number): Observable<void> {
-    this.logger.debug(MemoriaService.name, `enviarSecretariaRetrospectiva(${memoriaId})`, '-', 'start');
-    return this.http.put<void>(`${this.endpointUrl}/${memoriaId}/enviar-secretaria-retrospectiva`, null).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `enviarSecretariaRetrospectiva(${memoriaId})`, '-', 'end'))
-    );
+    return this.http.put<void>(`${this.endpointUrl}/${memoriaId}/enviar-secretaria-retrospectiva`, null);
   }
 
   /**
@@ -415,10 +298,7 @@ export class MemoriaService extends SgiRestService<number, IMemoria>{
    * @param id identificador de la memoria de la que se parte para crear la nueva memoria.
    */
   createMemoriaModificada(memoria: IMemoria, id: number): Observable<IMemoria> {
-    this.logger.debug(MemoriaService.name, `createMemoriaModificada(${memoria}, ${id})`, '-', 'start');
-    return this.http.post<IMemoria>(`${this.endpointUrl}/${id}/crear-memoria-modificada`, memoria).pipe(
-      tap(() => this.logger.debug(MemoriaService.name, `createMemoriaModificada(${memoria}, ${id})`, '-', 'end'))
-    );
+    return this.http.post<IMemoria>(`${this.endpointUrl}/${id}/crear-memoria-modificada`, memoria);
   }
 
 }

@@ -13,6 +13,7 @@ const MSG_EVALUACIONES_TITLE = marker('menu.principal.inv.evaluaciones');
 const MSG_SEGUIMIENTOS_TITLE = marker('menu.principal.inv.seguimientos');
 const MSG_PETICIONES_EVALUACION_TITLE = marker('menu.principal.inv.peticionesEvaluacion');
 const MSG_MEMORIAS_TITLE = marker('menu.principal.inv.memorias');
+const MSG_CONVOCATORIAS_TITLE = marker('menu.principal.inv.convocatorias');
 
 const routes: SgiRoutes = [
   {
@@ -76,6 +77,18 @@ const routes: SgiRoutes = [
         data: {
           title: MSG_MEMORIAS_TITLE,
           hasAuthorityForAnyUO: 'ETI-PEV-VR-INV'
+        }
+      },
+      {
+        path: INV_ROUTE_NAMES.CONVOCATORIAS,
+        loadChildren: () =>
+          import('../csp/convocatoria/convocatoria-inv.module').then(
+            (m) => m.ConvocatoriaInvModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: MSG_CONVOCATORIAS_TITLE,
+          // hasAuthorityForAnyUO: 'ETI-PEV-VR-INV'
         }
       },
       { path: '**', component: null }

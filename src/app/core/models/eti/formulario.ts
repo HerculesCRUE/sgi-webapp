@@ -11,7 +11,7 @@ export enum FORMULARIO {
 }
 
 export function resolveFormularioByTipoEvaluacionAndComite(tipoEvaluacion: TipoEvaluacion, comite: IComite): FORMULARIO {
-  const tEvaluacion = tipoEvaluacion.id as TIPO_EVALUACION;
+  const tEvaluacion = tipoEvaluacion?.id as TIPO_EVALUACION;
   switch (tEvaluacion) {
     case TIPO_EVALUACION.MEMORIA:
       return comite.formulario.id as FORMULARIO;

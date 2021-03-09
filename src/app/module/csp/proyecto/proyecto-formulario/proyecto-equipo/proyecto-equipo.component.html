@@ -1,0 +1,82 @@
+<section class="proyecto-equipo">
+  <h2>{{'csp.proyecto.equipo.title' | translate}}</h2>
+
+  <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSource" matSort matSortActive="id"
+    matSortDirection="asc" matSortDisableClear>
+
+    <!-- nº identificacion Column -->
+    <ng-container matColumnDef="numIdentificacion">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.equipo.num.identificacion' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.persona?.identificadorNumero}} </td>
+    </ng-container>
+
+    <!-- nombre Column -->
+    <ng-container matColumnDef="nombre">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.equipo.nombre' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.persona?.nombre}} </td>
+    </ng-container>
+
+    <!-- Apellidos Column -->
+    <ng-container matColumnDef="apellidos">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.equipo.apellidos' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.persona?.primerApellido}}
+        {{wrapper.value.persona?.segundoApellido}} </td>
+    </ng-container>
+
+    <!-- rol equipo Column -->
+    <ng-container matColumnDef="rolEquipo">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.equipo.rol.equipo' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.rolProyecto?.nombre}} </td>
+    </ng-container>
+
+    <!-- Fecha inicio Column -->
+    <ng-container matColumnDef="fechaInicio">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.hitos.fechaInicio' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value?.fechaInicio | date:'dd/MM/yyyy'}} </td>
+    </ng-container>
+
+    <!-- Fecha fin Column -->
+    <ng-container matColumnDef="fechaFin">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.hitos.fechaFin' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value?.fechaFin | date:'dd/MM/yyyy'}} </td>
+    </ng-container>
+
+    <!-- horas dedicacion Column -->
+    <ng-container matColumnDef="horas">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto.equipo.horas' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value?.horasDedicacion}} </td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'columna.acciones' | translate}} </th>
+      <td mat-cell *matCellDef="let equipo; let i = index">
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModal(equipo, i)">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deleteEquipo(equipo)">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+  </table>
+
+  <mat-paginator [pageSizeOptions]="elementosPagina" showFirstLastButtons>
+  </mat-paginator>
+
+  <div class="separation-button">
+    <!-- Botón añadir equipos -->
+    <button color="three" mat-button mat-raised-button (click)="openModal()">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.proyecto.equipo.añadir' | translate}}
+    </button>
+  </div>
+</section>

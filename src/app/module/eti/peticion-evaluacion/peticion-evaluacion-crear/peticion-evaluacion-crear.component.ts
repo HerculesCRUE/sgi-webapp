@@ -5,24 +5,20 @@ import { ActionComponent } from '@core/component/action.component';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { NGXLogger } from 'ngx-logger';
-
 import {
-  EquipoInvestigadorListadoComponent,
+  EquipoInvestigadorListadoComponent
 } from '../peticion-evaluacion-formulario/equipo-investigador/equipo-investigador-listado/equipo-investigador-listado.component';
 import {
-  PeticionEvaluacionDatosGeneralesComponent,
+  PeticionEvaluacionDatosGeneralesComponent
 } from '../peticion-evaluacion-formulario/peticion-evaluacion-datos-generales/peticion-evaluacion-datos-generales.component';
-import { SgiAuthService } from '@sgi/framework/auth';
-
-import { IPeticionEvaluacion } from '@core/models/eti/peticion-evaluacion';
-import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
-
-
 import { PETICION_EVALUACION_ROUTE_NAMES } from '../peticion-evaluacion-route-names';
 import { PeticionEvaluacionActionService } from '../peticion-evaluacion.action.service';
 
 
-const MSG_BUTTON_SAVE = marker('footer.eti.acta.guardar');
+
+
+
+const MSG_BUTTON_SAVE = marker('botones.guardar');
 const MSG_ERROR = marker('eti.peticionEvaluacion.crear.error');
 const MSG_SUCCESS = marker('eti.peticionEvaluacion.crear.correcto');
 
@@ -45,7 +41,7 @@ export class PeticionEvaluacionCrearComponent extends ActionComponent {
 
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     router: Router,
     route: ActivatedRoute,
@@ -58,7 +54,8 @@ export class PeticionEvaluacionCrearComponent extends ActionComponent {
   saveOrUpdate(): void {
     this.actionService.saveOrUpdate().subscribe(
       () => { },
-      () => {
+      (error) => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR);
       },
       () => {

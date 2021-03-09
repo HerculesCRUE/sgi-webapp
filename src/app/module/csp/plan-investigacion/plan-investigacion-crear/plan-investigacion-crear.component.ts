@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActionComponent } from '@core/component/action.component';
@@ -26,7 +26,7 @@ export class PlanInvestigacionCrearComponent extends ActionComponent {
   textoCrear = MSG_BUTTON_SAVE;
 
   constructor(
-    protected readonly logger: NGXLogger,
+    private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     protected readonly router: Router,
     protected readonly route: ActivatedRoute,
@@ -34,22 +34,18 @@ export class PlanInvestigacionCrearComponent extends ActionComponent {
     dialogService: DialogService
   ) {
     super(router, route, actionService, dialogService);
-    this.logger.debug(PlanInvestigacionCrearComponent.name, 'constructor()', 'start');
-    this.logger.debug(PlanInvestigacionCrearComponent.name, 'constructor()', 'end');
   }
 
   saveOrUpdate(): void {
-    this.logger.debug(PlanInvestigacionCrearComponent.name, `${this.saveOrUpdate.name}()`, 'start');
     this.actionService.saveOrUpdate().subscribe(
       () => { },
-      () => {
+      (error) => {
+        this.logger.error(error);
         this.snackBarService.showError(MSG_ERROR);
-        this.logger.error(PlanInvestigacionCrearComponent.name, `${this.saveOrUpdate.name}()`, 'error');
       },
       () => {
         this.snackBarService.showSuccess(MSG_SUCCESS);
         this.router.navigate(['../'], { relativeTo: this.route });
-        this.logger.debug(PlanInvestigacionCrearComponent.name, `${this.saveOrUpdate.name}()`, 'end');
       }
     );
   }

@@ -1,0 +1,142 @@
+<section>
+  <form [formGroup]="formGroup">
+
+    <!-- Número de período -->
+    <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+      [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field fxFill>
+          <mat-label>{{'csp.proyecto-periodo-seguimiento.datosGenerales.numPeriodo' | translate}}</mat-label>
+          <input matInput formControlName="numPeriodo" type="number" id="numPeriodo"
+            placeholder="{{'csp.proyecto-periodo-seguimiento.datosGenerales.numPeriodo' | translate}}">
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Periodo de seguimiento científico -->
+    <div class="fieldset-form">
+      {{'csp.proyecto-periodo-seguimiento.datosGenerales.periodoSeguimientoCientifico' | translate}}
+    </div>
+
+    <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+      [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+      <!-- Fecha de inicio -->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field fxFill>
+          <mat-label>{{'csp.proyecto-periodo-seguimiento.datosGenerales.periodoSeguimientoCientifico.fechaInicio'|
+            translate}}</mat-label>
+          <input matInput [matDatepicker]="pickerFechaInicio" formControlName="fechaInicio" required>
+          <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaInicio"></mat-datepicker-toggle>
+          <mat-datepicker #pickerFechaInicio></mat-datepicker>
+          <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.after">
+            {{'csp.proyecto-periodo-seguimiento.datosGenerales.periodoSeguimientoCientifico.fechaInicio.error.after'
+            |
+            translate}}
+          </mat-error>
+          <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.overlapped">
+            {{'csp.proyecto-periodo-seguimiento.datosGenerales.periodoSeguimientoCientifico.fechaInicio.error.overlapped'
+            | translate}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Fecha de fin -->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field fxFill>
+          <mat-label>{{'csp.proyecto-periodo-seguimiento.datosGenerales.periodoSeguimientoCientifico.fechaFin' |
+            translate}}</mat-label>
+          <input matInput [matDatepicker]="pickerFechaFin" formControlName="fechaFin" required>
+          <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaFin"></mat-datepicker-toggle>
+          <mat-datepicker #pickerFechaFin></mat-datepicker>
+          <mat-error *ngIf="formGroup.controls.fechaFin.errors?.before">
+            {{'csp.proyecto-periodo-seguimiento.datosGenerales.periodoSeguimientoCientifico.fechaFin.error.before'
+            |
+            translate}}
+          </mat-error>
+          <mat-error *ngIf="formGroup.controls.fechaFin.errors?.after">
+            {{'csp.proyecto-periodo-seguimiento.datosGenerales.periodoSeguimientoCientifico.fechaFin.error.after' |
+            translate}}
+          </mat-error>
+          <mat-error *ngIf="formGroup.controls.fechaFin.errors?.overlapped">
+            {{'csp.proyecto-periodo-seguimiento.datosGenerales.periodoSeguimientoCientifico.fechaFin.error.overlapped'
+            | translate}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+    </div>
+
+
+    <!-- Plazo de presentación -->
+    <div class="fieldset-form">
+      {{'csp.proyecto-periodo-seguimiento.datosGenerales.plazoPresentacion' | translate}}
+    </div>
+
+    <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+      [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+      <!-- Fecha de inicio de presentación-->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field fxFill>
+          <mat-label>{{'csp.proyecto-periodo-seguimiento.datosGenerales.plazoPresentacion.fechaInicioPresentacion'|
+            translate}}</mat-label>
+          <input matInput formControlName="fechaInicioPresentacion"
+            [ngxMatDatetimePicker]="pickerFechaInicioPresentacion"
+            [required]="FormGroupUtil.hasValidator(this.formGroup,'fechaInicioPresentacion','required')">
+          <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaInicioPresentacion">
+          </mat-datepicker-toggle>
+          <ngx-mat-datetime-picker #pickerFechaInicioPresentacion [showSeconds]="showSeconds"
+            [defaultTime]="defaultTimeStart">
+          </ngx-mat-datetime-picker>
+
+        </mat-form-field>
+      </div>
+
+      <!-- Fecha de fin de presentación-->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field fxFill>
+          <mat-label>{{'csp.proyecto-periodo-seguimiento.datosGenerales.plazoPresentacion.fechaFinPresentacion' |
+            translate}}</mat-label>
+          <input matInput formControlName="fechaFinPresentacion" [ngxMatDatetimePicker]="pickerFechaFinPresentacion"
+            [required]="FormGroupUtil.hasValidator(this.formGroup,'fechaFinPresentacion','required')">
+          <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaFinPresentacion">
+          </mat-datepicker-toggle>
+          <ngx-mat-datetime-picker #pickerFechaFinPresentacion [showSeconds]="showSeconds"
+            [defaultTime]="defaultTimeEnd">
+          </ngx-mat-datetime-picker>
+          <mat-error *ngIf="formGroup.controls.fechaFinPresentacion.errors?.after">
+            {{'csp.proyecto-periodo-seguimiento.datosGenerales.plazoPresentacion.fechaFinPresentacion.error.after' |
+            translate}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+    </div>
+
+    <!-- Observaciones -->
+    <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+      [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+      <div [fxFlex.sm]="fxFlexProperties3.sm" [fxFlex.md]="fxFlexProperties3.md" [fxFlex.gt-md]="fxFlexProperties3.gtMd"
+        [fxFlexOrder]="fxFlexProperties3.order">
+        <mat-form-field fxFill>
+          <mat-label>{{'csp.proyecto-periodo-seguimiento.datosGenerales.observaciones' | translate}}</mat-label>
+          <textarea matInput formControlName="observaciones" type="text" id="observaciones"
+            placeholder="{{'csp.proyecto-periodo-seguimiento.datosGenerales.observaciones' | translate}}">
+                      </textarea>
+          <mat-error *ngIf="formGroup.controls.observaciones.errors?.maxlength">
+            {{'csp.proyecto-periodo-seguimiento.datosGenerales.observaciones.maximo' | translate}}
+          </mat-error>
+        </mat-form-field>
+
+      </div>
+    </div>
+
+  </form>
+</section>

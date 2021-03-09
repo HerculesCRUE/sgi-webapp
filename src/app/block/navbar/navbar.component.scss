@@ -40,9 +40,11 @@ $variable1: 28;
       }
     }
   }
+  &.modulo {
+    border-left: 1px solid map-get($palette-primary, 50);
+  }
   &.modulo,
   &:first-child {
-    border-left: 1px solid map-get($palette-primary, 50);
     padding-left: 10px;
   }
 }

@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ConvocatoriaEnlaceComponent } from './convocatoria-enlace.component';
 import { MaterialDesignModule } from '@material/material-design.module';
@@ -11,12 +11,13 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { LoggerTestingModule } from 'ngx-logger/testing';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { ConvocatoriaActionService } from '../../convocatoria.action.service';
+import { SgiAuthService } from '@sgi/framework/auth';
 
 describe('ConvocatoriaEnlaceComponent', () => {
   let component: ConvocatoriaEnlaceComponent;
   let fixture: ComponentFixture<ConvocatoriaEnlaceComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ConvocatoriaEnlaceComponent],
       imports: [
@@ -32,7 +33,8 @@ describe('ConvocatoriaEnlaceComponent', () => {
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },
-        ConvocatoriaActionService
+        ConvocatoriaActionService,
+        SgiAuthService
       ],
     })
       .compileComponents();

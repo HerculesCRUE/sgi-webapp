@@ -1,4 +1,4 @@
-<mat-drawer-container class="mat-drawer-tabs">
+<mat-drawer-container class="mat-drawer-tabs" autosize>
   <mat-drawer mode="side" class="tabs" opened>
     <mat-list class="opciones-menu">
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.DATOS_GENERALES]"
@@ -28,8 +28,8 @@
         [title]="'label.seguimiento-cientifico' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.SEGUIMIENTO_CIENTIFICO)">
       </sgi-action-fragment-menu-item>
-      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.HITOS]"
-        [title]="'csp.convocatoria.hitos' | translate"
+      <sgi-action-fragment-menu-item *sgiHasAnyAuthorityForAnyUO="['CSP-CONV-C']"
+        [route]="[CONVOCATORIA_ROUTE_NAMES.HITOS]" [title]="'csp.convocatoria.hitos' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.HITOS)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.DOCUMENTOS]"
@@ -37,22 +37,21 @@
         [fragment]="actionService.getFragment(actionService.FRAGMENT.DOCUMENTOS)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.REQUISITOS_IP]"
-        [title]="'csp.convocatoria.requisitos-ip' | translate"
+        *ngIf="actionService.disabledRequisitoIP" [title]="'csp.convocatoria.requisitos-ip' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.REQUISITOS_IP)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.REQUISITOS_EQUIPO]"
-        [title]="'csp.convocatoria.requisitos.equipo' | translate"
+        *ngIf="actionService.disabledRequisitoEquipo" [title]="'csp.convocatoria.requisitos.equipo' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.REQUISITOS_EQUIPO)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.ELEGIBILIDAD]"
         [title]="'csp.convocatoria.elegibilidad' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.ELEGIBILIDAD)">
       </sgi-action-fragment-menu-item>
-      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.CODIGOS_ECONOMICOS]"
-        [title]="'csp.convocatoria.codigos.economicos' | translate"
-        [fragment]="actionService.getFragment(actionService.FRAGMENT.CODIGOS_ECONOMICOS)">
-      </sgi-action-fragment-menu-item>
-      <sgi-action-fragment-menu-item class="demo" [title]="'csp.convocatoria.configuracion.solicitudes' | translate">
+      <sgi-action-fragment-menu-item *sgiHasAnyAuthorityForAnyUO="['CSP-CONV-C']"
+        [route]="[CONVOCATORIA_ROUTE_NAMES.CONFIGURACION_SOLICITUDES]"
+        [title]="'csp.convocatoria.configuracion.solicitudes' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.CONFIGURACION_SOLICITUDES)">
       </sgi-action-fragment-menu-item>
 
     </mat-list>
@@ -62,8 +61,9 @@
       <router-outlet></router-outlet>
     </div>
     <sgi-action-footer [texto]="textoCrear" [actionService]="actionService">
-      <sgi-action-footer-button color="primary" [text]="textoRegistrar" [disabled]="disableRegistrar"
-        icon="move_to_inbox" (buttonClick)="registrar()">
+      <sgi-action-footer-button color="primary" [text]="textoRegistrar"
+        [disabled]="disableRegistrar || actionService.readonly || disable" icon="move_to_inbox"
+        (buttonClick)="registrar()">
       </sgi-action-footer-button>
     </sgi-action-footer>
   </mat-drawer-content>

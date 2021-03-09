@@ -2,19 +2,19 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { IFuenteFinanciacion } from '@core/models/csp/fuente-financiacion';
+import { ITipoAmbitoGeografico } from '@core/models/csp/tipo-ambito-geografico';
+import { ITipoOrigenFuenteFinanciacion } from '@core/models/csp/tipo-origen-fuente-financiacion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
+import { TipoAmbitoGeograficoService } from '@core/services/csp/tipo-ambito-geografico.service';
+import { TipoOrigenFuenteFinanciacionService } from '@core/services/csp/tipo-origen-fuente-financiacion.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { FormGroupUtil } from '@core/utils/form-group-util';
-import { NGXLogger } from 'ngx-logger';
-import { IFuenteFinanciacion } from '@core/models/csp/fuente-financiacion';
-import { ITipoOrigenFuenteFinanciacion } from '@core/models/csp/tipo-origen-fuente-financiacion';
 import { SgiRestListResult } from '@sgi/framework/http/types';
-import { TipoOrigenFuenteFinanciacionService } from '@core/services/csp/tipo-origen-fuente-financiacion.service';
+import { NGXLogger } from 'ngx-logger';
 import { Observable, Subscription } from 'rxjs';
-import { startWith, map } from 'rxjs/operators';
-import { ITipoAmbitoGeografico } from '@core/models/csp/tipo-ambito-geografico';
-import { TipoAmbitoGeograficoService } from '@core/services/csp/tipo-ambito-geografico.service';
+import { map, startWith } from 'rxjs/operators';
 
 const MSG_ERROR_FORM_GROUP = marker('form-group.error');
 const MSG_ERROR_INIT = marker('csp.fuenteFinanciacion.datos.generales.error.cargar');
@@ -44,7 +44,6 @@ export class FuenteFinanciacionModalComponent implements OnInit {
     private tipoOrigenFuenteFinanciacionService: TipoOrigenFuenteFinanciacionService,
     @Inject(MAT_DIALOG_DATA) fuenteFinanciacion: IFuenteFinanciacion
   ) {
-    this.logger.debug(FuenteFinanciacionModalComponent.name, 'constructor()', 'start');
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.layout = 'row';
     this.fxLayoutProperties.layoutAlign = 'row';
@@ -58,11 +57,9 @@ export class FuenteFinanciacionModalComponent implements OnInit {
     } else {
       this.fuenteFinanciacion = { activo: true } as IFuenteFinanciacion;
     }
-    this.logger.debug(FuenteFinanciacionModalComponent.name, 'constructor()', 'end');
   }
 
   ngOnInit(): void {
-    this.logger.debug(FuenteFinanciacionModalComponent.name, 'ngOnInit()', 'start');
     this.formGroup = new FormGroup({
       nombre: new FormControl(this.fuenteFinanciacion?.nombre),
       descripcion: new FormControl(this.fuenteFinanciacion?.descripcion),
@@ -73,42 +70,33 @@ export class FuenteFinanciacionModalComponent implements OnInit {
 
     this.loadAmbitosGeograficos();
     this.loadOrigenes();
-
-    this.logger.debug(FuenteFinanciacionModalComponent.name, 'ngOnInit()', 'end');
   }
 
   closeModal(fuenteFinanciacion?: IFuenteFinanciacion): void {
-    this.logger.debug(FuenteFinanciacionModalComponent.name, `${this.closeModal.name}(tipoEnlace?: ITipoEnlace)`, 'start');
     this.matDialogRef.close(fuenteFinanciacion);
-    this.logger.debug(FuenteFinanciacionModalComponent.name, `${this.closeModal.name}(tipoEnlace?: ITipoEnlace)`, 'end');
   }
 
   saveOrUpdate(): void {
-    this.logger.debug(FuenteFinanciacionModalComponent.name, `${this.saveOrUpdate.name}()`, 'start');
     if (FormGroupUtil.valid(this.formGroup)) {
       this.loadDatosForm();
       this.closeModal(this.fuenteFinanciacion);
     } else {
       this.snackBarService.showError(MSG_ERROR_FORM_GROUP);
     }
-    this.logger.debug(FuenteFinanciacionModalComponent.name, `${this.saveOrUpdate.name}()`, 'end');
   }
 
   /**
    * Método para actualizar la entidad con los datos de un formGroup
    */
   private loadDatosForm(): void {
-    this.logger.debug(FuenteFinanciacionModalComponent.name, `${this.loadDatosForm.name}()`, 'start');
     this.fuenteFinanciacion.nombre = this.formGroup.get('nombre').value;
     this.fuenteFinanciacion.descripcion = this.formGroup.get('descripcion').value;
     this.fuenteFinanciacion.tipoAmbitoGeografico = this.formGroup.get('ambitoGeografico').value;
     this.fuenteFinanciacion.tipoOrigenFuenteFinanciacion = this.formGroup.get('origen').value;
     this.fuenteFinanciacion.fondoEstructural = this.formGroup.get('fondoEstructural').value;
-    this.logger.debug(FuenteFinanciacionModalComponent.name, `${this.loadDatosForm.name}()`, 'end');
   }
 
   private loadAmbitosGeograficos() {
-    this.logger.debug(FuenteFinanciacionModalComponent.name, 'loadAmbitosGeograficos()', 'start');
     this.subscriptions.push(
       this.ambitoGeograficoService.findAll().subscribe(
         (res: SgiRestListResult<ITipoAmbitoGeografico>) => {
@@ -119,19 +107,16 @@ export class FuenteFinanciacionModalComponent implements OnInit {
               startWith(''),
               map(value => this.filtroAmbitoGeografico(value))
             );
-          this.logger.debug(FuenteFinanciacionModalComponent.name, 'loadAmbitosGeograficos()', 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_INIT);
-          this.logger.debug(FuenteFinanciacionModalComponent.name, 'loadAmbitosGeograficos()', 'end');
         }
       )
     );
-    this.logger.debug(FuenteFinanciacionModalComponent.name, 'loadAmbitosGeograficos()', 'end');
   }
 
   private loadOrigenes() {
-    this.logger.debug(FuenteFinanciacionModalComponent.name, 'loadOrigenes()', 'start');
     this.subscriptions.push(
       this.tipoOrigenFuenteFinanciacionService.findAll().subscribe(
         (res: SgiRestListResult<ITipoOrigenFuenteFinanciacion>) => {
@@ -142,15 +127,13 @@ export class FuenteFinanciacionModalComponent implements OnInit {
               startWith(''),
               map(value => this.filtroOrigen(value))
             );
-          this.logger.debug(FuenteFinanciacionModalComponent.name, 'loadOrigenes()', 'end');
         },
-        () => {
+        (error) => {
+          this.logger.error(error);
           this.snackBarService.showError(MSG_ERROR_INIT);
-          this.logger.debug(FuenteFinanciacionModalComponent.name, 'loadOrigenes()', 'end');
         }
       )
     );
-    this.logger.debug(FuenteFinanciacionModalComponent.name, 'loadOrigenes()', 'end');
   }
 
   /**
@@ -159,7 +142,6 @@ export class FuenteFinanciacionModalComponent implements OnInit {
    * @returns nombre de un ámbito geográfico.
    */
   getAmbitoGeografico(ambitoGeografico?: ITipoAmbitoGeografico): string | undefined {
-    console.log(typeof ambitoGeografico);
     return typeof ambitoGeografico === 'string' ? ambitoGeografico : ambitoGeografico?.nombre;
   }
 

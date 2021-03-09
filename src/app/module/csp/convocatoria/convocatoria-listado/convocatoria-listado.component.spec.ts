@@ -1,5 +1,5 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FlexLayoutModule, FlexModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -11,12 +11,13 @@ import { LoggerTestingModule } from 'ngx-logger/testing';
 import { FooterCrearComponent } from '@shared/footers/footer-crear/footer-crear.component';
 import { ConvocatoriaListadoComponent } from 'src/app/module/csp/convocatoria/convocatoria-listado/convocatoria-listado.component';
 import { ConvocatoriaActionService } from '../convocatoria.action.service';
+import { SgiAuthService } from '@sgi/framework/auth';
 
 describe('ConvocatoriaListadoComponent', () => {
   let component: ConvocatoriaListadoComponent;
   let fixture: ComponentFixture<ConvocatoriaListadoComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
         ConvocatoriaListadoComponent,
@@ -35,7 +36,8 @@ describe('ConvocatoriaListadoComponent', () => {
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },
-        ConvocatoriaActionService
+        ConvocatoriaActionService,
+        SgiAuthService
       ],
     })
       .compileComponents();

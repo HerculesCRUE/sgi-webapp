@@ -1,19 +1,13 @@
-import { Component, OnInit } from '@angular/core';
-import { NGXLogger } from 'ngx-logger';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'sgi-inv-inicio',
   templateUrl: './inv-inicio.component.html',
   styleUrls: ['./inv-inicio.component.scss']
 })
-export class InvInicioComponent implements OnInit {
+export class InvInicioComponent {
 
-  constructor(private logger: NGXLogger) {
-  }
-
-  ngOnInit(): void {
-    this.logger.debug(InvInicioComponent.name, 'ngOnInit()', 'start');
-    this.logger.debug(InvInicioComponent.name, 'ngOnInit()', 'end');
+  constructor() {
   }
 
 }

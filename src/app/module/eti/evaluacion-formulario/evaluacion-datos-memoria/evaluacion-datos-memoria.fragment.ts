@@ -1,13 +1,12 @@
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { IMemoria } from '@core/models/eti/memoria';
 import { IMemoriaWithPersona } from '@core/models/eti/memoria-with-persona';
 import { IPersona } from '@core/models/sgp/persona';
 import { FormFragment } from '@core/services/action-service';
 import { EvaluacionService } from '@core/services/eti/evaluacion.service';
 import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
-import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
-import { IMemoria } from '@core/models/eti/memoria';
+import { catchError, map, switchMap } from 'rxjs/operators';
 
 interface MemoriaWithPersona extends IMemoria {
   solicitante: IPersona;
@@ -18,20 +17,16 @@ export class EvaluacionDatosMemoriaFragment extends FormFragment<MemoriaWithPers
   private memoria: IMemoriaWithPersona;
 
   constructor(
-    private readonly logger: NGXLogger,
     private fb: FormBuilder,
     key: number,
     private service: EvaluacionService,
     private personaFisicaService: PersonaFisicaService
   ) {
     super(key);
-    this.logger.debug(EvaluacionDatosMemoriaFragment.name, 'constructor()', 'start');
     this.memoria = {} as IMemoriaWithPersona;
-    this.logger.debug(EvaluacionDatosMemoriaFragment.name, 'constructor()', 'end');
   }
 
   protected buildFormGroup(): FormGroup {
-    this.logger.debug(EvaluacionDatosMemoriaFragment.name, 'buildFormGroup()', 'start');
     const fb = this.fb.group({
       comite: [{ value: '', disabled: true }],
       fechaEvaluacion: [{ value: '', disabled: true }],
@@ -39,12 +34,10 @@ export class EvaluacionDatosMemoriaFragment extends FormFragment<MemoriaWithPers
       solicitante: [{ value: '', disabled: true }],
       version: [{ value: '', disabled: true }]
     });
-    this.logger.debug(EvaluacionDatosMemoriaFragment.name, 'buildFormGroup()', 'end');
     return fb;
   }
 
   protected initializer(key: number): Observable<IMemoriaWithPersona> {
-    this.logger.debug(EvaluacionDatosMemoriaFragment.name, `initializer(key: ${key})`, 'start');
     return this.service.findById(key).pipe(
       map((evaluacion) => {
         this.memoria = evaluacion.memoria as IMemoriaWithPersona;
@@ -71,13 +64,11 @@ export class EvaluacionDatosMemoriaFragment extends FormFragment<MemoriaWithPers
         else {
           return of(memoria);
         }
-      }),
-      tap(() => this.logger.debug(EvaluacionDatosMemoriaFragment.name, `initializer(key: ${key})`, 'end'))
+      })
     );
   }
 
   buildPatch(value: IMemoriaWithPersona): { [key: string]: any } {
-    this.logger.debug(EvaluacionDatosMemoriaFragment.name, `buildPatch(value: ${value})`, 'start');
     const patch = {
       comite: value.comite.comite,
       fechaEvaluacion: value.fechaEnvioSecretaria,
@@ -85,21 +76,15 @@ export class EvaluacionDatosMemoriaFragment extends FormFragment<MemoriaWithPers
       version: value.version,
       solicitante: `${value?.solicitante?.nombre} ${value?.solicitante?.primerApellido} ${value?.solicitante?.segundoApellido}`
     };
-    this.logger.debug(EvaluacionDatosMemoriaFragment.name, `buildPatch(value: ${value})`, 'end');
     return patch;
   }
 
   getValue(): IMemoriaWithPersona {
-    this.logger.debug(EvaluacionDatosMemoriaFragment.name, 'getValue()', 'start');
-    this.logger.debug(EvaluacionDatosMemoriaFragment.name, 'getValue()', 'end');
     return this.memoria;
   }
 
   saveOrUpdate(): Observable<void> {
-    this.logger.debug(EvaluacionDatosMemoriaFragment.name, 'saveOrUpdate()', 'start');
-    return of(void 0).pipe(
-      tap(() => this.logger.debug(EvaluacionDatosMemoriaFragment.name, 'saveOrUpdate()', 'end'))
-    );
+    return of(void 0);
   }
 
 }

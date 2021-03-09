@@ -64,13 +64,10 @@ export class PlanInvestigacionProgramaFragment extends Fragment {
     private programaService: ProgramaService
   ) {
     super(key);
-    this.logger.debug(PlanInvestigacionProgramaFragment.name, 'constructor()', 'start');
     this.setComplete(true);
-    this.logger.debug(PlanInvestigacionProgramaFragment.name, 'constructor()', 'end');
   }
 
   protected onInitialize(): void {
-    this.logger.debug(PlanInvestigacionProgramaFragment.name, `${this.onInitialize.name}()`, 'start');
     if (this.getKey()) {
       this.programaService.findAllHijosPrograma(this.getKey() as number).pipe(
         switchMap(response => {
@@ -88,11 +85,10 @@ export class PlanInvestigacionProgramaFragment extends Fragment {
           this.publishNodes(current);
         },
         (error) => {
-          this.logger.error(PlanInvestigacionProgramaFragment.name, `${this.onInitialize.name}()`, error);
+          this.logger.error(error);
         }
       );
     }
-    this.logger.debug(PlanInvestigacionProgramaFragment.name, `${this.onInitialize.name}()`, 'end');
   }
 
   publishNodes(rootNodes?: NodePrograma[]) {
@@ -131,20 +127,15 @@ export class PlanInvestigacionProgramaFragment extends Fragment {
   }
 
   public addToDelete(node: NodePrograma) {
-    this.logger.debug(PlanInvestigacionProgramaFragment.name,
-      `${this.addToDelete.name}(wrapper: ${node})`, 'start');
     if (!node.programa.created) {
       this.programasEliminados.push(node.programa.value);
     }
     node.childs.forEach((child) => {
       this.addToDelete(child);
     });
-    this.logger.debug(PlanInvestigacionProgramaFragment.name,
-      `${this.addToDelete.name}(wrapper: ${node})`, 'end');
   }
 
   saveOrUpdate(): Observable<void> {
-    this.logger.debug(PlanInvestigacionProgramaFragment.name, `${this.saveOrUpdate.name}()`, 'start');
     return merge(
       this.deleteProgramas(),
       this.updateProgramas(this.getUpdated(this.programas$.value)),
@@ -155,8 +146,7 @@ export class PlanInvestigacionProgramaFragment extends Fragment {
         if (this.isSaveOrUpdateComplete(this.programas$.value)) {
           this.setChanges(false);
         }
-      }),
-      tap(() => this.logger.debug(PlanInvestigacionProgramaFragment.name, `${this.saveOrUpdate.name}()`, 'end'))
+      })
     );
   }
 
@@ -187,9 +177,7 @@ export class PlanInvestigacionProgramaFragment extends Fragment {
   }
 
   private deleteProgramas(): Observable<void> {
-    this.logger.debug(PlanInvestigacionProgramaFragment.name, `${this.deleteProgramas.name}()`, 'start');
     if (this.programasEliminados.length === 0) {
-      this.logger.debug(PlanInvestigacionProgramaFragment.name, `${this.deleteProgramas.name}()`, 'end');
       return of(void 0);
     }
     return from(this.programasEliminados).pipe(
@@ -199,17 +187,13 @@ export class PlanInvestigacionProgramaFragment extends Fragment {
             tap(() => {
               this.programasEliminados = this.programasEliminados.filter(deleted =>
                 deleted.id !== programa.id);
-            }),
-            tap(() => this.logger.debug(PlanInvestigacionProgramaFragment.name,
-              `${this.deleteProgramas.name}()`, 'end'))
+            })
           );
       }));
   }
 
   private updateProgramas(nodes: NodePrograma[]): Observable<void> {
-    this.logger.debug(PlanInvestigacionProgramaFragment.name, `${this.updateProgramas.name}()`, 'start');
     if (nodes.length === 0) {
-      this.logger.debug(PlanInvestigacionProgramaFragment.name, `${this.updateProgramas.name}()`, 'end');
       return of(void 0);
     }
     return from(nodes).pipe(
@@ -217,22 +201,18 @@ export class PlanInvestigacionProgramaFragment extends Fragment {
         return this.programaService.update(node.programa.value.id, node.programa.value).pipe(
           map((updated) => {
             node.programa = new StatusWrapper<IPrograma>(updated);
-          }),
-          tap(() => this.logger.debug(PlanInvestigacionProgramaFragment.name,
-            `${this.updateProgramas.name}()`, 'end'))
+          })
         );
       }));
   }
 
   private createProgramas(nodes: NodePrograma[]): Observable<void> {
-    this.logger.debug(PlanInvestigacionProgramaFragment.name, `${this.createProgramas.name}()`, 'start');
     if (nodes.length === 0) {
-      this.logger.debug(PlanInvestigacionProgramaFragment.name, `${this.createProgramas.name}()`, 'end');
       return of(void 0);
     }
     return from(nodes).pipe(
       concatMap(node => {
-        //Root nodes must match entity parent
+        // Root nodes must match entity parent
         if (!node.parent) {
           node.programa.value.padre.id = this.getKey() as number;
         }
@@ -242,15 +222,12 @@ export class PlanInvestigacionProgramaFragment extends Fragment {
             node.childs.forEach((child) => {
               child.programa.value.padre = created;
             });
-          }),
-          tap(() => this.logger.debug(PlanInvestigacionProgramaFragment.name,
-            `${this.createProgramas.name}()`, 'end'))
+          })
         );
       }));
   }
 
   private isSaveOrUpdateComplete(nodes: NodePrograma[]): boolean {
-    this.logger.debug(PlanInvestigacionProgramaFragment.name, `${this.isSaveOrUpdateComplete.name}()`, 'start');
     let pending = this.programasEliminados.length > 0;
     if (pending) {
       return false;
@@ -267,7 +244,6 @@ export class PlanInvestigacionProgramaFragment extends Fragment {
         }
       }
     });
-    this.logger.debug(PlanInvestigacionProgramaFragment.name, `${this.isSaveOrUpdateComplete.name}()`, 'end');
     return true;
   }
 

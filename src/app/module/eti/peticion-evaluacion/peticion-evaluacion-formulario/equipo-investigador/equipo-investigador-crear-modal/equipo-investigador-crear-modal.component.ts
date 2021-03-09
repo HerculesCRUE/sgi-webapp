@@ -1,19 +1,18 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
-import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { IPersona } from '@core/models/sgp/persona';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
+import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { FormGroupUtil } from '@core/utils/form-group-util';
-import { NGXLogger } from 'ngx-logger';
 
 @Component({
   selector: 'sgi-equipo-investigador-crear-modal',
   templateUrl: './equipo-investigador-crear-modal.component.html',
   styleUrls: ['./equipo-investigador-crear-modal.component.scss']
 })
-export class EquipoInvestigadorCrearModalComponent implements OnInit, OnDestroy {
+export class EquipoInvestigadorCrearModalComponent implements OnInit {
 
   FormGroupUtil = FormGroupUtil;
   formGroup: FormGroup;
@@ -25,14 +24,10 @@ export class EquipoInvestigadorCrearModalComponent implements OnInit, OnDestroy 
   nuevaPersonaEquipo: IPersona;
 
   constructor(
-    private readonly logger: NGXLogger,
     public readonly matDialogRef: MatDialogRef<EquipoInvestigadorCrearModalComponent>
   ) { }
 
   ngOnInit(): void {
-    this.logger.debug(EquipoInvestigadorCrearModalComponent.name, 'ngOnInit()', 'start');
-
-
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
     this.fxFlexProperties.md = '0 1 calc(33%-10px)';
@@ -44,12 +39,6 @@ export class EquipoInvestigadorCrearModalComponent implements OnInit, OnDestroy 
     this.fxLayoutProperties.layout = 'column';
 
     this.initFormGroup();
-    this.logger.debug(EquipoInvestigadorCrearModalComponent.name, 'ngOnInit()', 'end');
-  }
-
-  ngOnDestroy(): void {
-    this.logger.debug(EquipoInvestigadorCrearModalComponent.name, 'ngOnDestroy()', 'start');
-    this.logger.debug(EquipoInvestigadorCrearModalComponent.name, 'ngOnDestroy()', 'end');
   }
 
   /**
@@ -57,8 +46,6 @@ export class EquipoInvestigadorCrearModalComponent implements OnInit, OnDestroy 
    *
    */
   addPersonaEquipoInvestigador(): void {
-    this.logger.debug(EquipoInvestigadorCrearModalComponent.name, 'addPersonaEquipoInvestigador()', 'start');
-
     const equipoTrabajo: IEquipoTrabajo = {
       id: null,
       peticionEvaluacion: null,
@@ -73,9 +60,7 @@ export class EquipoInvestigadorCrearModalComponent implements OnInit, OnDestroy 
       eliminable: true
     };
 
-
     this.matDialogRef.close(equipoTrabajo);
-    this.logger.debug(EquipoInvestigadorCrearModalComponent.name, 'addPersonaEquipoInvestigador()', 'end');
   }
 
 
@@ -97,15 +82,12 @@ export class EquipoInvestigadorCrearModalComponent implements OnInit, OnDestroy 
    * Inicializa el formGroup
    */
   private initFormGroup() {
-    this.logger.debug(EquipoInvestigadorCrearModalComponent.name, 'initFormGroup()', 'start');
     this.formGroup = new FormGroup({
       numDocumento: new FormControl({ value: '', disabled: true }, [Validators.required]),
       nombreCompleto: new FormControl({ value: '', disabled: true }),
       vinculacion: new FormControl({ value: '', disabled: true }),
       nivelAcademico: new FormControl({ value: '', disabled: true })
     });
-
-    this.logger.debug(EquipoInvestigadorCrearModalComponent.name, 'initFormGroup()', 'end');
   }
 
 }

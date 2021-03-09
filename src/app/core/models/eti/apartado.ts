@@ -1,4 +1,4 @@
-import { FormlyFieldConfig } from '@ngx-formly/core';
+import { SgiFormlyFieldConfig } from '@formly-forms/formly-field-config';
 import { IBloque } from './bloque';
 
 export interface IApartado {
@@ -18,5 +18,5 @@ export interface IApartado {
   orden: number;
 
   /** Esquema */
-  esquema: FormlyFieldConfig[];
+  esquema: SgiFormlyFieldConfig[];
 }

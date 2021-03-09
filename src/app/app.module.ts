@@ -5,7 +5,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { environment } from '@env';
 import { MaterialDesignModule } from '@material/material-design.module';
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AppMatPaginatorIntl } from '@material/app-mat-paginator-intl';
 import { LoggerModule } from 'ngx-logger';
@@ -15,7 +15,6 @@ import { AppComponent } from './app.component';
 import { SgiAuthModule, SGI_AUTH_CONFIG, SgiAuthMode } from '@sgi/framework/auth';
 
 import { BlockModule } from './block/block.module';
-import { SelectorModuloComponent } from './block/selector-modulo/selector-modulo.component';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { registerLocaleData } from '@angular/common';
@@ -23,6 +22,7 @@ import localeEs from '@angular/common/locales/es';
 import { CoreModule } from '@angular/flex-layout';
 import { HomeComponent } from './home/home.component';
 import { ConfigService } from './core/services/config.service';
+import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
 
 // Load supported locales
 registerLocaleData(localeEs);
@@ -36,7 +36,7 @@ const appInitializerFn = (appConfig: ConfigService) => {
 @NgModule({
   declarations: [
     AppComponent,
-    HomeComponent,
+    HomeComponent
   ],
   imports: [
     AppRoutingModule,
@@ -52,6 +52,10 @@ const appInitializerFn = (appConfig: ConfigService) => {
           return new TranslateHttpLoader(http);
         },
         deps: [HttpClient]
+      },
+      compiler: {
+        provide: TranslateCompiler,
+        useClass: TranslateMessageFormatCompiler
       },
       defaultLanguage: 'es'
     }),
@@ -92,9 +96,6 @@ const appInitializerFn = (appConfig: ConfigService) => {
       useClass: MomentDateAdapter,
       deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]
     }
-  ],
-  entryComponents: [
-    SelectorModuloComponent
   ],
   bootstrap: [AppComponent]
 })

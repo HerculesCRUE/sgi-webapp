@@ -1,0 +1,61 @@
+<section class="solicitud-proyecto-socio-periodo-pago">
+  <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSource" matSort matSortActive="id"
+    matSortDirection="asc" matSortDisableClear>
+
+    <!-- numPeriodo Column -->
+    <ng-container matColumnDef="numPeriodo">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.solicitud-proyecto-socio.periodo-pago.listado.numPeriodo' | translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.numPeriodo}}</td>
+    </ng-container>
+
+    <!-- mes Column -->
+    <ng-container matColumnDef="mes">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.solicitud-proyecto-socio.periodo-pago.listado.mes' |
+        translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.mes}}</td>
+    </ng-container>
+
+    <!-- importe Column -->
+    <ng-container matColumnDef="importe">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{'csp.solicitud-proyecto-socio.periodo-pago.listado.importe' |
+        translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.importe}}</td>
+    </ng-container>
+
+    <!-- Acciones Column -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef> {{'csp.solicitud-proyecto-socio.periodo-pago.listado.acciones' |
+        translate}}
+      </th>
+      <td mat-cell *matCellDef="let wrapper">
+        <ng-container>
+          <button mat-button matTooltip="{{'botones.ver' | translate}}" (click)="openModal(wrapper)"
+            *ngIf="this.formPart.readonly">
+            <mat-icon color="primary">visibility</mat-icon>
+          </button>
+          <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModal(wrapper)"
+            *ngIf="!this.formPart.readonly">
+            <mat-icon color="primary">border_color</mat-icon>
+          </button>
+          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deleteProyectoEquipo(wrapper)"
+            *ngIf="!this.formPart.readonly">
+            <mat-icon color="warn">highlight_off</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+  <div class="separation-button" *ngIf="!this.formPart.readonly">
+    <button color="three" mat-button mat-raised-button (click)="openModal()">
+      <mat-icon color="accent">add_circle</mat-icon>
+      {{'csp.solicitud-proyecto-socio.periodo-pago.añadir' | translate}}
+    </button>
+  </div>
+</section>
