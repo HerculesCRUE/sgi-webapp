@@ -1,10 +1,9 @@
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { IConvocatoria } from '@core/models/csp/convocatoria';
 import { IConvocatoriaRequisitoEquipo } from '@core/models/csp/convocatoria-requisito-equipo';
 import { FormFragment } from '@core/services/action-service';
 import { ConvocatoriaRequisitoEquipoService } from '@core/services/csp/convocatoria-requisito-equipo.service';
-import { Observable, of } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 
 export class ConvocatoriaRequisitosEquipoFragment extends FormFragment<IConvocatoriaRequisitoEquipo> {
 
@@ -50,16 +49,12 @@ export class ConvocatoriaRequisitosEquipoFragment extends FormFragment<IConvocat
 
   protected initializer(key: number): Observable<IConvocatoriaRequisitoEquipo> {
     if (this.getKey()) {
-      return this.convocatoriaRequisitoEquipoService.findById(key).pipe(
-        switchMap((requisitoEquipo) => {
-          this.requisitoEquipo = requisitoEquipo;
-          return of(this.requisitoEquipo);
-        })
-      );
+      return this.convocatoriaRequisitoEquipoService.findById(key);
     }
   }
 
   buildPatch(value: IConvocatoriaRequisitoEquipo): { [key: string]: any } {
+    this.requisitoEquipo = value;
     return {
       nivelAcademicoRef: value ? value.nivelAcademicoRef : null,
       aniosNivelAcademico: value ? value.aniosNivelAcademico : null,
@@ -96,9 +91,7 @@ export class ConvocatoriaRequisitosEquipoFragment extends FormFragment<IConvocat
 
   saveOrUpdate(): Observable<number> {
     const datosrequisitoEquipo = this.getValue();
-    datosrequisitoEquipo.convocatoria = {
-      id: this.getKey()
-    } as IConvocatoria;
+    datosrequisitoEquipo.convocatoriaId = this.getKey() as number;
     const obs = datosrequisitoEquipo.id ? this.update(datosrequisitoEquipo) :
       this.create(datosrequisitoEquipo);
     return obs.pipe(

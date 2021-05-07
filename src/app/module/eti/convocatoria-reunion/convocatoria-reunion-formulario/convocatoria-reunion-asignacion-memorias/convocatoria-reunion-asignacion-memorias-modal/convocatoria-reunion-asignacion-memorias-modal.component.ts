@@ -2,44 +2,48 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { DialogData } from '@block/dialog/dialog.component';
-import { IConvocatoriaReunion } from '@core/models/eti/convocatoria-reunion';
-import { IEvaluacion } from '@core/models/eti/evaluacion';
+import { BaseModalComponent } from '@core/component/base-modal.component';
+import { MSG_PARAMS } from '@core/i18n';
+import { IEvaluacionWithIsEliminable } from '@core/models/eti/evaluacion-with-is-eliminable';
 import { IEvaluador } from '@core/models/eti/evaluador';
 import { IMemoria } from '@core/models/eti/memoria';
 import { IPersona } from '@core/models/sgp/persona';
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { EvaluadorService } from '@core/services/eti/evaluador.service';
 import { MemoriaService } from '@core/services/eti/memoria.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { DateUtils } from '@core/utils/date-utils';
-import { FormGroupUtil } from '@core/utils/form-group-util';
-import { NullIdValidador } from '@core/validators/null-id-validador';
+import { LuxonUtils } from '@core/utils/luxon-utils';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
-import { Observable, of, Subscription } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { map, shareReplay, startWith, switchMap } from 'rxjs/operators';
+import { DatosAsignacionEvaluacion } from '../../../convocatoria-reunion.action.service';
 
+const MSG_ERROR_LOAD = marker('error.load');
+const MSG_ERROR_EVALUADOR_REPETIDO = marker('error.eti.convocatoria-reunion.memoria.evaluador.duplicate');
+const MEMORIA_EVALUADOR1_KEY = marker('eti.convocatoria-reunion.memoria.evaludador-1');
+const MEMORIA_EVALUADOR2_KEY = marker('eti.convocatoria-reunion.memoria.evaludador-2');
+const MEMORIA_KEY = marker('eti.memoria');
+const TITLE_NEW_ENTITY = marker('title.new.entity');
 
-const MSG_ERROR_FORM_GROUP = marker('form-group.error');
-const MSG_ERROR_CARGAR_MEMORIA = marker('eti.convocatoriaReunion.formulario.asignacionMemorias.memoria.error.cargar');
-const MSG_ERROR_CARGAR_EVALUADOR1 = marker('eti.convocatoriaReunion.formulario.asignacionMemorias.evaluador1.error.cargar');
-const MSG_ERROR_CARGAR_EVALUADOR2 = marker('eti.convocatoriaReunion.formulario.asignacionMemorias.evaluador2.error.cargar');
-const MSG_ERROR_EVALUADOR_REPETIDO = marker('eti.convocatoriaReunion.formulario.asignacionMemorias.evaluador.repetido');
+export interface ConvocatoriaReunionAsignacionMemoriasModalComponentData {
+  idConvocatoria: number;
+  memoriasAsignadas: IMemoria[];
+  filterMemoriasAsignables: DatosAsignacionEvaluacion;
+  evaluacion: IEvaluacionWithIsEliminable;
+  readonly: boolean;
+}
 
 @Component({
   selector: 'sgi-convocatoria-reunion-asignacion-memorias-modal',
   templateUrl: './convocatoria-reunion-asignacion-memorias-modal.component.html',
   styleUrls: ['./convocatoria-reunion-asignacion-memorias-modal.component.scss']
 })
-export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnInit, OnDestroy {
-  fxFlexProperties: FxFlexProperties;
+export class ConvocatoriaReunionAsignacionMemoriasModalComponent extends
+  BaseModalComponent<ConvocatoriaReunionAsignacionMemoriasModalComponentData, ConvocatoriaReunionAsignacionMemoriasModalComponent> implements OnInit, OnDestroy {
   fxLayoutProperties: FxLayoutProperties;
-
-  FormGroupUtil = FormGroupUtil;
-  formGroup: FormGroup;
 
   evaluadores: IEvaluador[];
   memorias: IMemoria[];
@@ -48,55 +52,48 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
   filteredEvaluadoresEvaluador2: Observable<IEvaluador[]>;
   filteredMemorias: Observable<IMemoria[]>;
 
-  private subscriptions: Subscription[];
-
-  idConvocatoria: number;
   isTipoConvocatoriaSeguimiento: boolean;
-  filterData: { idComite: number, idTipoConvocatoria: number, fechaLimite: Date };
   filterMemoriasAsignables: SgiRestFilter;
-  memoriasAsignadas: IMemoria[];
-  evaluacion: IEvaluacion;
 
   isEdit = false;
 
+  msgParamEvaludador1Entity = {};
+  msgParamEvaludador2Entity = {};
+  msgParamMemoriaEntity = {};
+  title: string;
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
+
   constructor(
     private readonly logger: NGXLogger,
-    private readonly dialogRef: MatDialogRef<ConvocatoriaReunionAsignacionMemoriasModalComponent>,
+    public matDialogRef: MatDialogRef<ConvocatoriaReunionAsignacionMemoriasModalComponent>,
     private readonly evaluadorService: EvaluadorService,
     private readonly memoriaService: MemoriaService,
-    private readonly PersonafisicaService: PersonaFisicaService,
-    private readonly snackBarService: SnackBarService,
-    @Inject(MAT_DIALOG_DATA) public data: DialogData
+    private readonly personaService: PersonaService,
+    protected readonly snackBarService: SnackBarService,
+    @Inject(MAT_DIALOG_DATA) public data: ConvocatoriaReunionAsignacionMemoriasModalComponentData,
+    private readonly translate: TranslateService
   ) {
-    this.fxFlexProperties = new FxFlexProperties();
-    this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
-    this.fxFlexProperties.md = '0 1 calc(33%-10px)';
-    this.fxFlexProperties.gtMd = '0 1 calc(22%-10px)';
-    this.fxFlexProperties.order = '2';
+    super(snackBarService, matDialogRef, data);
 
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
-
-    this.subscriptions = [];
-
-    const params: any = data.params;
-    if (params) {
-      this.idConvocatoria = params.idConvocatoria;
-      this.memoriasAsignadas = params.memoriasAsignadas;
-      this.filterData = params.filterMemoriasAsignables;
-      this.evaluacion = params.evaluacion;
-    }
     this.buildFilter();
   }
 
   ngOnInit(): void {
-    this.initFormGroup();
+    super.ngOnInit();
+    this.setupI18N();
 
-    if (this.idConvocatoria) {
+    if (this.data.idConvocatoria) {
       this.loadMemoriasAsignablesConvocatoria();
-    } else {
+    } else if (this.data.filterMemoriasAsignables && this.data.filterMemoriasAsignables.idComite &&
+      this.data.filterMemoriasAsignables.idTipoConvocatoria &&
+      this.data.filterMemoriasAsignables.fechaLimite) {
       if (this.isTipoConvocatoriaSeguimiento) {
         this.loadMemoriasAsignablesConvocatoriaSeguimiento();
       } else {
@@ -104,37 +101,45 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
       }
     }
 
-    this.isEdit = this.evaluacion?.memoria ? true : false;
+    this.isEdit = this.data.evaluacion?.memoria ? true : false;
 
     this.loadEvaluadores();
   }
 
-  /**
-   * Inicializa el formGroup
-   */
-  private initFormGroup() {
-    this.formGroup = new FormGroup({
-      memoria: new FormControl(this.evaluacion.memoria, [Validators.required]),
-      evaluador1: new FormControl(this.evaluacion.evaluador1),
-      evaluador2: new FormControl(this.evaluacion.evaluador2),
-    });
-  }
+  private setupI18N(): void {
+    this.translate.get(
+      MEMORIA_EVALUADOR1_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEvaludador1Entity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
 
-  ngOnDestroy(): void {
-    this.subscriptions?.forEach(x => x.unsubscribe());
-  }
+    this.translate.get(
+      MEMORIA_EVALUADOR2_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEvaludador2Entity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
 
-  /**
-   * Crear el FormGroup
-   *
-   */
-  createFormGroup(): FormGroup {
-    const formGroup = new FormGroup({
-      memoria: new FormControl(null, [new NullIdValidador().isValid()]),
-      evaluador1: new FormControl(null, [Validators.required]),
-      evaluador2: new FormControl(null, [Validators.required])
-    });
-    return formGroup;
+    this.translate.get(
+      MEMORIA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamMemoriaEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    if (this.data.evaluacion.memoria) {
+      this.translate.get(
+        MEMORIA_KEY,
+        MSG_PARAMS.CARDINALIRY.SINGULAR
+      ).subscribe((value) => this.title = value);
+    } else {
+      this.translate.get(
+        MEMORIA_KEY,
+        MSG_PARAMS.CARDINALIRY.SINGULAR
+      ).pipe(
+        switchMap((value) => {
+          return this.translate.get(
+            TITLE_NEW_ENTITY,
+            { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+          );
+        })
+      ).subscribe((value) => this.title = value);
+    }
   }
 
   /**
@@ -142,26 +147,25 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
    *
    */
   private buildFilter(): void {
-    if (this.filterData && this.filterData.idComite &&
-      this.filterData.idTipoConvocatoria &&
-      this.filterData.fechaLimite) {
-      this.isTipoConvocatoriaSeguimiento = (this.filterData.idTipoConvocatoria === 3) ? true : false;
+    if (this.data.filterMemoriasAsignables && this.data.filterMemoriasAsignables.idComite &&
+      this.data.filterMemoriasAsignables.idTipoConvocatoria &&
+      this.data.filterMemoriasAsignables.fechaLimite) {
+      this.isTipoConvocatoriaSeguimiento = (this.data.filterMemoriasAsignables.idTipoConvocatoria === 3) ? true : false;
 
-      this.filterMemoriasAsignables = new RSQLSgiRestFilter('comite.id', SgiRestFilterOperator.EQUALS, this.filterData.idComite.toString())
-        .and('fechaEnvioSecretaria', SgiRestFilterOperator.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODate(this.filterData.fechaLimite))
+      this.filterMemoriasAsignables = new RSQLSgiRestFilter('comite.id', SgiRestFilterOperator.EQUALS, this.data.filterMemoriasAsignables.idComite.toString())
+        .and('fechaEnvioSecretaria', SgiRestFilterOperator.LOWER_OR_EQUAL, LuxonUtils.toBackend(this.data.filterMemoriasAsignables.fechaLimite));
     }
     else {
       this.filterMemoriasAsignables = undefined;
     }
   }
 
-
   /**
    * Recupera un listado de los memorias asignables a la convocatoria.
    */
   private loadMemoriasAsignablesConvocatoria(): void {
     this.subscriptions.push(this.memoriaService
-      .findAllMemoriasAsignablesConvocatoria(this.idConvocatoria)
+      .findAllMemoriasAsignablesConvocatoria(this.data.idConvocatoria)
       .subscribe(
         (response: SgiRestListResult<IMemoria>) => {
           this.memorias = response.items;
@@ -169,7 +173,7 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
           // Eliminar de la lista las memorias que ya están asignadas
           this.memorias = this.memorias.filter(
             (memoria: IMemoria) => {
-              return (!this.memoriasAsignadas.some(e => e.id === memoria.id));
+              return (!this.data.memoriasAsignadas.some(e => e.id === memoria.id));
             }
           );
 
@@ -181,7 +185,7 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_CARGAR_MEMORIA);
+          this.snackBarService.showError(MSG_ERROR_LOAD);
         }
       ));
   }
@@ -199,7 +203,7 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
           // Eliminar de la lista las memorias que ya están asignadas
           this.memorias = this.memorias.filter(
             (memoria: IMemoria) => {
-              return (!this.memoriasAsignadas.some(e => e.id === memoria.id));
+              return (!this.data.memoriasAsignadas.some(e => e.id === memoria.id));
             }
           );
 
@@ -211,7 +215,7 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_CARGAR_MEMORIA);
+          this.snackBarService.showError(MSG_ERROR_LOAD);
         }
       ));
   }
@@ -229,7 +233,7 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
           // Eliminar de la lista las memorias que ya están asignadas
           this.memorias = this.memorias.filter(
             (memoria: IMemoria) => {
-              return (!this.memoriasAsignadas.some(e => e.id === memoria.id));
+              return (!this.data.memoriasAsignadas.some(e => e.id === memoria.id));
             }
           );
 
@@ -241,7 +245,7 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_CARGAR_MEMORIA);
+          this.snackBarService.showError(MSG_ERROR_LOAD);
         }
       ));
   }
@@ -250,49 +254,20 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
    * Recupera un listado de los evaluadores que hay en el sistema.
    */
   private loadEvaluadores(): void {
-    const evaluadoresMemoriaSeleccionada$ =
-      this.formGroup.controls.memoria.valueChanges.pipe(
-        switchMap((memoria: IMemoria | string) => {
-          if (typeof memoria === 'string' || !memoria.id) {
-            return of([]);
-          }
-
-          return this.evaluadorService
-            .findAllMemoriasAsignablesConvocatoria(memoria.comite.id, memoria.id)
-            .pipe(
-              switchMap((response) => {
-
-                if (response.items) {
-                  const evaluadores = response.items;
-
-                  const personaRefsEvaluadores = evaluadores.map((convocante: IEvaluador) => convocante.personaRef);
-
-                  if (personaRefsEvaluadores.length === 0) {
-                    return of([]);
-                  }
-
-                  const evaluadoresWithDatosPersona$ = this.PersonafisicaService.findByPersonasRefs(personaRefsEvaluadores).pipe(
-                    map((result: SgiRestListResult<IPersona>) => {
-                      const personas = result.items;
-
-                      evaluadores.forEach((evaluador: IEvaluador) => {
-                        const datosPersonaEvaluador = personas.find((persona: IPersona) => evaluador.personaRef === persona.personaRef);
-                        evaluador.nombre = datosPersonaEvaluador?.nombre;
-                        evaluador.primerApellido = datosPersonaEvaluador?.primerApellido;
-                        evaluador.segundoApellido = datosPersonaEvaluador?.segundoApellido;
-                      });
-
-                      return evaluadores;
-                    }));
-
-                  return evaluadoresWithDatosPersona$;
-                } else {
-                  return of([]);
-                }
-              })
-            );
-        }),
-        shareReplay(1));
+    let evaluadoresMemoriaSeleccionada$ = null;
+    if (this.isEdit) {
+      evaluadoresMemoriaSeleccionada$ = this.getEvaluadoresMemoria(this.data.evaluacion?.memoria);
+    } else {
+      evaluadoresMemoriaSeleccionada$ =
+        this.formGroup.controls.memoria.valueChanges.pipe(
+          switchMap((memoria: IMemoria | string) => {
+            if (typeof memoria === 'string' || !memoria.id) {
+              return of([]);
+            }
+            return this.getEvaluadoresMemoria(memoria);
+          }),
+          shareReplay(1));
+    }
 
     this.subscriptions.push(evaluadoresMemoriaSeleccionada$.subscribe(
       (evaluadores: IEvaluador[]) => {
@@ -306,7 +281,7 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
       },
       (error) => {
         this.logger.error(error);
-        this.snackBarService.showError(MSG_ERROR_CARGAR_EVALUADOR1);
+        this.snackBarService.showError(MSG_ERROR_LOAD);
       }
     ));
 
@@ -322,12 +297,46 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
       },
       (error) => {
         this.logger.error(error);
-        this.snackBarService.showError(MSG_ERROR_CARGAR_EVALUADOR2);
+        this.snackBarService.showError(MSG_ERROR_LOAD);
       }
     ));
   }
 
+  private getEvaluadoresMemoria(memoria: IMemoria): Observable<IEvaluador[]> {
+    return this.evaluadorService.findAllMemoriasAsignablesConvocatoria(memoria.comite.id, memoria.id)
+      .pipe(
+        switchMap((response) => {
 
+          if (response.items) {
+            const evaluadores = response.items;
+
+            const personaIdsEvaluadores = new Set<string>(evaluadores.map((convocante: IEvaluador) => convocante.persona.id));
+
+            if (personaIdsEvaluadores.size === 0) {
+              return of([]);
+            }
+
+            const evaluadoresWithDatosPersona$ = this.personaService.findAllByIdIn([...personaIdsEvaluadores]).pipe(
+              map((result: SgiRestListResult<IPersona>) => {
+                const personas = result.items;
+
+                evaluadores.forEach((evaluador: IEvaluador) => {
+                  const datosPersonaEvaluador = personas.find(
+                    (persona: IPersona) => evaluador.persona.id === persona.id
+                  );
+                  evaluador.persona = datosPersonaEvaluador;
+                });
+
+                return evaluadores;
+              }));
+
+            return evaluadoresWithDatosPersona$;
+          } else {
+            return of([]);
+          }
+        })
+      );
+  }
 
   /**
    * Filtro de campo autocompletable memoria.
@@ -364,12 +373,13 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
     if (typeof value === 'string') {
       filterValue = value.toLowerCase();
     } else {
-      filterValue = (value.nombre + ' ' + value.primerApellido + ' ' + value.segundoApellido).toLowerCase();
+      filterValue = (value.persona.nombre + ' ' + value.persona.apellidos).toLowerCase();
     }
 
     return this.evaluadores.filter
       (evaluador =>
-        (evaluador.nombre + ' ' + evaluador.primerApellido + ' ' + evaluador.segundoApellido).toLowerCase().includes(filterValue));
+        (evaluador.persona.nombre + ' ' + evaluador.persona.apellidos)
+          .toLowerCase().includes(filterValue));
   }
 
   /**
@@ -379,7 +389,7 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
    * @returns nombre completo del evaluador
    */
   getEvaluador(evaluador: IEvaluador): string {
-    return evaluador ? evaluador.nombre + ' ' + evaluador.primerApellido + ' ' + evaluador.segundoApellido : '';
+    return evaluador ? evaluador.persona.nombre + ' ' + evaluador.persona.apellidos : '';
   }
 
   /**
@@ -389,60 +399,43 @@ export class ConvocatoriaReunionAsignacionMemoriasModalComponent implements OnIn
    * @returns referencia y titulo memoria
    */
   getMemoria(memoria: IMemoria): string {
-
-    return memoria ? (memoria.numReferencia + ' - ' + memoria.titulo) : '';
-  }
-
-  getDatosForm(): IEvaluacion {
-    const evaluacion = this.evaluacion;
-    const convocatoriaReunion: IConvocatoriaReunion = {
-      activo: null,
-      anio: null,
-      codigo: null,
-      comite: null,
-      convocantes: null,
-      fechaEnvio: null,
-      fechaEvaluacion: null,
-      fechaLimite: null,
-      horaInicio: null,
-      id: null,
-      idActa: null,
-      lugar: null,
-      minutoInicio: null,
-      numEvaluaciones: null,
-      numeroActa: null,
-      ordenDia: null,
-      tipoConvocatoriaReunion: null
-    };
-
-    this.evaluacion.memoria = FormGroupUtil.getValue(this.formGroup, 'memoria');
-    this.evaluacion.convocatoriaReunion = convocatoriaReunion;
-    this.evaluacion.evaluador1 = FormGroupUtil.getValue(this.formGroup, 'evaluador1');
-    this.evaluacion.evaluador2 = FormGroupUtil.getValue(this.formGroup, 'evaluador2');
-
-    return this.evaluacion;
+    return memoria ? (memoria.numReferencia + (memoria.titulo ? ' - ' + memoria.titulo : '')) : '';
   }
 
   /**
    * Confirmar asignación
    */
-  onAsignarmemoria(): void {
-    const evaluacion: IEvaluacion = this.getDatosForm();
-
-    if (evaluacion.evaluador1 === evaluacion.evaluador2) {
+  saveOrUpdate(): void {
+    const modalData: ConvocatoriaReunionAsignacionMemoriasModalComponentData = this.getDatosForm();
+    if (modalData.evaluacion.evaluador1?.persona?.id === modalData.evaluacion.evaluador2?.persona?.id) {
       this.snackBarService.showError(MSG_ERROR_EVALUADOR_REPETIDO);
       return;
     }
+    super.saveOrUpdate();
+  }
 
-    if (FormGroupUtil.valid(this.formGroup)) {
-      this.dialogRef.close(evaluacion);
-    } else {
-      this.snackBarService.showError(MSG_ERROR_FORM_GROUP);
+  protected getDatosForm(): ConvocatoriaReunionAsignacionMemoriasModalComponentData {
+    this.data.evaluacion.memoria = this.formGroup.controls.memoria.value;
+    this.data.evaluacion.evaluador1 = this.formGroup.controls.evaluador1.value;
+    this.data.evaluacion.evaluador2 = this.formGroup.controls.evaluador2.value;
+    return this.data;
+  }
+
+  protected getFormGroup(): FormGroup {
+    const formGroup = new FormGroup({
+      memoria: new FormControl(this.data.evaluacion.memoria, [Validators.required]),
+      evaluador1: new FormControl(this.data.evaluacion.evaluador1),
+      evaluador2: new FormControl(this.data.evaluacion.evaluador2),
+    });
+
+    if (this.data.readonly) {
+      formGroup.disable();
     }
+
+    return formGroup;
   }
 
-  onCancel(): void {
-    this.dialogRef.close();
+  ngOnDestroy(): void {
+    super.ngOnDestroy();
   }
-
 }

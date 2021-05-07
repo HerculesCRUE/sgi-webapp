@@ -3,14 +3,14 @@ import { RouterModule } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentGuard } from '@core/guards/detail-form.guard';
 import { ActionGuard } from '@core/guards/master-form.guard';
+import { MSG_PARAMS } from '@core/i18n';
 import { SgiRoutes } from '@core/route';
 import { ROUTE_NAMES } from '@core/route.names';
 import { SgiAuthGuard } from '@sgi/framework/auth';
-
 import { ActaCrearComponent } from './acta-crear/acta-crear.component';
 import { ActaEditarComponent } from './acta-editar/acta-editar.component';
 import {
-  ActaAsistentesListadoComponent,
+  ActaAsistentesListadoComponent
 } from './acta-formulario/acta-asistentes/acta-asistentes-listado/acta-asistentes-listado.component';
 import { ActaDatosGeneralesComponent } from './acta-formulario/acta-datos-generales/acta-datos-generales.component';
 import { ActaMemoriasComponent } from './acta-formulario/acta-memorias/acta-memorias.component';
@@ -18,9 +18,8 @@ import { ActaListadoComponent } from './acta-listado/acta-listado.component';
 import { ACTA_ROUTE_NAMES } from './acta-route-names';
 import { ActaResolver } from './acta.resolver';
 
-const MSG_LISTADO_TITLE = marker('eti.acta.listado.titulo');
-const MSG_NEW_TITLE = marker('eti.acta.crear.titulo');
-const MSG_EDIT_TITLE = marker('eti.acta.editar.titulo');
+const MSG_NEW_TITLE = marker('title.new.entity');
+const ACTA_KEY = marker('eti.acta');
 
 const routes: SgiRoutes = [
   {
@@ -28,7 +27,8 @@ const routes: SgiRoutes = [
     component: ActaListadoComponent,
     canActivate: [SgiAuthGuard],
     data: {
-      title: MSG_LISTADO_TITLE,
+      title: ACTA_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.PLURAL,
       hasAuthorityForAnyUO: 'ETI-ACT-V'
     }
   },
@@ -39,6 +39,9 @@ const routes: SgiRoutes = [
     canDeactivate: [ActionGuard],
     data: {
       title: MSG_NEW_TITLE,
+      titleParams: {
+        entity: ACTA_KEY, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR
+      },
       hasAuthorityForAnyUO: 'ETI-ACT-C'
     },
     children: [
@@ -71,7 +74,8 @@ const routes: SgiRoutes = [
       acta: ActaResolver
     },
     data: {
-      title: MSG_EDIT_TITLE,
+      title: ACTA_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.SINGULAR,
       hasAuthorityForAnyUO: 'ETI-ACT-E'
     },
     children: [

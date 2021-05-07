@@ -1,15 +1,11 @@
 import { IPersona } from '../sgp/persona';
 import { IEvaluador } from './evaluador';
 
-export interface IConflictoInteres extends IPersona {
-
+export interface IConflictoInteres {
   /** Id */
   id: number;
-
   /** Evaluador */
   evaluador: IEvaluador;
-
   /** Referencia persona conflicto */
-  personaConflictoRef: string;
-
+  personaConflicto: IPersona;
 }

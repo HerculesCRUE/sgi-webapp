@@ -1,10 +1,10 @@
-import { IProyectoSocio } from './proyecto-socio';
+import { DateTime } from 'luxon';
 
 export interface IProyectoSocioPeriodoPago {
   id: number;
-  proyectoSocio: IProyectoSocio;
+  proyectoSocioId: number;
   numPeriodo: number;
   importe: number;
-  fechaPrevistaPago: Date;
-  fechaPago: Date;
+  fechaPrevistaPago: DateTime;
+  fechaPago: DateTime;
 }

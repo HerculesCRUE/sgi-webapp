@@ -1,9 +1,8 @@
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { IProyecto } from '@core/models/csp/proyecto';
 import { IProyectoSocio } from '@core/models/csp/proyecto-socio';
 import { FormFragment } from '@core/services/action-service';
 import { ProyectoSocioService } from '@core/services/csp/proyecto-socio.service';
-import { EmpresaEconomicaService } from '@core/services/sgp/empresa-economica.service';
+import { EmpresaService } from '@core/services/sgemp/empresa.service';
 import { DateValidator } from '@core/validators/date-validator';
 import { IsEntityValidator } from '@core/validators/is-entity-validador';
 import { Observable } from 'rxjs';
@@ -14,16 +13,12 @@ export class ProyectoSocioDatosGeneralesFragment extends FormFragment<IProyectoS
 
   constructor(
     key: number,
-    private proyectoId: number,
+    proyectoId: number,
     private service: ProyectoSocioService,
-    private empresaEconomicaService: EmpresaEconomicaService
+    private empresaService: EmpresaService
   ) {
     super(key);
-    this.proyectoSocio = {
-      proyecto: {
-        id: this.proyectoId
-      } as IProyecto
-    } as IProyectoSocio;
+    this.proyectoSocio = { proyectoId } as IProyectoSocio;
   }
 
   protected buildFormGroup(): FormGroup {
@@ -47,8 +42,8 @@ export class ProyectoSocioDatosGeneralesFragment extends FormFragment<IProyectoS
           Validators.min(1),
           Validators.max(2_147_483_647)
         ]),
-        fechaInicio: new FormControl(''),
-        fechaFin: new FormControl(''),
+        fechaInicio: new FormControl(null),
+        fechaFin: new FormControl(null),
       },
       {
         validators: [
@@ -75,8 +70,7 @@ export class ProyectoSocioDatosGeneralesFragment extends FormFragment<IProyectoS
     return this.service.findById(key)
       .pipe(
         switchMap(proyectoSocio => {
-          const personaRef = proyectoSocio.empresa.personaRef;
-          return this.empresaEconomicaService.findById(personaRef)
+          return this.empresaService.findById(proyectoSocio.empresa.id)
             .pipe(
               map(empresa => {
                 proyectoSocio.empresa = empresa;

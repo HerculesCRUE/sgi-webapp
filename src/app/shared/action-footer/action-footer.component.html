@@ -6,16 +6,16 @@
     </sgi-action-footer-button>
     <ng-content></ng-content>
     <button class="link-cancelar" mat-button (click)="cancel()">
-      <span class="underline">{{'botones.cancelar' | translate}}</span>
+      <span class="underline">{{'btn.cancel' | translate}}</span>
     </button>
     <div>
       <span class="mensaje-inline warning" mat-line *ngIf="status.changes && !status.errors">
         <mat-icon aria-hidden="false" class="icons warning-icon">error_outline</mat-icon>
-        {{'footer.msg.changes' | translate}}
+        {{'msg.footer.changes' | translate}}
       </span>
       <span class="mensaje-inline danger" mat-line *ngIf="status.errors">
         <mat-icon aria-hidden="false" class="icons danger-icon">error</mat-icon>
-        {{'footer.msg.errors' | translate}}
+        {{'error.footer.form' | translate}}
       </span>
     </div>
   </div>

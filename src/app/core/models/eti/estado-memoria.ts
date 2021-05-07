@@ -1,8 +1,9 @@
 
+import { DateTime } from 'luxon';
 import { IMemoria } from './memoria';
 import { TipoEstadoMemoria } from './tipo-estado-memoria';
 
-export interface EstadoMemoria {
+export interface IEstadoMemoria {
   /** ID */
   id: number;
   /** Memoria */
@@ -10,5 +11,5 @@ export interface EstadoMemoria {
   /** Tipo estado memoria */
   tipoEstadoMemoria: TipoEstadoMemoria;
   /** Fecha Estado */
-  fechaEstado: Date;
+  fechaEstado: DateTime;
 }

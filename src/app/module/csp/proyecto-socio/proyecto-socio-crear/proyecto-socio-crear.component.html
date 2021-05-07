@@ -6,12 +6,17 @@
         [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[PROYECTO_SOCIO_ROUTE_NAMES.EQUIPO]"
-        [title]="'csp.proyecto-socio-equipo.titulo' | translate"
+        [title]="'menu.csp.proyectos.socios.equipos' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.EQUIPO)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[PROYECTO_SOCIO_ROUTE_NAMES.PERIODO_PAGO]"
-        *ngIf="!actionService.coordinadorExterno" [title]="'csp.proyecto-socio.periodo-pago.titulo' | translate"
+        *ngIf="!actionService.coordinadorExterno" [title]="'menu.csp.proyectos.socios.periodos-pago' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.PERIODO_PAGO)">
+      </sgi-action-fragment-menu-item>
+      <sgi-action-fragment-menu-item [route]="[PROYECTO_SOCIO_ROUTE_NAMES.PERIODO_JUSTIFICACION]"
+        [title]="'menu.csp.proyectos.socios.periodos-justificacion' | translate"
+        *ngIf="!actionService.coordinadorExterno"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.PERIODO_JUSTIFICACION)">
       </sgi-action-fragment-menu-item>
     </mat-list>
   </mat-drawer>

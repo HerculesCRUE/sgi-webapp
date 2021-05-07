@@ -7,16 +7,23 @@ import { AsistenteService } from '@core/services/eti/asistente.service';
 import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
 import { EvaluacionService } from '@core/services/eti/evaluacion.service';
 import { EvaluadorService } from '@core/services/eti/evaluador.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
+import { DateTime } from 'luxon';
 import { NGXLogger } from 'ngx-logger';
-import { Subject } from 'rxjs';
+import { CONVOCATORIA_REUNION_DATA_KEY } from './convocatoria-reunion-data.resolver';
 import { ConvocatoriaReunionAsignacionMemoriasListadoFragment } from './convocatoria-reunion-formulario/convocatoria-reunion-asignacion-memorias/convocatoria-reunion-asignacion-memorias-listado/convocatoria-reunion-asignacion-memorias-listado.fragment';
 import { ConvocatoriaReunionDatosGeneralesFragment } from './convocatoria-reunion-formulario/convocatoria-reunion-datos-generales/convocatoria-reunion-datos-generales.fragment';
+import { CONVOCATORIA_REUNION_ROUTE_PARAMS } from './convocatoria-reunion-route-params';
 
-interface DatosAsignacionEvaluacion {
+export interface DatosAsignacionEvaluacion {
   idComite: number;
   idTipoConvocatoria: number;
-  fechaLimite: Date;
+  fechaLimite: DateTime;
+}
+
+export interface IConvocatoriaReunionData {
+  convocatoriaReunion: IConvocatoriaReunion;
+  readonly: boolean;
 }
 
 @Injectable()
@@ -31,8 +38,11 @@ export class ConvocatoriaReunionActionService extends ActionService {
   private datosGenerales: ConvocatoriaReunionDatosGeneralesFragment;
   private asignacionMemorias: ConvocatoriaReunionAsignacionMemoriasListadoFragment;
 
-  public disableAsignarMemorias: Subject<boolean> = new Subject<boolean>();
-  public disableCamposDatosGenerales: Subject<boolean> = new Subject<boolean>();
+  private readonly data: IConvocatoriaReunionData;
+
+  get readonly(): boolean {
+    return this.data?.readonly ?? false;
+  }
 
   constructor(
     private readonly logger: NGXLogger,
@@ -41,29 +51,40 @@ export class ConvocatoriaReunionActionService extends ActionService {
     service: ConvocatoriaReunionService,
     asistenteService: AsistenteService,
     evaluacionService: EvaluacionService,
-    personaFisicaService: PersonaFisicaService,
+    personaService: PersonaService,
     evaluadorService: EvaluadorService
   ) {
     super();
-    this.convocatoriaReunion = {} as IConvocatoriaReunion;
-    if (route.snapshot.data.convocatoriaReunion) {
-      this.convocatoriaReunion = route.snapshot.data.convocatoriaReunion;
+    this.data = route.snapshot.data[CONVOCATORIA_REUNION_DATA_KEY];
+    const id = Number(route.snapshot.paramMap.get(CONVOCATORIA_REUNION_ROUTE_PARAMS.ID));
+    if (id) {
       this.enableEdit();
     }
     this.datosGenerales = new ConvocatoriaReunionDatosGeneralesFragment(
-      logger,
-      fb, this.convocatoriaReunion?.id,
-      service, asistenteService, personaFisicaService, evaluadorService);
+      logger, fb, id, service, asistenteService, personaService, evaluadorService, this.readonly);
     this.asignacionMemorias = new ConvocatoriaReunionAsignacionMemoriasListadoFragment(
-      logger,
-      this.convocatoriaReunion?.id,
-      evaluacionService, personaFisicaService, service);
+      logger, id, evaluacionService, personaService, service);
 
     this.addFragment(this.FRAGMENT.DATOS_GENERALES, this.datosGenerales);
     this.addFragment(this.FRAGMENT.ASIGNACION_MEMORIAS, this.asignacionMemorias);
   }
 
+  initializeDatosGenerales(): void {
+    this.datosGenerales.initialize();
+  }
+
+  /**
+   * Recupera los datos de la convocatoria de reunión del formulario de datos generales,
+   * si no se ha cargado el formulario de datos generales se recuperan los datos de la convocatoria que se esta editando.
+   *
+   * @returns los datos de la convocatoria de reunión.
+   */
+  getDatosGeneralesConvocatoriaReunion(): IConvocatoriaReunion {
+    return this.datosGenerales.isInitialized() ? this.datosGenerales.getValue() : {} as IConvocatoriaReunion;
+  }
+
   public getDatosAsignacion(): DatosAsignacionEvaluacion {
+    // TODO: Arreglar la obtención de esta información cuando el usuario no ha pasado por los datos generales
     const datosAsignacionEvaluacion = {
       idComite: this.datosGenerales.getFormGroup().controls.comite.value?.id,
       idTipoConvocatoria: this.datosGenerales.getFormGroup().controls.tipoConvocatoriaReunion.value?.id,
@@ -74,62 +95,12 @@ export class ConvocatoriaReunionActionService extends ActionService {
 
   onKeyChange(value: number) {
     this.asignacionMemorias.setKey(value);
-    this.asignacionMemorias.setConvocatoriaReunion(this.datosGenerales.getValue());
   }
 
   /**
-   * Actualiza el valor de disableCamposDatosGenerales utilizado para evitar que se
-   * modifiquen los datos del comité, del tipo de convocatoria y de la fecha límite
-   * de la convocatoria cuando ya tiene memorias asignadas.
-   *
-   * Si la convocatoria tiene Acta los campos ya estarán desactivados
-   *
-   * Los disable/enable se asignan desde aquí porque no se recomienda hacerlo en la plantilla.
-   *
+   * Comprueba si existen memorias asignadas a la convocatoria de reunión (Si hay evaluaciones)
    */
-  onEnterDatosGenerales(): void {
-    // Si la convocatoria tiene Acta los campos ya estarán desactivados
-    if (this.datosGenerales.hasActa()) {
-      return;
-    }
-
-    let disable = true;
-    this.datosGenerales.getFormGroup().controls.comite.disable({ onlySelf: true });
-    this.datosGenerales.getFormGroup().controls.fechaLimite.disable({ onlySelf: true });
-    this.datosGenerales.getFormGroup().controls.tipoConvocatoriaReunion.disable({ onlySelf: true });
-
-    if (this.asignacionMemorias.evaluaciones$.value.length === 0) {
-      disable = false;
-      this.datosGenerales.getFormGroup().controls.comite.enable({ onlySelf: true });
-      this.datosGenerales.getFormGroup().controls.fechaLimite.enable({ onlySelf: true });
-      this.datosGenerales.getFormGroup().controls.tipoConvocatoriaReunion.enable({ onlySelf: true });
-    }
-
-    this.disableCamposDatosGenerales.next(disable);
-  }
-
-  /**
-   * Actualiza el valor de disableAsignarMemorias utilizado para evitar que se
-   * asignen memorias a la convocatoria cuando aún no se han asignado valores
-   * al comité, al tipo de convocatoria y ni a la fecha límite, ya que esos datos
-   * son necesarios para determinar las memorias que podrán ser asignadas a la
-   * convocatoria.
-   *
-   * Si la convocatoria tiene Acta siempre tendrá valor en los campos requeridos
-   */
-  onEnterAsignacionMemorias(): void {
-    // Si la convocatoria tiene Acta siempre tendrá valor en los campos requeridos
-    if (this.datosGenerales.hasActa()) {
-      return;
-    }
-
-    let disable = true;
-    if (this.datosGenerales.getFormGroup().controls.comite.value &&
-      this.datosGenerales.getFormGroup().controls.tipoConvocatoriaReunion.value &&
-      this.datosGenerales.getFormGroup().controls.fechaLimite.value) {
-      disable = false;
-    }
-
-    this.disableAsignarMemorias.next(disable);
+  hasMemoriasAssigned(): boolean {
+    return this.asignacionMemorias.evaluaciones$.value.length > 0;
   }
 }

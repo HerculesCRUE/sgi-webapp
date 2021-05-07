@@ -1,35 +1,29 @@
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { IMemoria } from '@core/models/eti/memoria';
-import { IMemoriaWithPersona } from '@core/models/eti/memoria-with-persona';
-import { IPersona } from '@core/models/sgp/persona';
 import { FormFragment } from '@core/services/action-service';
 import { EvaluacionService } from '@core/services/eti/evaluacion.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 
-interface MemoriaWithPersona extends IMemoria {
-  solicitante: IPersona;
-}
+export class EvaluacionDatosMemoriaFragment extends FormFragment<IMemoria> {
 
-export class EvaluacionDatosMemoriaFragment extends FormFragment<MemoriaWithPersona> {
-
-  private memoria: IMemoriaWithPersona;
+  private memoria: IMemoria;
 
   constructor(
     private fb: FormBuilder,
     key: number,
     private service: EvaluacionService,
-    private personaFisicaService: PersonaFisicaService
+    private personaService: PersonaService
   ) {
     super(key);
-    this.memoria = {} as IMemoriaWithPersona;
+    this.memoria = {} as IMemoria;
   }
 
   protected buildFormGroup(): FormGroup {
     const fb = this.fb.group({
       comite: [{ value: '', disabled: true }],
-      fechaEvaluacion: [{ value: '', disabled: true }],
+      fechaEvaluacion: [{ value: null, disabled: true }],
       referenciaMemoria: [{ value: '', disabled: true }],
       solicitante: [{ value: '', disabled: true }],
       version: [{ value: '', disabled: true }]
@@ -37,26 +31,21 @@ export class EvaluacionDatosMemoriaFragment extends FormFragment<MemoriaWithPers
     return fb;
   }
 
-  protected initializer(key: number): Observable<IMemoriaWithPersona> {
+  protected initializer(key: number): Observable<IMemoria> {
     return this.service.findById(key).pipe(
       map((evaluacion) => {
-        this.memoria = evaluacion.memoria as IMemoriaWithPersona;
+        this.memoria = evaluacion.memoria;
         return this.memoria;
       }),
       switchMap((memoria) => {
-        if (memoria.peticionEvaluacion?.personaRef) {
-          return this.personaFisicaService.getInformacionBasica(memoria.peticionEvaluacion.personaRef)
+        if (memoria.peticionEvaluacion?.solicitante?.id) {
+          return this.personaService.findById(memoria.peticionEvaluacion?.solicitante.id)
             .pipe(
               map((persona) => {
-                memoria.solicitante = persona;
+                memoria.peticionEvaluacion.solicitante = persona;
                 return memoria;
               }),
               catchError(() => {
-                const solicitante = {} as IPersona;
-                solicitante.nombre = '';
-                solicitante.primerApellido = '';
-                solicitante.segundoApellido = '';
-                memoria.solicitante = solicitante;
                 return of(memoria);
               })
             );
@@ -68,18 +57,18 @@ export class EvaluacionDatosMemoriaFragment extends FormFragment<MemoriaWithPers
     );
   }
 
-  buildPatch(value: IMemoriaWithPersona): { [key: string]: any } {
+  buildPatch(value: IMemoria): { [key: string]: any } {
     const patch = {
       comite: value.comite.comite,
       fechaEvaluacion: value.fechaEnvioSecretaria,
       referenciaMemoria: value.numReferencia,
       version: value.version,
-      solicitante: `${value?.solicitante?.nombre} ${value?.solicitante?.primerApellido} ${value?.solicitante?.segundoApellido}`
+      solicitante: `${value?.peticionEvaluacion.solicitante?.nombre} ${value?.peticionEvaluacion.solicitante?.apellidos}`
     };
     return patch;
   }
 
-  getValue(): IMemoriaWithPersona {
+  getValue(): IMemoria {
     return this.memoria;
   }
 

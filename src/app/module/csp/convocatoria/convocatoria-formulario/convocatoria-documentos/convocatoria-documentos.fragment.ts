@@ -1,5 +1,4 @@
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { IConvocatoria } from '@core/models/csp/convocatoria';
 import { IConvocatoriaDocumento } from '@core/models/csp/convocatoria-documento';
 import { IDocumento } from '@core/models/sgdoc/documento';
 import { Fragment } from '@core/services/action-service';
@@ -33,10 +32,10 @@ export class NodeDocumento {
     this.title = title;
     this._level = level;
     if (level === 0 && !title) {
-      this.title = marker('csp.convocatoria.documentos.sinFase.title');
+      this.title = marker('label.csp.documentos.sin-fase');
     }
     else if (level === 1 && !title) {
-      this.title = marker('csp.convocatoria.documentos.sinTipoDocumento.title');
+      this.title = marker('label.csp.documento.sin-tipo');
     }
     this.documento = documento;
     this._childs = [];
@@ -349,15 +348,14 @@ export class ConvocatoriaDocumentosFragment extends Fragment {
     }
     return from(nodes).pipe(
       mergeMap(node => {
-        node.documento.value.convocatoria = {
-          id: this.getKey() as number
-        } as IConvocatoria;
+        node.documento.value.convocatoriaId = this.getKey() as number;
         return this.convocatoriaDocumentoService.create(node.documento.value).pipe(
           map(created => {
             node.documento = new StatusWrapper<IConvocatoriaDocumento>(created);
           })
         );
-      }));
+      })
+    );
   }
 
   private isSaveOrUpdateComplete(nodes: NodeDocumento[]): boolean {

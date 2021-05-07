@@ -3,28 +3,40 @@ import { RouterModule } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentGuard } from '@core/guards/detail-form.guard';
 import { ActionGuard } from '@core/guards/master-form.guard';
+import { MSG_PARAMS } from '@core/i18n';
 import { SgiRoutes } from '@core/route';
 import { ROUTE_NAMES } from '@core/route.names';
 import { SgiAuthGuard } from '@sgi/framework/auth';
-import { ProyectoPeriodoSeguimientoCrearComponent } from './proyecto-periodo-seguimiento-crear/proyecto-periodo-seguimiento-crear.component';
+import {
+  ProyectoPeriodoSeguimientoCrearComponent
+} from './proyecto-periodo-seguimiento-crear/proyecto-periodo-seguimiento-crear.component';
+import {
+  ProyectoPeriodoSeguimientoDataResolver,
+  PROYECTO_PERIODO_SEGUIMIENTO_DATA_KEY
+} from './proyecto-periodo-seguimiento-data.resolver';
 import { ProyectoPeriodoSeguimientoEditarComponent } from './proyecto-periodo-seguimiento-editar/proyecto-periodo-seguimiento-editar.component';
 import { ProyectoPeriodoSeguimientoDatosGeneralesComponent } from './proyecto-periodo-seguimiento-formulario/proyecto-periodo-seguimiento-datos-generales/proyecto-periodo-seguimiento-datos-generales.component';
 import { ProyectoPeriodoSeguimientoDocumentosComponent } from './proyecto-periodo-seguimiento-formulario/proyecto-periodo-seguimiento-documentos/proyecto-periodo-seguimiento-documentos.component';
 import { PROYECTO_PERIODO_SEGUIMIENTO_ROUTE_NAMES } from './proyecto-periodo-seguimiento-route-names';
-import { ProyectoPeriodoSeguimientoGuard } from './proyecto-periodo-seguimiento.guard';
+import { PROYECTO_PERIODO_SEGUIMIENTO_ROUTE_PARAMS } from './proyecto-periodo-seguimiento-route-params';
 
-
-const MSG_NEW_TITLE = marker('csp.proyecto-periodo-seguimiento.crear.titulo');
-const MSG_EDIT_TITLE = marker('csp.proyecto-periodo-seguimiento.editar.titulo');
+const MSG_NEW_TITLE = marker('title.new.entity');
+const MSG_EDIT_TITLE = marker('title.csp.proyecto-periodo-seguimiento-cientifico.periodo');
 
 const routes: SgiRoutes = [
   {
     path: `${ROUTE_NAMES.NEW}`,
     component: ProyectoPeriodoSeguimientoCrearComponent,
-    canActivate: [SgiAuthGuard, ProyectoPeriodoSeguimientoGuard],
+    canActivate: [SgiAuthGuard],
     canDeactivate: [ActionGuard],
     data: {
       title: MSG_NEW_TITLE,
+      titleParams: {
+        entity: MSG_EDIT_TITLE, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR
+      }
+    },
+    resolve: {
+      [PROYECTO_PERIODO_SEGUIMIENTO_DATA_KEY]: ProyectoPeriodoSeguimientoDataResolver
     },
     children: [
       {
@@ -45,12 +57,15 @@ const routes: SgiRoutes = [
     ]
   },
   {
-    path: `:id`,
+    path: `:${PROYECTO_PERIODO_SEGUIMIENTO_ROUTE_PARAMS.ID}`,
     component: ProyectoPeriodoSeguimientoEditarComponent,
-    canActivate: [SgiAuthGuard, ProyectoPeriodoSeguimientoGuard],
+    canActivate: [SgiAuthGuard],
     canDeactivate: [ActionGuard],
     data: {
       title: MSG_EDIT_TITLE
+    },
+    resolve: {
+      [PROYECTO_PERIODO_SEGUIMIENTO_DATA_KEY]: ProyectoPeriodoSeguimientoDataResolver
     },
     children: [
       {
@@ -71,7 +86,6 @@ const routes: SgiRoutes = [
     ]
   }
 ];
-
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

@@ -5,16 +5,23 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatTree, MatTreeNestedDataSource } from '@angular/material/tree';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IAreaTematica } from '@core/models/csp/area-tematica';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { DialogService } from '@core/services/dialog.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { AreaTematicaActionService } from '../../area-tematica.action.service';
 import { AreaTematicaArbolFragment, NodeArea } from './area-tematica-arbol.fragment';
 
-const MSG_DELETE = marker('csp.area.tematica.arbol.listado.borrar');
+const MSG_DELETE = marker('msg.delete.entity');
+const AREA_KEY = marker('csp.area');
+const AREA_TEMATICA_KEY = marker('csp.area-tematica');
+const AREA_TEMATICA_ARBOL_NOMBRE_KEY = marker('csp.area-tematica-arbol.nombre');
+const AREA_TEMATICA_ARBOL_DESCRIPCION_KEY = marker('csp.area-tematica-arbol.descripcion');
 
 enum VIEW_MODE {
   NONE = '',
@@ -48,9 +55,16 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
 
   hasChild = (_: number, node: NodeArea) => node.childs.length > 0;
 
+  msgParamEntity = {};
+  msgParamDescripcionEntity = {};
+  msgParamNombreEntity = {};
+  msgParamAreaTematicaEntity = {};
+  textoDelete: string;
+
   constructor(
     private readonly dialogService: DialogService,
-    public actionService: AreaTematicaActionService
+    public actionService: AreaTematicaActionService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.AREAS_ARBOL, actionService);
     this.fxFlexProperties = new FxFlexProperties();
@@ -69,6 +83,7 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
 
   ngOnInit() {
     super.ngOnInit();
+    this.setupI18N();
     this.formPart.areas$.subscribe((programas) => {
       this.dataSource.data = programas;
     });
@@ -77,6 +92,43 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
       descripcion: new FormControl('', [Validators.required, Validators.maxLength(50)]),
     });
     this.switchToNone();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      AREA_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      AREA_TEMATICA_ARBOL_DESCRIPCION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamDescripcionEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR });
+
+    this.translate.get(
+      AREA_TEMATICA_ARBOL_NOMBRE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamNombreEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR });
+
+    this.translate.get(
+      AREA_TEMATICA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamAreaTematicaEntity = { entity: value });
+
+
+    this.translate.get(
+      AREA_TEMATICA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+
+
   }
 
   ngOnDestroy() {
@@ -210,7 +262,7 @@ export class AreaTematicaArbolComponent extends FragmentComponent implements OnI
 
   deleteDetail() {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado: boolean) => {
           if (aceptado) {
             if (this.viewingNode.parent) {

@@ -1,14 +1,14 @@
 <!-- Convocatoria concepto-gasto -->
 <section class="convocatoriaConceptoGasto">
-  <h2>{{'csp.convocatoria.concepto-gasto.listado.titulo' | translate}}</h2>
+  <h2>{{'csp.convocatoria-elegibilidad' | translate}}</h2>
 
-  <h3>{{'csp.convocatoria.concepto-gasto.table.permitidos' | translate}}</h3>
+  <h3>{{'csp.convocatoria-concepto-gasto-permitido' | translate: MSG_PARAMS.CARDINALIRY.PLURAL}}</h3>
   <table class="mat-elevation-z8 table-convocatoriaConceptoGasto-permitidos" mat-table
     [dataSource]="dataSourcePermitidos" matSort matSortDisableClear #sortPermitidos="matSort">
     <!-- Nombre concepto gasto -->
     <ng-container matColumnDef="conceptoGasto.nombre">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.convocatoria.concepto-gasto.listado.concepto-gasto.nombre' | translate}} </th>
+        {{'csp.convocatoria-concepto-gasto.nombre' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.conceptoGasto.nombre}}
       </td>
     </ng-container>
@@ -16,7 +16,7 @@
     <!-- Descripción -->
     <ng-container matColumnDef="conceptoGasto.descripcion">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.convocatoria.concepto-gasto.listado.concepto-gasto.descripcion' | translate}} </th>
+        {{'csp.convocatoria-concepto-gasto.descripcion' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.value.conceptoGasto.descripcion}}
       </td>
@@ -25,7 +25,7 @@
     <!-- Importe máximo -->
     <ng-container matColumnDef="importeMaximo">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.convocatoria.concepto-gasto.listado.importeMaximo' | translate}} </th>
+        {{'csp.convocatoria-concepto-gasto.importe-maximo' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.importeMaximo}}
       </td>
     </ng-container>
@@ -33,7 +33,7 @@
     <!-- Mes inicial -->
     <ng-container matColumnDef="mesInicial">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.convocatoria.concepto-gasto.listado.mesInicial' | translate}} </th>
+        {{'csp.convocatoria-concepto-gasto.mes-inicial' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.mesInicial}}
       </td>
     </ng-container>
@@ -41,7 +41,7 @@
     <!-- Mes final -->
     <ng-container matColumnDef="mesFinal">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.convocatoria.concepto-gasto.listado.mesFinal' | translate}} </th>
+        {{'csp.convocatoria-concepto-gasto.mes-final' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.mesFinal}}
       </td>
     </ng-container>
@@ -49,26 +49,24 @@
     <!-- Observaciones -->
     <ng-container matColumnDef="observaciones">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.convocatoria.concepto-gasto.listado.observaciones' | translate}} </th>
+        {{'csp.convocatoria-concepto-gasto.observaciones' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.observaciones}}
       </td>
     </ng-container>
 
     <!-- Acciones Column -->
     <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.concepto-gasto.listado.acciones' | translate}} </th>
+      <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper">
-        <button mat-button matTooltip="{{'botones.ver' | translate}}" *ngIf="formPart.readonly"
-          [routerLink]="['../../..', CSP_ROUTE_NAMES.CONVOCATORIA_CONCEPTO_GASTO, wrapper.value.id]"
-          [state]="createState(wrapper)">
+        <button mat-button matTooltip="{{'btn.view' | translate}}" *ngIf="formPart.readonly"
+          [routerLink]="['../', CONVOCATORIA_ROUTE_NAMES.CONCEPTO_GATO_PERMITIDO, wrapper.value.id]">
           <mat-icon color="primary">visibility</mat-icon>
         </button>
-        <button mat-button matTooltip="{{'botones.editar' | translate}}" *ngIf="!formPart.readonly"
-          [routerLink]="['../../..', CSP_ROUTE_NAMES.CONVOCATORIA_CONCEPTO_GASTO, wrapper.value.id]"
-          [state]="createState(wrapper)">
+        <button mat-button matTooltip="{{'btn.edit' | translate}}" *ngIf="!formPart.readonly"
+          [routerLink]="['../', CONVOCATORIA_ROUTE_NAMES.CONCEPTO_GATO_PERMITIDO, wrapper.value.id]">
           <mat-icon color="primary">border_color</mat-icon>
         </button>
-        <button mat-button matTooltip="{{'botones.borrar' | translate}}" *ngIf="!formPart.readonly"
+        <button mat-button matTooltip="{{'btn.delete' | translate}}" *ngIf="!formPart.readonly"
           (click)="deleteConvocatoriaConceptoGasto(wrapper)">
           <mat-icon color="warn">highlight_off</mat-icon>
         </button>
@@ -84,17 +82,16 @@
   </mat-paginator>
 
   <div class="separation-button" *ngIf="!formPart.readonly">
-    <button color="three" aria-label="Center Align" md-button mat-raised-button
-      [routerLink]="['../../..', CSP_ROUTE_NAMES.CONVOCATORIA_CONCEPTO_GASTO, ROUTE_NAMES.NEW]"
-      [state]="createState(null,true)">
+    <button color="three" aria-label="Center Align" mat-raised-button
+      [routerLink]="['../', CONVOCATORIA_ROUTE_NAMES.CONCEPTO_GATO_PERMITIDO, ROUTE_NAMES.NEW]">
       <mat-icon color="accent">add_circle</mat-icon>
-      {{'csp.convocatoria.concepto-gasto.permitido.anadir'| translate}}
+      {{ 'btn.add.entity' | translate:msgParamEntityPermitido }}
     </button>
   </div>
 </section>
 <mat-divider></mat-divider>
 <section>
-  <h3>{{'csp.convocatoria.concepto-gasto.formulario.costesIndirectos.title' | translate}}</h3>
+  <h3>{{'title.csp.convocatoria-concepto-gasto.costes-indirectos' | translate}}</h3>
   <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
     [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
 
@@ -102,17 +99,10 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'csp.convocatoria.concepto-gasto.formulario.costesIndirectos' | translate}}</mat-label>
-        <input type="text"
-          [placeholder]="'csp.convocatoria.concepto-gasto.formulario.costesIndirectos.default' | translate"
-          arial-label="Number" matInput formControlName="costeIndirecto"
-          [matAutocomplete]="autocompleteCostesIndirectos">
-        <mat-autocomplete #autocompleteCostesIndirectos="matAutocomplete" [displayWith]="getCosteIndirecto">
-          <mat-option *ngFor="let costeIndirecto of filteredCostesIndirectos | async" [value]="costeIndirecto">
-            {{costeIndirecto.conceptoGasto.nombre}} {{costeIndirecto.mesInicial ? '('+ costeIndirecto.mesInicial +
-            (costeIndirecto.mesFinal ? (' - ' + costeIndirecto.mesFinal) : '')+')' : ''}}
-          </mat-option>
-        </mat-autocomplete>
+        <mat-label>{{'csp.convocatoria-concepto-gasto.costes-indirectos.concepto' | translate}}</mat-label>
+        <sgi-select-entity formControlName="costeIndirecto" [options]="costesIndirectos$ | async"
+          [displayWith]="displayerCosteIndirecto">
+        </sgi-select-entity>
       </mat-form-field>
     </div>
 
@@ -120,14 +110,14 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field fxFill>
-        <mat-label>{{'csp.convocatoria.concepto-gasto.formulario.porcentajeCosteIndirecto' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-concepto-gasto.costes-indirectos.porcentaje' | translate}}</mat-label>
         <input matInput formControlName="porcentajeCosteIndirecto" type="number" id="porcentajeCosteIndirecto" min="0"
-          placeholder="{{'csp.convocatoria.concepto-gasto.formulario.porcentajeCosteIndirecto' | translate}}">
+          placeholder="{{'csp.convocatoria-concepto-gasto.costes-indirectos.porcentaje' | translate}}">
         <mat-error *ngIf="formGroup.controls.porcentajeCosteIndirecto.hasError('max')">
-          {{'csp.convocatoria.concepto-gasto.error.max' | translate}}
+          {{'error.max.digit' | translate}}
         </mat-error>
         <mat-error *ngIf="formGroup.controls.porcentajeCosteIndirecto.hasError('min')">
-          {{'csp.convocatoria.concepto-gasto.error.min' | translate}}
+          {{'error.csp.convocatoria-concepto-gasto.min' | translate}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -136,14 +126,14 @@
 </section>
 <mat-divider></mat-divider>
 <section class="convocatoriaConceptoGasto">
-  <h3>{{'csp.convocatoria.concepto-gasto.table.nopermitidos' | translate}}</h3>
+  <h3>{{'csp.convocatoria-concepto-gasto-no-permitido' | translate: MSG_PARAMS.CARDINALIRY.PLURAL}}</h3>
   <table class="mat-elevation-z8 table-convocatoriaConceptoGasto-nopermitidos" mat-table
     [dataSource]="dataSourceNoPermitidos" matSort matSortDisableClear #sortNoPermitidos="matSort">
 
     <!-- Nombre concepto gasto -->
     <ng-container matColumnDef="conceptoGasto.nombre">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.convocatoria.concepto-gasto.listado.concepto-gasto.nombre' | translate}} </th>
+        {{'csp.convocatoria-concepto-gasto.nombre' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.conceptoGasto.nombre}}
       </td>
     </ng-container>
@@ -151,7 +141,7 @@
     <!-- Descripción -->
     <ng-container matColumnDef="conceptoGasto.descripcion">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.convocatoria.concepto-gasto.listado.concepto-gasto.descripcion' | translate}} </th>
+        {{'csp.convocatoria-concepto-gasto.descripcion' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.value.conceptoGasto.descripcion}}
       </td>
@@ -160,7 +150,7 @@
     <!-- Mes inicial -->
     <ng-container matColumnDef="mesInicial">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.convocatoria.concepto-gasto.listado.mesInicial' | translate}} </th>
+        {{'csp.convocatoria-concepto-gasto.mes-inicial' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.mesInicial}}
       </td>
     </ng-container>
@@ -168,7 +158,7 @@
     <!-- Mes final -->
     <ng-container matColumnDef="mesFinal">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.convocatoria.concepto-gasto.listado.mesFinal' | translate}} </th>
+        {{'csp.convocatoria-concepto-gasto.mes-final' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.mesFinal}}
       </td>
     </ng-container>
@@ -176,26 +166,24 @@
     <!-- Observaciones -->
     <ng-container matColumnDef="observaciones">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.convocatoria.concepto-gasto.listado.observaciones' | translate}} </th>
+        {{'csp.convocatoria-concepto-gasto.observaciones' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.observaciones}}
       </td>
     </ng-container>
 
     <!-- Acciones Column -->
     <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.concepto-gasto.listado.acciones' | translate}} </th>
+      <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper">
-        <button mat-button matTooltip="{{'botones.ver' | translate}}" *ngIf="formPart.readonly"
-          [routerLink]="['../../..', CSP_ROUTE_NAMES.CONVOCATORIA_CONCEPTO_GASTO, wrapper.value.id]"
-          [state]="createState(wrapper)">
+        <button mat-button matTooltip="{{'btn.view' | translate}}" *ngIf="formPart.readonly"
+          [routerLink]="['../', CONVOCATORIA_ROUTE_NAMES.CONCEPTO_GATO_NO_PERMITIDO, wrapper.value.id]">
           <mat-icon color="primary">visibility</mat-icon>
         </button>
-        <button mat-button matTooltip="{{'botones.editar' | translate}}" *ngIf="!formPart.readonly"
-          [routerLink]="['../../..', CSP_ROUTE_NAMES.CONVOCATORIA_CONCEPTO_GASTO, wrapper.value.id]"
-          [state]="createState(wrapper)">
+        <button mat-button matTooltip="{{'btn.edit' | translate}}" *ngIf="!formPart.readonly"
+          [routerLink]="['../', CONVOCATORIA_ROUTE_NAMES.CONCEPTO_GATO_NO_PERMITIDO, wrapper.value.id]">
           <mat-icon color="primary">border_color</mat-icon>
         </button>
-        <button mat-button matTooltip="{{'botones.borrar' | translate}}" *ngIf="!formPart.readonly"
+        <button mat-button matTooltip="{{'btn.delete' | translate}}" *ngIf="!formPart.readonly"
           (click)="deleteConvocatoriaConceptoGasto(wrapper)">
           <mat-icon color="warn">highlight_off</mat-icon>
         </button>
@@ -211,11 +199,10 @@
   </mat-paginator>
 
   <div class="separation-button" *ngIf="!formPart.readonly">
-    <button color="three" aria-label="Center Align" md-button mat-raised-button
-      [routerLink]="['../../..', CSP_ROUTE_NAMES.CONVOCATORIA_CONCEPTO_GASTO, ROUTE_NAMES.NEW]"
-      [state]="createState(null,false)">
+    <button color="three" aria-label="Center Align" mat-raised-button
+      [routerLink]="['../', CONVOCATORIA_ROUTE_NAMES.CONCEPTO_GATO_NO_PERMITIDO, ROUTE_NAMES.NEW]">
       <mat-icon color="accent">add_circle</mat-icon>
-      {{'csp.convocatoria.concepto-gasto.nopermitido.anadir'| translate}}
+      {{ 'btn.add.entity' | translate:msgParamEntityNoPermitido }}
     </button>
   </div>
 </section>

@@ -1,26 +1,17 @@
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { IProyecto } from './proyecto';
-
-
+import { DateTime } from 'luxon';
 
 export interface IEstadoProyecto {
-
   /** Id */
   id: number;
-
-  /** Solicitud */
-  solicitud: IProyecto;
-
+  /** ID del proyecto */
+  proyectoId: number;
   /** Estado */
   estado: Estado;
-
   /** Fecha estado */
-  fechaEstado: Date;
-
+  fechaEstado: DateTime;
   /** Comentario */
   comentario: string;
-
-
 }
 
 export enum Estado {
@@ -30,7 +21,6 @@ export enum Estado {
   FINALIZADO = 'FINALIZADO',
   CANCELADO = 'CANCELADO'
 }
-
 
 export const ESTADO_MAP: Map<Estado, string> = new Map([
   [Estado.BORRADOR, marker(`csp.estado-proyecto.BORRADOR`)],

@@ -1,10 +1,10 @@
-
-import { IPeticionEvaluacion } from './peticion-evaluacion';
+import { DateTime } from 'luxon';
+import { IPersona } from '../sgp/persona';
 import { IComite } from './comite';
-import { TipoMemoria } from './tipo-memoria';
-import { ESTADO_MEMORIA, TipoEstadoMemoria } from './tipo-estado-memoria';
+import { IPeticionEvaluacion } from './peticion-evaluacion';
 import { IRetrospectiva } from './retrospectiva';
-
+import { ESTADO_MEMORIA, TipoEstadoMemoria } from './tipo-estado-memoria';
+import { TipoMemoria } from './tipo-memoria';
 
 export function isFormularioEditable(memoria: IMemoria) {
   if (!memoria.estadoActual.id) {
@@ -29,43 +29,32 @@ export interface IMemoria {
   id: number;
 
   numReferencia: string;
-
   /** Petición evaluación */
   peticionEvaluacion: IPeticionEvaluacion;
-
   /** Comité */
   comite: IComite;
-
   /** Título */
   titulo: string;
-
-  /** Referencia persona */
-  personaRef: string;
-
+  /** Responsable */
+  responsable: IPersona;
   /** Tipo Memoria */
   tipoMemoria: TipoMemoria;
-
   /** Fecha envio secretaria. */
-  fechaEnvioSecretaria: Date;
-
+  fechaEnvioSecretaria: DateTime;
   /** Indicador require retrospectiva */
   requiereRetrospectiva: boolean;
-
   /** Version */
   version: number;
-
   /** Estado Memoria Actual */
   estadoActual: TipoEstadoMemoria;
-
   /** Responsable de memoria */
   isResponsable: boolean;
-
   /** Retrospectiva */
   retrospectiva: IRetrospectiva;
-
   /** Código organo */
   codOrganoCompetente: string;
-
   /** Memoria original */
   memoriaOriginal: IMemoria;
+  /** Activo */
+  activo: boolean;
 }

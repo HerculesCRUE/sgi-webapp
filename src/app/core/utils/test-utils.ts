@@ -1,9 +1,6 @@
-import { TranslateTestingModule } from 'ngx-translate-testing';
-
+import { ActivatedRoute, Data, ParamMap } from '@angular/router';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { SgiAuthService } from '@sgi/framework/auth';
-import { BehaviorSubject } from 'rxjs';
-import { defaultAuthStatus } from '@sgi/framework/auth/auth.service';
+import { TranslateTestingModule } from 'ngx-translate-testing';
 
 /**
  * A Utility Class for testing.
@@ -82,5 +79,17 @@ export default class TestUtils {
       SnackBarService.name,
       TestUtils.getOwnMethodNames(SnackBarService.prototype)
     );
+  }
+
+  static buildActivatedRouteMock(paramId: string, routeData: Data): ActivatedRoute {
+    const paramMapSpy: jasmine.SpyObj<ParamMap> = jasmine.createSpyObj('paramMap', ['get']);
+    paramMapSpy.get.and.returnValue(paramId);
+    const routeMock: ActivatedRoute = {
+      snapshot: {
+        paramMap: paramMapSpy as ParamMap,
+        data: routeData
+      }
+    } as ActivatedRoute;
+    return routeMock;
   }
 }

@@ -1,10 +1,19 @@
-import { Fragment } from '@core/services/action-service';
-import { Observable, of, BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
+import { IDictamen } from '@core/models/eti/dictamen';
 import { IEvaluacion } from '@core/models/eti/evaluacion';
-import { MemoriaListado } from '@core/models/eti/memoria-listado';
+import { Fragment } from '@core/services/action-service';
+import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
+export interface MemoriaListado {
+  /** Id */
+  id: number;
+  /** número de referencia */
+  numReferencia: string;
+  /** Version */
+  version: number;
+  dictamen: IDictamen;
+}
 
 export class ActaMemoriasFragment extends Fragment {
 
@@ -33,13 +42,14 @@ export class ActaMemoriasFragment extends Fragment {
               (evaluacionObject, evaluacion: IEvaluacion) => ({ ...evaluacionObject, [evaluacion.id]: evaluacion }), {}
             );
             const memorias: MemoriaListado[] = Object.keys(evaluacionesSinDuplicados).map(
-              idEvaluacion => new MemoriaListado(
-                evaluacionesSinDuplicados[idEvaluacion].memoria?.id,
-                evaluacionesSinDuplicados[idEvaluacion].memoria?.numReferencia,
-                evaluacionesSinDuplicados[idEvaluacion].version,
-                evaluacionesSinDuplicados[idEvaluacion].dictamen
-              )
-            );
+              idEvaluacion => {
+                return {
+                  id: evaluacionesSinDuplicados[idEvaluacion].memoria?.id,
+                  numReferencia: evaluacionesSinDuplicados[idEvaluacion].memoria?.numReferencia,
+                  version: evaluacionesSinDuplicados[idEvaluacion].version,
+                  dictamen: evaluacionesSinDuplicados[idEvaluacion].dictamen
+                };
+              });
             return memorias;
           }
           else {

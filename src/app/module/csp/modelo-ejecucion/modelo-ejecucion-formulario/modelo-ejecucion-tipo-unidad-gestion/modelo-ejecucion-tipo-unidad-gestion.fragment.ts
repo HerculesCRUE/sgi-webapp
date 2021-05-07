@@ -8,7 +8,6 @@ import { StatusWrapper } from '@core/utils/status-wrapper';
 import { RSQLSgiRestFilter, SgiRestFilterOperator, SgiRestFindOptions, SgiRestListResult } from '@sgi/framework/http';
 import { BehaviorSubject, from, merge, Observable, of, zip } from 'rxjs';
 import { map, mergeMap, switchMap, takeLast, tap } from 'rxjs/operators';
-import { ModeloEjecucionActionService } from '../../modelo-ejecucion.action.service';
 
 export class ModeloEjecucionTipoUnidadGestionFragment extends Fragment {
 
@@ -19,8 +18,7 @@ export class ModeloEjecucionTipoUnidadGestionFragment extends Fragment {
     key: number,
     private modeloEjecucionService: ModeloEjecucionService,
     private modeloUnidadService: ModeloUnidadService,
-    private unidadGestionService: UnidadGestionService,
-    actionService: ModeloEjecucionActionService,
+    private unidadGestionService: UnidadGestionService
   ) {
     super(key);
     this.setComplete(true);

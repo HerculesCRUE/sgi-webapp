@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { FormFragmentComponent } from '@core/component/fragment.component';
-import { IMemoriaWithPersona } from '@core/models/eti/memoria-with-persona';
+import { IMemoria } from '@core/models/eti/memoria';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { SeguimientoFormularioActionService } from '../seguimiento-formulario.action.service';
@@ -11,7 +11,7 @@ import { SeguimientoListadoAnteriorMemoriaComponent } from '../seguimiento-lista
   templateUrl: './seguimiento-datos-memoria.component.html',
   styleUrls: ['./seguimiento-datos-memoria.component.scss']
 })
-export class SeguimientoDatosMemoriaComponent extends FormFragmentComponent<IMemoriaWithPersona> implements AfterViewInit {
+export class SeguimientoDatosMemoriaComponent extends FormFragmentComponent<IMemoria> implements AfterViewInit {
   fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
   fxFlexPropertiesInline: FxFlexProperties;

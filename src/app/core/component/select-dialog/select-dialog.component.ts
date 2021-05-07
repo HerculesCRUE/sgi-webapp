@@ -160,6 +160,7 @@ export abstract class SelectDialogComponent<D, T> implements
     if (!this.disabled) {
       this.dialogOpen = true;
       const dialogRef = this.dialog.open(this.dialogToShow, {
+        panelClass: 'sgi-dialog-container',
         data: this.getDialogData()
       });
 

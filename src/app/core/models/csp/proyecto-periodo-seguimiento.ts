@@ -1,12 +1,12 @@
-import { IProyecto } from './proyecto';
+import { DateTime } from 'luxon';
 
 export interface IProyectoPeriodoSeguimiento {
   id: number;
-  proyecto: IProyecto;
+  proyectoId: number;
   numPeriodo: number;
-  fechaInicio: Date;
-  fechaFin: Date;
-  fechaInicioPresentacion: Date;
-  fechaFinPresentacion: Date;
+  fechaInicio: DateTime;
+  fechaFin: DateTime;
+  fechaInicioPresentacion: DateTime;
+  fechaFinPresentacion: DateTime;
   observaciones: string;
 }

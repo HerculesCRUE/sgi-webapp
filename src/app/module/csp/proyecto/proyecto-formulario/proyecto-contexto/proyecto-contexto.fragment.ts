@@ -1,19 +1,18 @@
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { IAreaTematica } from '@core/models/csp/area-tematica';
-import { IProyecto } from '@core/models/csp/proyecto';
 import { IProyectoContexto } from '@core/models/csp/proyecto-contexto';
 import { FormFragment } from '@core/services/action-service';
 import { ContextoProyectoService } from '@core/services/csp/contexto-proyecto.service';
-import { ConvocatoriaService } from '@core/services/csp/convocatoria.service';
-import { ProyectoService } from '@core/services/csp/proyecto.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
+
 export interface AreaTematicaProyectoData {
   root: IAreaTematica;
   areaTematica: IAreaTematica;
 }
+
 export class ProyectoContextoFragment extends FormFragment<IProyectoContexto>{
 
   private proyectoContexto: IProyectoContexto;
@@ -23,14 +22,11 @@ export class ProyectoContextoFragment extends FormFragment<IProyectoContexto>{
   ocultarTable: boolean;
 
   constructor(
+    key: number,
     private readonly logger: NGXLogger,
-    private proyecto: IProyecto,
-    private proyectoService: ProyectoService,
     private contextoProyectoService: ContextoProyectoService,
-    private convocatoriaService: ConvocatoriaService,
-    private proyectoValue: IProyecto
   ) {
-    super(proyecto?.id, true);
+    super(key, true);
     this.setComplete(true);
     this.proyectoContexto = {} as IProyectoContexto;
   }
@@ -46,8 +42,9 @@ export class ProyectoContextoFragment extends FormFragment<IProyectoContexto>{
   }
 
   protected buildPatch(value: IProyectoContexto): { [key: string]: any; } {
+    this.proyectoContexto = value;
     const result = {
-      proyecto: value.proyecto,
+      proyectoId: value.proyectoId,
       objetivos: value.objetivos,
       intereses: value.intereses,
       resultados_previstos: value.resultadosPrevistos,
@@ -59,22 +56,7 @@ export class ProyectoContextoFragment extends FormFragment<IProyectoContexto>{
   protected initializer(key: number): Observable<IProyectoContexto> {
     return this.contextoProyectoService.findById(key).pipe(
       map(proyectoContexto => {
-        const newProyecto: IProyectoContexto = {
-          id: null,
-          proyecto: this.proyectoValue,
-          objetivos: null,
-          intereses: null,
-          resultadosPrevistos: null,
-          propiedadResultados: null,
-          areaTematica: null,
-          areaTematicaConvocatoria: null
-        };
-        this.proyectoContexto = proyectoContexto ? proyectoContexto : newProyecto;
-        this.ocultarTable = true;
-        if (this.proyectoContexto?.proyecto?.convocatoria?.id) {
-          this.ocultarTable = false;
-        }
-        return this.proyectoContexto;
+        return proyectoContexto ?? {} as IProyectoContexto;
       }),
       switchMap((proyectoContexto) => {
 
@@ -133,14 +115,12 @@ export class ProyectoContextoFragment extends FormFragment<IProyectoContexto>{
   }
 
   private create(proyectoContexto: IProyectoContexto): Observable<IProyectoContexto> {
-    proyectoContexto.proyecto = {
-      id: this.getKey()
-    } as IProyecto;
+    proyectoContexto.proyectoId = this.getKey() as number;
     return this.contextoProyectoService.create(proyectoContexto);
   }
 
   private update(proyectoContexto: IProyectoContexto): Observable<IProyectoContexto> {
-    return this.contextoProyectoService.update(proyectoContexto.proyecto.id, proyectoContexto);
+    return this.contextoProyectoService.update(proyectoContexto.proyectoId, proyectoContexto);
   }
 
   updateAreaTematica(data: AreaTematicaProyectoData) {

@@ -1,8 +1,10 @@
 import { HttpClient, HttpEvent, HttpEventType, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { DOCUMENTO_CONVERTER } from '@core/converters/sgdoc/documento.converter';
+import { IDocumentoBackend } from '@core/models/sgdoc/backend/documento-backend';
 import { IDocumento } from '@core/models/sgdoc/documento';
 import { environment } from '@env';
-import { SgiRestService } from '@sgi/framework/http/';
+import { SgiMutableRestService } from '@sgi/framework/http/';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, takeLast } from 'rxjs/operators';
 
@@ -27,12 +29,16 @@ export function triggerDownloadToUser(file: Blob, fileName: string) {
 @Injectable({
   providedIn: 'root'
 })
-export class DocumentoService extends SgiRestService<string, IDocumento>{
+export class DocumentoService extends SgiMutableRestService<string, IDocumentoBackend, IDocumento>{
   private static readonly MAPPING = '/documentos';
 
   constructor(protected http: HttpClient) {
-    super(DocumentoService.name,
-      `${environment.serviceServers.sgdoc}${DocumentoService.MAPPING}`, http);
+    super(
+      DocumentoService.name,
+      `${environment.serviceServers.sgdoc}${DocumentoService.MAPPING}`,
+      http,
+      DOCUMENTO_CONVERTER
+    );
   }
 
   /**
@@ -51,7 +57,7 @@ export class DocumentoService extends SgiRestService<string, IDocumento>{
             break;
           case HttpEventType.Response:
             fileModel.status = 'complete';
-            return event.body as IDocumento;
+            return DOCUMENTO_CONVERTER.toTarget(event.body);
         }
       }),
       takeLast(1),
@@ -74,10 +80,12 @@ export class DocumentoService extends SgiRestService<string, IDocumento>{
    * @param documentoRef referencia del documento.
    */
   getInfoFichero(documentoRef: string): Observable<IDocumento> {
-    return this.http.get<IDocumento>(`${this.endpointUrl}/${documentoRef}`);
-
+    return this.http.get<IDocumentoBackend>(
+      `${this.endpointUrl}/${documentoRef}`
+    ).pipe(
+      map(response => DOCUMENTO_CONVERTER.toTarget(response))
+    );
   }
-
 
   /**
    * Descarga el fichero.

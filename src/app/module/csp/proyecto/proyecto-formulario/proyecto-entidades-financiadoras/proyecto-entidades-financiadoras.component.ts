@@ -5,16 +5,21 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoEntidadFinanciadora } from '@core/models/csp/proyecto-entidad-financiadora';
 import { DialogService } from '@core/services/dialog.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { EntidadFinanciadoraDataModal, EntidadFinanciadoraModalComponent } from '../../../modals/entidad-financiadora-modal/entidad-financiadora-modal.component';
+import { switchMap } from 'rxjs/operators';
+import { EntidadFinanciadoraDataModal, EntidadFinanciadoraModalComponent } from '../../../shared/entidad-financiadora-modal/entidad-financiadora-modal.component';
 import { ProyectoActionService } from '../../proyecto.action.service';
 import { ProyectoEntidadesFinanciadorasFragment } from './proyecto-entidades-financiadoras.fragment';
 
-const MODAL_ENTIDAD_FINANCIADORA_TITLE = marker('csp.proyecto.entidades.financiadoras.modal.title');
-const MSG_DELETE = marker('csp.convocatoria.entidad.financiadora.listado.borrar');
+const MODAL_ENTIDAD_FINANCIADORA_TITLE = marker('title.csp.proyecto.entidad-financiadora');
+const MSG_DELETE = marker('msg.deactivate.entity');
+const PROYECTO_ENTIDAD_FINANCIADORA_KEY = marker('csp.proyecto-entidad-financiadora');
+const PROYECTO_ENTIDAD_FINANCIADORA_AJENA_KEY = marker('csp.proyecto-entidad-financiadora-ajena');
 
 @Component({
   selector: 'sgi-proyecto-entidades-financiadoras',
@@ -28,6 +33,10 @@ export class ProyectoEntidadesFinanciadorasComponent extends FragmentComponent i
   private columns = ['nombre', 'cif', 'fuenteFinanciacion', 'ambito', 'tipoFinanciacion',
     'porcentajeFinanciacion', 'acciones'];
   private elementsPage = [5, 10, 25, 100];
+
+  msgParamEntity = {};
+  msgParamEntityAjena = {};
+  textoDeactivate: string;
 
   columnsPropias = [...this.columns];
   columnsAjenas = [...this.columns];
@@ -44,7 +53,8 @@ export class ProyectoEntidadesFinanciadorasComponent extends FragmentComponent i
   constructor(
     protected actionService: ProyectoActionService,
     private matDialog: MatDialog,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.ENTIDADES_FINANCIADORAS, actionService);
     this.formPart = this.fragment as ProyectoEntidadesFinanciadorasFragment;
@@ -52,6 +62,7 @@ export class ProyectoEntidadesFinanciadorasComponent extends FragmentComponent i
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.dataSourcePropias.paginator = this.paginatorPropias;
     this.dataSourcePropias.sort = this.sortPropias;
     this.dataSourceAjenas.paginator = this.paginatorAjenas;
@@ -62,6 +73,30 @@ export class ProyectoEntidadesFinanciadorasComponent extends FragmentComponent i
     this.subscriptions.push(
       this.formPart.entidadesAjenas$.subscribe((elements) => this.dataSourceAjenas.data = elements)
     );
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      PROYECTO_ENTIDAD_FINANCIADORA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      PROYECTO_ENTIDAD_FINANCIADORA_AJENA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntityAjena = { entity: value });
+
+    this.translate.get(
+      PROYECTO_ENTIDAD_FINANCIADORA_AJENA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDeactivate = value);
   }
 
   ngOnDestroy(): void {
@@ -78,6 +113,7 @@ export class ProyectoEntidadesFinanciadorasComponent extends FragmentComponent i
       readonly: this.formPart.readonly
     };
     const config = {
+      panelClass: 'sgi-dialog-container',
       data
     };
     const dialogRef = this.matDialog.open(EntidadFinanciadoraModalComponent, config);
@@ -95,7 +131,7 @@ export class ProyectoEntidadesFinanciadorasComponent extends FragmentComponent i
 
   deleteEntidadFinanciadora(targetPropias: boolean, wrapper: StatusWrapper<IProyectoEntidadFinanciadora>) {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDeactivate).subscribe(
         (aceptado) => {
           if (aceptado) {
             this.formPart.deleteEntidadFinanciadora(wrapper, targetPropias);

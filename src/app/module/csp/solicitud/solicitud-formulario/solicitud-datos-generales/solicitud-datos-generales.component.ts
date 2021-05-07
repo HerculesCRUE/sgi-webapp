@@ -6,6 +6,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
 import { FORMULARIO_SOLICITUD_MAP } from '@core/enums/formulario-solicitud';
+import { MSG_PARAMS } from '@core/i18n';
 import { ESTADO_MAP } from '@core/models/csp/estado-solicitud';
 import { ISolicitud } from '@core/models/csp/solicitud';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
@@ -13,7 +14,8 @@ import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-pro
 import { IUnidadGestion } from '@core/models/usr/unidad-gestion';
 import { UnidadGestionService } from '@core/services/csp/unidad-gestion.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
+import { TranslateService } from '@ngx-translate/core';
+import { TipoColectivo } from '@shared/select-persona/select-persona.component';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, Subscription } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
@@ -21,7 +23,12 @@ import { SolicitudModalidadEntidadConvocanteModalComponent, SolicitudModalidadEn
 import { SolicitudActionService } from '../../solicitud.action.service';
 import { SolicitudDatosGeneralesFragment, SolicitudModalidadEntidadConvocanteListado } from './solicitud-datos-generales.fragment';
 
-const MSG_ERROR_INIT = marker('csp.solicitud.datosGenerales.error.cargar');
+const MSG_ERROR_INIT = marker('error.load');
+const SOLICITUD_CODIGO_EXTERNO_KEY = marker('csp.solicitud.codigo-externo');
+const SOLICITUD_CONVOCATORIA_EXTERNA_KEY = marker('csp.solicitud.convocatoria-externa');
+const SOLICITUD_OBSERVACIONES_KEY = marker('csp.solicitud.observaciones');
+const SOLICITUD_UNIDAD_GESTION_KEY = marker('csp.solicitud.unidad-gestion');
+const SOLICITUD_ENTIDAD_CONVOCANTE_KEY = marker('csp.solicitud-entidad-convocante');
 
 @Component({
   selector: 'sgi-solicitud-datos-generales',
@@ -45,11 +52,21 @@ export class SolicitudDatosGeneralesComponent extends FormFragmentComponent<ISol
   displayedColumns: string[];
   elementosPagina: number[];
 
+  msgParamConvocatoriaExternaEntity = {};
+  msgParamCodigoExternoEntity = {};
+  msgParamEntidadConvocanteEntity = {};
+  msgParamObservacionesEntity = {};
+  msgParamUnidadGestionEntity = {};
+
   dataSourceEntidadesConvocantes: MatTableDataSource<SolicitudModalidadEntidadConvocanteListado>;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   private subscriptions = [] as Subscription[];
+
+  get tipoColectivoSolicitante() {
+    return TipoColectivo.SOLICITANTE_CSP;
+  }
 
   get FORMULARIO_SOLICITUD_MAP() {
     return FORMULARIO_SOLICITUD_MAP;
@@ -59,12 +76,17 @@ export class SolicitudDatosGeneralesComponent extends FormFragmentComponent<ISol
     return ESTADO_MAP;
   }
 
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
+
   constructor(
     private readonly logger: NGXLogger,
     protected actionService: SolicitudActionService,
     private snackBarService: SnackBarService,
     private unidadGestionService: UnidadGestionService,
-    private matDialog: MatDialog
+    private matDialog: MatDialog,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.DATOS_GENERALES, actionService);
     this.formPart = this.fragment as SolicitudDatosGeneralesFragment;
@@ -106,13 +128,15 @@ export class SolicitudDatosGeneralesComponent extends FormFragmentComponent<ISol
     super.ngOnInit();
     this.loadUnidadesGestion();
 
+    this.setupI18N();
+
     this.dataSourceEntidadesConvocantes = new MatTableDataSource<SolicitudModalidadEntidadConvocanteListado>();
 
     this.dataSourceEntidadesConvocantes.sortingDataAccessor =
       (entidadConvocanteModalidad: SolicitudModalidadEntidadConvocanteListado, property: string) => {
         switch (property) {
           case 'entidadConvocante':
-            return entidadConvocanteModalidad.entidadConvocante.entidad.razonSocial;
+            return entidadConvocanteModalidad.entidadConvocante.entidad.nombre;
           case 'plan':
             return entidadConvocanteModalidad.plan.nombre;
           case 'programaConvocatoria':
@@ -133,6 +157,33 @@ export class SolicitudDatosGeneralesComponent extends FormFragmentComponent<ISol
       }
       this.dataSourceEntidadesConvocantes.data = elements;
     }));
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      SOLICITUD_CODIGO_EXTERNO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamCodigoExternoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR });
+
+    this.translate.get(
+      SOLICITUD_CONVOCATORIA_EXTERNA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamConvocatoriaExternaEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      SOLICITUD_OBSERVACIONES_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamObservacionesEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE, ...MSG_PARAMS.CARDINALIRY.PLURAL });
+
+    this.translate.get(
+      SOLICITUD_UNIDAD_GESTION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamUnidadGestionEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      SOLICITUD_ENTIDAD_CONVOCANTE_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamEntidadConvocanteEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
   }
 
   ngOnDestroy(): void {
@@ -164,10 +215,8 @@ export class SolicitudDatosGeneralesComponent extends FormFragmentComponent<ISol
     };
 
     const config = {
-      width: GLOBAL_CONSTANTS.widthModalCSP,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-      data,
-      autoFocus: false
+      panelClass: 'sgi-dialog-container',
+      data
     };
 
     const dialogRef = this.matDialog.open(SolicitudModalidadEntidadConvocanteModalComponent, config);
@@ -187,7 +236,6 @@ export class SolicitudDatosGeneralesComponent extends FormFragmentComponent<ISol
         }
       }
     );
-
   }
 
   /**

@@ -1,9 +1,8 @@
-import { IConvocatoria } from './convocatoria';
 import { ITipoDocumento, ITipoFase } from './tipos-configuracion';
 
 export interface IConvocatoriaDocumento {
   id: number;
-  convocatoria: IConvocatoria;
+  convocatoriaId: number;
   nombre: string;
   documentoRef: string;
   tipoFase: ITipoFase;

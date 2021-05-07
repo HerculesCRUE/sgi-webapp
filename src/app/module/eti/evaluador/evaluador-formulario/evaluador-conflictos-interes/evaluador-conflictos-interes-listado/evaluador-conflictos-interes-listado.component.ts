@@ -5,20 +5,22 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IConflictoInteres } from '@core/models/eti/conflicto-interes';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { DialogService } from '@core/services/dialog.service';
 import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
+import { switchMap } from 'rxjs/operators';
 import { EvaluadorActionService } from '../../../evaluador.action.service';
 import { EvaluadorConflictosInteresModalComponent } from '../evaluador-conflictos-interes-modal/evaluador-conflictos-interes-modal.component';
 import { EvaluadorConflictosInteresFragment } from './evaluador-conflictos-interes-listado.fragment';
 
-const MSG_CONFIRM_DELETE = marker('eti.evaluador.conflictoInteres.formulario.listado.eliminar');
+const MSG_CONFIRM_DELETE = marker('msg.delete.entity');
+const CONFLICTO_INTERES_KEY = marker('eti.evaluador.conflicto-interes');
 
 @Component({
   selector: 'sgi-evaluador-conflictos-interes',
@@ -38,13 +40,16 @@ export class EvaluadorConflictosInteresListadoComponent extends FragmentComponen
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
+  textoDelete: string;
+  msgParamConflictoInteresEntity = {};
+
   constructor(
     protected readonly dialogService: DialogService,
     protected readonly convocatoriaReunionService: ConvocatoriaReunionService,
-    protected readonly personaFisicaService: PersonaFisicaService,
     protected matDialog: MatDialog,
     protected readonly snackBarService: SnackBarService,
-    actionService: EvaluadorActionService
+    actionService: EvaluadorActionService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.CONFLICTO_INTERES, actionService);
     this.listadoFragment = this.fragment as EvaluadorConflictosInteresFragment;
@@ -55,6 +60,7 @@ export class EvaluadorConflictosInteresListadoComponent extends FragmentComponen
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
 
     this.listadoFragment.conflictos$.subscribe((conflictoInteres) => {
       this.datasource.data = conflictoInteres;
@@ -66,13 +72,33 @@ export class EvaluadorConflictosInteresListadoComponent extends FragmentComponen
       (wrapper: StatusWrapper<IConflictoInteres>, property: string) => {
         switch (property) {
           case 'identificador':
-            return wrapper.value.identificadorNumero + wrapper.value.identificadorLetra;
+            return wrapper.value.personaConflicto.numeroDocumento;
           case 'nombreCompleto':
-            return wrapper.value.nombre + ' ' + wrapper.value.primerApellido + ' ' + wrapper.value.segundoApellido;
+            return wrapper.value.personaConflicto.nombre
+              + ' ' + wrapper.value.personaConflicto.apellidos;
           default:
             return wrapper.value[property];
         }
       };
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      CONFLICTO_INTERES_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_CONFIRM_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+
+    this.translate.get(
+      CONFLICTO_INTERES_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamConflictoInteresEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
   }
 
   /**
@@ -82,8 +108,7 @@ export class EvaluadorConflictosInteresListadoComponent extends FragmentComponen
     const conflictos: IConflictoInteres[] = this.listadoFragment.conflictos$.value.map(conflicto => conflicto.value);
 
     const config = {
-      width: GLOBAL_CONSTANTS.minWidthModal,
-      maxHeight: GLOBAL_CONSTANTS.minHeightModal,
+      panelClass: 'sgi-dialog-container',
       data: conflictos
     };
 
@@ -102,7 +127,7 @@ export class EvaluadorConflictosInteresListadoComponent extends FragmentComponen
    * @param wrappedConflictoInteres el conflicto de interes a eliminar
    */
   delete(wrappedConflictoInteres: StatusWrapper<IConflictoInteres>): void {
-    const dialogSubscription = this.dialogService.showConfirmation(MSG_CONFIRM_DELETE
+    const dialogSubscription = this.dialogService.showConfirmation(this.textoDelete
     ).subscribe((aceptado) => {
       if (aceptado) {
         this.listadoFragment.deleteConflictoInteres(wrappedConflictoInteres);

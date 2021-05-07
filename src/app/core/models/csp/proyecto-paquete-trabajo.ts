@@ -1,26 +1,18 @@
-import { IProyecto } from "./proyecto";
+import { DateTime } from 'luxon';
 
 export interface IProyectoPaqueteTrabajo {
-
   /** Id */
   id: number;
-
-  /** Proyecto */
-  proyecto: IProyecto;
-
+  /** Id de Proyecto */
+  proyectoId: number;
   /** nombre */
   nombre: string;
-
   /** fechaInicio */
-  fechaInicio: Date;
-
+  fechaInicio: DateTime;
   /** fechaFin */
-  fechaFin: Date;
-
+  fechaFin: DateTime;
   /** personaMes */
   personaMes: number;
-
   /** descripcion */
   descripcion: string;
-
 }

@@ -1,9 +1,14 @@
 import { Component } from '@angular/core';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IPrograma } from '@core/models/csp/programa';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
+import { TranslateService } from '@ngx-translate/core';
 import { PlanInvestigacionActionService } from '../../plan-investigacion.action.service';
+
+const PLAN_INVESTIGACION_NOMBRE_KEY = marker('csp.plan-investigacion.nombre');
 
 @Component({
   selector: 'sgi-plan-investigacion-datos-generales',
@@ -15,8 +20,11 @@ export class PlanInvestigacionDatosGeneralesComponent extends FormFragmentCompon
   fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
 
+  msgParamNombreEntity = {};
+
   constructor(
     readonly actionService: PlanInvestigacionActionService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.DATOS_GENERALES, actionService);
     this.fxFlexProperties = new FxFlexProperties();
@@ -30,5 +38,17 @@ export class PlanInvestigacionDatosGeneralesComponent extends FormFragmentCompon
     this.fxLayoutProperties.layout = 'row';
     this.fxLayoutProperties.xs = 'column';
   }
+
+  ngOnInit(): void {
+    super.ngOnInit();
+    this.setupI18N();
+  }
+  private setupI18N(): void {
+    this.translate.get(
+      PLAN_INVESTIGACION_NOMBRE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamNombreEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+  }
+
 
 }

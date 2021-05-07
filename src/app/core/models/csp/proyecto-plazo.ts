@@ -1,26 +1,19 @@
-import { IProyecto } from "./proyecto";
-import { ITipoFase } from "./tipos-configuracion";
+import { DateTime } from 'luxon';
+import { ITipoFase } from './tipos-configuracion';
 
 export interface IProyectoPlazos {
   /** Id */
   id: number;
-
-  /** Proyecto */
-  proyecto: IProyecto;
-
+  /** Id de Proyecto */
+  proyectoId: number;
   /** Tipo de hito */
   tipoFase: ITipoFase;
-
   /** Fecha inicio */
-  fechaInicio: Date;
-
+  fechaInicio: DateTime;
   /** Fecha fin  */
-  fechaFin: Date;
-
+  fechaFin: DateTime;
   /** Observaciones */
   observaciones: string;
-
   /** Aviso */
   generaAviso: boolean;
-
 }

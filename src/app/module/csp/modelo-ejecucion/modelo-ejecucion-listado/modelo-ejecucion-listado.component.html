@@ -9,31 +9,27 @@
         <!-- Nombre -->
         <div class="col">
           <mat-form-field>
-            <mat-label>{{'csp.modelo.ejecucion.nombre' | translate}}</mat-label>
-            <input matInput placeholder="{{'csp.modelo.ejecucion.nombre' | translate}}" formControlName="nombre">
+            <mat-label>{{'csp.modelo-ejecucion.nombre' | translate}}</mat-label>
+            <input matInput placeholder="{{'csp.modelo-ejecucion.nombre' | translate}}" formControlName="nombre">
           </mat-form-field>
         </div>
 
         <!-- Activo -->
         <div class="col">
           <mat-form-field>
-            <mat-label>{{'csp.modelo.ejecucion.activo' | translate}}</mat-label>
-            <mat-select matNativeControl formControlName="activo">
-              <mat-option value="todos">{{'label.todos' | translate}}</mat-option>
-              <mat-option value="true">{{'label.si' | translate}}</mat-option>
-              <mat-option value="false">{{'label.no' | translate}}</mat-option>
-            </mat-select>
+            <mat-label>{{'label.activo' | translate}}</mat-label>
+            <sgi-select-boolean formControlName="activo"></sgi-select-boolean>
           </mat-form-field>
         </div>
       </div>
 
       <div class="buttons-final">
         <div class="col filter-button">
-          <button color="primary" aria-label="Center Align" md-button mat-raised-button (click)="onSearch()">
-            <mat-icon>search</mat-icon> {{'botones.buscar'| translate}}
+          <button color="primary" aria-label="Center Align" mat-raised-button (click)="onSearch()">
+            <mat-icon>search</mat-icon> {{'btn.search'| translate}}
           </button>
-          <button color="warn" class="md-primary" aria-label="Center Align" md-button (click)="onClearFilters()"
-            mat-button>{{'botones.limpiar'| translate}}
+          <button color="warn" aria-label="Center Align" (click)="onClearFilters()" mat-button>{{'btn.clean'|
+            translate}}
           </button>
         </div>
       </div>
@@ -45,21 +41,21 @@
       matSortActive="id" matSortDirection="asc" matSortDisableClear>
       <!-- Nombre -->
       <ng-container matColumnDef="nombre">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.modelo.ejecucion.nombre' | translate}}
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.modelo-ejecucion.nombre' | translate}}
         </th>
         <td mat-cell *matCellDef="let modeloEjecucion">{{modeloEjecucion.nombre}}</td>
       </ng-container>
 
       <!-- Descripción -->
       <ng-container matColumnDef="descripcion">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.modelo.ejecucion.descripcion' | translate}}
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.modelo-ejecucion.descripcion' | translate}}
         </th>
         <td mat-cell *matCellDef="let modeloEjecucion">{{modeloEjecucion.descripcion}}</td>
       </ng-container>
 
       <!-- Activo -->
       <ng-container matColumnDef="activo">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.modelo.ejecucion.activo' | translate}}
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'label.activo' | translate}}
         </th>
         <td mat-cell *matCellDef="let modeloEjecucion">
           {{(modeloEjecucion.activo ? 'label.si' : 'label.no') | translate}}
@@ -68,17 +64,17 @@
 
       <!-- Acciones -->
       <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef> {{'columna.acciones' | translate}} </th>
+        <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
         <td mat-cell *matCellDef="let modeloEjecucion">
-          <button *ngIf="modeloEjecucion.activo === true" mat-button matTooltip="{{'botones.editar' | translate}}"
+          <button *ngIf="modeloEjecucion.activo === true" mat-button matTooltip="{{'btn.edit' | translate}}"
             [routerLink]="[modeloEjecucion.id]">
             <mat-icon color="primary">border_color</mat-icon>
           </button>
-          <button *ngIf="modeloEjecucion.activo === true" mat-button matTooltip="{{'botones.desactivar' | translate}}"
+          <button *ngIf="modeloEjecucion.activo === true" mat-button matTooltip="{{'btn.edit' | translate}}"
             (click)="deactivateModeloEjecucion(modeloEjecucion)">
             <mat-icon color="warn">highlight_off</mat-icon>
           </button>
-          <button *ngIf="modeloEjecucion.activo === false" mat-button matTooltip="{{'botones.reactivar' | translate}}"
+          <button *ngIf="modeloEjecucion.activo === false" mat-button matTooltip="{{'btn.recover' | translate}}"
             (click)="activateModeloEjecucion(modeloEjecucion)">
             <mat-icon color="accent">add_circle_outline</mat-icon>
           </button>

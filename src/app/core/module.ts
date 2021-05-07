@@ -9,9 +9,9 @@ export class Module {
     public readonly path: string
   ) { }
 
-  public static readonly CSP = new Module('CSP', marker('cabecera.modulo.csp'), 'csp');
-  public static readonly ETI = new Module('ETI', marker('cabecera.modulo.eti'), 'eti');
-  public static readonly INV = new Module('INV', marker('cabecera.modulo.inv'), 'inv');
+  public static readonly CSP = new Module('CSP', marker('csp'), 'csp');
+  public static readonly ETI = new Module('ETI', marker('eti'), 'eti');
+  public static readonly INV = new Module('INV', marker('inv'), 'inv');
 
   static get values(): Module[] {
     return [

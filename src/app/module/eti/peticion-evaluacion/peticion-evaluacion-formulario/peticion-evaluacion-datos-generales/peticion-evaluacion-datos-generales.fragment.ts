@@ -1,12 +1,12 @@
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IPeticionEvaluacion } from '@core/models/eti/peticion-evaluacion';
+import { IPersona } from '@core/models/sgp/persona';
 import { FormFragment } from '@core/services/action-service';
-import { FormGroup, FormBuilder, Validators, NgControlStatus } from '@angular/forms';
-import { Observable, of, EMPTY, BehaviorSubject } from 'rxjs';
 import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
 import { NullIdValidador } from '@core/validators/null-id-validador';
 import { SgiAuthService } from '@sgi/framework/auth/public-api';
+import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
-
 
 export class PeticionEvaluacionDatosGeneralesFragment extends FormFragment<IPeticionEvaluacion> {
 
@@ -18,7 +18,7 @@ export class PeticionEvaluacionDatosGeneralesFragment extends FormFragment<IPeti
     private fb: FormBuilder,
     key: number,
     private service: PeticionEvaluacionService,
-    private sgiAuthService: SgiAuthService,
+    sgiAuthService: SgiAuthService,
     readonly: boolean
   ) {
     super(key);
@@ -26,19 +26,19 @@ export class PeticionEvaluacionDatosGeneralesFragment extends FormFragment<IPeti
     this.peticionEvaluacion.activo = true;
     this.peticionEvaluacion.externo = false;
     this.peticionEvaluacion.tieneFondosPropios = false;
-    this.peticionEvaluacion.personaRef = sgiAuthService.authStatus$.getValue().userRefId;
+    this.peticionEvaluacion.solicitante = { id: sgiAuthService.authStatus$.getValue().userRefId } as IPersona;
     this.readonly = readonly;
   }
 
   protected buildFormGroup(): FormGroup {
     return this.fb.group({
       codigo: [{ value: '', disabled: true }, Validators.required],
-      titulo: ['', Validators.required],
+      titulo: [{ value: '', disabled: this.readonly }, Validators.required],
       tipoActividad: [{ value: '', disabled: this.readonly }, new NullIdValidador().isValid()],
       tipoInvestigacionTutelada: [{ value: '', disabled: this.readonly }, []],
       financiacion: [{ value: '', disabled: this.readonly }, Validators.required],
-      fechaInicio: [{ value: '', disabled: this.readonly }, Validators.required],
-      fechaFin: [{ value: '', disabled: this.readonly }, Validators.required],
+      fechaInicio: [{ value: null, disabled: this.readonly }, Validators.required],
+      fechaFin: [{ value: null, disabled: this.readonly }, Validators.required],
       resumen: [{ value: '', disabled: this.readonly }, Validators.required],
       valorSocial: [{ value: '', disabled: this.readonly }, Validators.required],
       objetivosCientificos: [{ value: '', disabled: this.readonly }, Validators.required],
@@ -107,4 +107,3 @@ export class PeticionEvaluacionDatosGeneralesFragment extends FormFragment<IPeti
     );
   }
 }
-

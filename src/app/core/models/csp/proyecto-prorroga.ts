@@ -1,14 +1,13 @@
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { IProyecto } from './proyecto';
-
+import { DateTime } from 'luxon';
 
 export interface IProyectoProrroga {
   id: number;
-  proyecto: IProyecto;
+  proyectoId: number;
   numProrroga: number;
-  fechaConcesion: Date;
+  fechaConcesion: DateTime;
   tipo: Tipo;
-  fechaFin: Date;
+  fechaFin: DateTime;
   importe: number;
   observaciones: string;
 }
@@ -20,7 +19,7 @@ export enum Tipo {
 }
 
 export const TIPO_MAP: Map<Tipo, string> = new Map([
-  [Tipo.TIEMPO, marker(`csp.proyecto-prorroga.tipo.TIEMPO`)],
-  [Tipo.IMPORTE, marker(`csp.proyecto-prorroga.tipo.IMPORTE`)],
-  [Tipo.TIEMPO_IMPORTE, marker(`csp.proyecto-prorroga.tipo.TIEMPO_IMPORTE`)]
+  [Tipo.TIEMPO, marker(`csp.prorroga.tipo.TIEMPO`)],
+  [Tipo.IMPORTE, marker(`csp.prorroga.tipo.IMPORTE`)],
+  [Tipo.TIEMPO_IMPORTE, marker(`csp.prorroga.tipo.TIEMPO_IMPORTE`)]
 ]);

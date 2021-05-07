@@ -1,32 +1,31 @@
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { IEvaluacion } from '@core/models/eti/evaluacion';
-import { IMemoriaWithPersona } from '@core/models/eti/memoria-with-persona';
-import { IPersona } from '@core/models/sgp/persona';
+import { IMemoria } from '@core/models/eti/memoria';
 import { FormFragment } from '@core/services/action-service';
 import { EvaluacionService } from '@core/services/eti/evaluacion.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 
-export class SeguimientoDatosMemoriaFragment extends FormFragment<IMemoriaWithPersona> {
-  private memoria: IMemoriaWithPersona;
+export class SeguimientoDatosMemoriaFragment extends FormFragment<IMemoria> {
+  private memoria: IMemoria;
 
   constructor(
     private readonly logger: NGXLogger,
     private fb: FormBuilder,
     key: number,
     private service: EvaluacionService,
-    private personaFisicaService: PersonaFisicaService
+    private personaService: PersonaService
   ) {
     super(key);
-    this.memoria = {} as IMemoriaWithPersona;
+    this.memoria = {} as IMemoria;
   }
 
   protected buildFormGroup(): FormGroup {
     const fb = this.fb.group({
       comite: [{ value: this.memoria?.comite?.comite, disabled: true }],
-      fechaEvaluacion: [{ value: '', disabled: true }],
+      fechaEvaluacion: [{ value: null, disabled: true }],
       referenciaMemoria: [{ value: '', disabled: true }],
       solicitante: [{ value: '', disabled: true }],
       version: [{ value: '', disabled: true }]
@@ -34,27 +33,22 @@ export class SeguimientoDatosMemoriaFragment extends FormFragment<IMemoriaWithPe
     return fb;
   }
 
-  protected initializer(key: number): Observable<IMemoriaWithPersona> {
+  protected initializer(key: number): Observable<IMemoria> {
     return this.service.findById(key).pipe(
       map((evaluacion: IEvaluacion) => {
-        this.memoria = evaluacion.memoria as IMemoriaWithPersona;
+        this.memoria = evaluacion.memoria;
         return this.memoria;
       }),
-      switchMap((memoria: IMemoriaWithPersona) => {
-        if (memoria.peticionEvaluacion?.personaRef) {
-          return this.personaFisicaService.getInformacionBasica(memoria.peticionEvaluacion.personaRef)
+      switchMap((memoria) => {
+        if (memoria.peticionEvaluacion?.solicitante?.id) {
+          return this.personaService.findById(memoria.peticionEvaluacion.solicitante.id)
             .pipe(
               map((persona) => {
-                memoria.solicitante = persona;
+                memoria.peticionEvaluacion.solicitante = persona;
                 return memoria;
               }),
               catchError((error) => {
                 this.logger.error(error);
-                const solicitante = {} as IPersona;
-                solicitante.nombre = '';
-                solicitante.primerApellido = '';
-                solicitante.segundoApellido = '';
-                memoria.solicitante = solicitante;
                 return of(memoria);
               })
             );
@@ -66,18 +60,18 @@ export class SeguimientoDatosMemoriaFragment extends FormFragment<IMemoriaWithPe
     );
   }
 
-  buildPatch(value: IMemoriaWithPersona): { [key: string]: any } {
+  buildPatch(value: IMemoria): { [key: string]: any } {
     const patch = {
       comite: value.comite.comite,
       fechaEvaluacion: value.fechaEnvioSecretaria,
       referenciaMemoria: value.numReferencia,
       version: value.version,
-      solicitante: `${value?.solicitante?.nombre} ${value?.solicitante?.primerApellido} ${value?.solicitante?.segundoApellido}`
+      solicitante: `${value?.peticionEvaluacion.solicitante?.nombre} ${value?.peticionEvaluacion?.solicitante?.apellidos}`
     };
     return patch;
   }
 
-  getValue(): IMemoriaWithPersona {
+  getValue(): IMemoria {
     return this.memoria;
   }
 

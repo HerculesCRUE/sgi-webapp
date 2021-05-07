@@ -4,9 +4,9 @@ import { Router } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { Module } from '@core/module';
 
-const MSG_MODULO_CSP = marker('selector-modulo.csp');
-const MSG_MODULO_ETI = marker('selector-modulo.etica');
-const MSG_MODULO_INV = marker('selector-modulo.investigador');
+const MSG_MODULO_CSP = marker('title.modulo.csp');
+const MSG_MODULO_ETI = marker('title.modulo.eti');
+const MSG_MODULO_INV = marker('title.modulo.inv');
 
 interface SelectorModulo {
   module: Module;

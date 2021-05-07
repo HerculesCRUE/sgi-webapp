@@ -3,25 +3,31 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { ActivatedRoute, Router } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IConvocatoriaEntidadFinanciadora } from '@core/models/csp/convocatoria-entidad-financiadora';
 import { ISolicitudProyectoEntidadFinanciadoraAjena } from '@core/models/csp/solicitud-proyecto-entidad-financiadora-ajena';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ConvocatoriaService } from '@core/services/csp/convocatoria.service';
 import { DialogService } from '@core/services/dialog.service';
-import { EmpresaEconomicaService } from '@core/services/sgp/empresa-economica.service';
+import { EmpresaService } from '@core/services/sgemp/empresa.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { from, Subscription } from 'rxjs';
-import { map, mergeAll, switchMap, takeLast } from 'rxjs/operators';
-import { EntidadFinanciadoraDataModal, EntidadFinanciadoraModalComponent } from '../../../modals/entidad-financiadora-modal/entidad-financiadora-modal.component';
+import { map, mergeAll, switchMap, take, takeLast } from 'rxjs/operators';
+import { EntidadFinanciadoraDataModal, EntidadFinanciadoraModalComponent } from '../../../shared/entidad-financiadora-modal/entidad-financiadora-modal.component';
+import { SOLICITUD_ROUTE_NAMES } from '../../solicitud-route-names';
 import { SolicitudActionService } from '../../solicitud.action.service';
 import { SolicitudProyectoEntidadesFinanciadorasFragment } from './solicitud-proyecto-entidades-financiadoras.fragment';
 
-
-const MODAL_ENTIDAD_FINANCIADORA_TITLE = marker('csp.solicitud.entidades-financiadoras.modal.titulo');
-const MSG_DELETE = marker('csp.solicitud.entidades-financiadoras.borrar');
+const MSG_DELETE = marker('msg.delete.entity');
+const SOLICITUD_PROYECTO_ENTIDAD_FINANCIADORA_KEY = marker('csp.solicitud-entidad-financiadora');
+const SOLICITUD_PROYECTO_ENTIDAD_FINANCIADORA_AJENA_KEY = marker('csp.solicitud-entidad-financiadora.ajena');
+const SOLICITUD_PROYECTO_ENTIDAD_FINANCIADORA_CONVOCATORIA_KEY = marker('csp.solicitud-entidad-financiadora.convocatoria');
+const TITLE_NEW_ENTITY = marker('title.new.entity');
 
 @Component({
   selector: 'sgi-solicitud-proyecto-entidades-financiadoras',
@@ -56,6 +62,13 @@ export class SolicitudProyectoEntidadesFinanciadorasComponent extends FragmentCo
 
   elementosPagina: number[] = [5, 10, 25, 100];
 
+  msgParamEntity = {};
+  msgParamAjenaEntity = {};
+  msgParamConvocatoriaEntity = {};
+  textoDelete: string;
+  title: string;
+  titleNew: string;
+
   dataSourceEntidadesFinanciadorasConvocatoria = new MatTableDataSource<IConvocatoriaEntidadFinanciadora>();
   @ViewChild('paginatorEntidadesFinanciadorasConvocatoria', { static: true }) paginatorEntidadesFinanciadorasConvocatoria: MatPaginator;
   @ViewChild('sortEntidadesFinanciadorasConvocatoria', { static: true }) sortEntidadesFinanciadorasConvocatoria: MatSort;
@@ -66,10 +79,13 @@ export class SolicitudProyectoEntidadesFinanciadorasComponent extends FragmentCo
 
   constructor(
     private actionService: SolicitudActionService,
+    private router: Router,
+    private route: ActivatedRoute,
     private matDialog: MatDialog,
     private dialogService: DialogService,
     private convocatoriaService: ConvocatoriaService,
-    private empresaEconomicaService: EmpresaEconomicaService
+    private empresaService: EmpresaService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.ENTIDADES_FINANCIADORAS, actionService);
     this.formPart = this.fragment as SolicitudProyectoEntidadesFinanciadorasFragment;
@@ -77,18 +93,25 @@ export class SolicitudProyectoEntidadesFinanciadorasComponent extends FragmentCo
 
   ngOnInit(): void {
     super.ngOnInit();
-
-    this.actionService.existsDatosProyectos();
-    this.formPart.solicitantePersonaRef = this.actionService.getSolicitantePersonaRef();
+    this.setupI18N();
+    this.actionService.datosProyectoComplete$.pipe(
+      take(1)
+    ).subscribe(
+      (complete) => {
+        if (!complete) {
+          this.router.navigate(['../', SOLICITUD_ROUTE_NAMES.PROYECTO_DATOS], { relativeTo: this.route });
+        }
+      }
+    );
 
     this.dataSourceEntidadesFinanciadorasConvocatoria.paginator = this.paginatorEntidadesFinanciadorasConvocatoria;
     this.dataSourceEntidadesFinanciadorasConvocatoria.sortingDataAccessor =
       (entidadFinanciadora: IConvocatoriaEntidadFinanciadora, property: string) => {
         switch (property) {
           case 'nombre':
-            return entidadFinanciadora.empresa?.razonSocial;
+            return entidadFinanciadora.empresa?.nombre;
           case 'cif':
-            return entidadFinanciadora.empresa?.numeroDocumento;
+            return entidadFinanciadora.empresa?.numeroIdentificacion;
           case 'fuenteFinanciacion':
             return entidadFinanciadora.fuenteFinanciacion?.nombre;
           case 'ambito':
@@ -108,9 +131,9 @@ export class SolicitudProyectoEntidadesFinanciadorasComponent extends FragmentCo
       (entidadFinanciadora: StatusWrapper<ISolicitudProyectoEntidadFinanciadoraAjena>, property: string) => {
         switch (property) {
           case 'nombre':
-            return entidadFinanciadora.value.empresa?.razonSocial;
+            return entidadFinanciadora.value.empresa?.nombre;
           case 'cif':
-            return entidadFinanciadora.value.empresa?.numeroDocumento;
+            return entidadFinanciadora.value.empresa?.numeroIdentificacion;
           case 'fuenteFinanciacion':
             return entidadFinanciadora.value.fuenteFinanciacion?.nombre;
           case 'ambito':
@@ -125,7 +148,7 @@ export class SolicitudProyectoEntidadesFinanciadorasComponent extends FragmentCo
       };
     this.dataSourceEntidadesFinanciadorasAjenas.sort = this.sortEntidadesFinanciadorasAjena;
 
-    const convocatoriaId = this.actionService.getDatosGeneralesSolicitud().convocatoria?.id;
+    const convocatoriaId = this.actionService.convocatoriaId;
     if (convocatoriaId) {
       const subscriptionEntidadesFinanciadorasConvocatoria = this.convocatoriaService.findEntidadesFinanciadoras(convocatoriaId)
         .pipe(
@@ -134,10 +157,10 @@ export class SolicitudProyectoEntidadesFinanciadorasComponent extends FragmentCo
             return from(entidadesFinanciadoras)
               .pipe(
                 map((entidadesFinanciadora) => {
-                  return this.empresaEconomicaService.findById(entidadesFinanciadora.empresa.personaRef)
+                  return this.empresaService.findById(entidadesFinanciadora.empresa.id)
                     .pipe(
-                      map(empresaEconomica => {
-                        entidadesFinanciadora.empresa = empresaEconomica;
+                      map(empresa => {
+                        entidadesFinanciadora.empresa = empresa;
                         return entidadesFinanciadora;
                       }),
                     );
@@ -166,19 +189,66 @@ export class SolicitudProyectoEntidadesFinanciadorasComponent extends FragmentCo
     this.subscriptions.push(subscriptionEntidadesFinanciadorasAjenas);
   }
 
+  private setupI18N(): void {
+    this.translate.get(
+      SOLICITUD_PROYECTO_ENTIDAD_FINANCIADORA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_ENTIDAD_FINANCIADORA_AJENA_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamAjenaEntity = { entity: value });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_ENTIDAD_FINANCIADORA_CONVOCATORIA_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamConvocatoriaEntity = { entity: value });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_ENTIDAD_FINANCIADORA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_ENTIDAD_FINANCIADORA_AJENA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          TITLE_NEW_ENTITY,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.titleNew = value);
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_ENTIDAD_FINANCIADORA_AJENA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.title = value);
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
   openModal(wrapper?: StatusWrapper<ISolicitudProyectoEntidadFinanciadoraAjena>): void {
     const data: EntidadFinanciadoraDataModal = {
-      title: MODAL_ENTIDAD_FINANCIADORA_TITLE,
+      title: wrapper ? this.title : this.titleNew,
       entidad: wrapper ? wrapper.value : {} as ISolicitudProyectoEntidadFinanciadoraAjena,
       selectedEmpresas: this.dataSourceEntidadesFinanciadorasAjenas.data.map(entidad => entidad.value.empresa),
       readonly: this.formPart.readonly
     };
 
     const config = {
+      panelClass: 'sgi-dialog-container',
       data
     };
 
@@ -197,7 +267,7 @@ export class SolicitudProyectoEntidadesFinanciadorasComponent extends FragmentCo
 
   deleteEntidadFinanciadora(wrapper: StatusWrapper<ISolicitudProyectoEntidadFinanciadoraAjena>) {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado) => {
           if (aceptado) {
             this.formPart.deleteSolicitudProyectoEntidadFinanciadora(wrapper);

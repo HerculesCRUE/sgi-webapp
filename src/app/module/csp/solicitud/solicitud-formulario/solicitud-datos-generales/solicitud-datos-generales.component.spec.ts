@@ -1,21 +1,36 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
-import { SolicitudDatosGeneralesComponent } from './solicitud-datos-generales.component';
-import TestUtils from '@core/utils/test-utils';
-import { MaterialDesignModule } from '@material/material-design.module';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { LoggerTestingModule } from 'ngx-logger/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FlexModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute, Data } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { SolicitudActionService } from '../../solicitud.action.service';
+import { FormularioSolicitud } from '@core/enums/formulario-solicitud';
+import { Estado } from '@core/models/csp/estado-solicitud';
+import TestUtils from '@core/utils/test-utils';
+import { MaterialDesignModule } from '@material/material-design.module';
 import { SgiAuthService } from '@sgi/framework/auth';
 import { SharedModule } from '@shared/shared.module';
+import { LoggerTestingModule } from 'ngx-logger/testing';
+import { CspSharedModule } from '../../../shared/csp-shared.module';
+import { SOLICITUD_DATA_KEY } from '../../solicitud-data.resolver';
+import { ISolicitudData, SolicitudActionService } from '../../solicitud.action.service';
+import { SolicitudDatosGeneralesComponent } from './solicitud-datos-generales.component';
 
 describe('SolicitudDatosGeneralesComponent', () => {
   let component: SolicitudDatosGeneralesComponent;
   let fixture: ComponentFixture<SolicitudDatosGeneralesComponent>;
+  const routeData: Data = {
+    [SOLICITUD_DATA_KEY]: {
+      solicitud: {
+        formularioSolicitud: FormularioSolicitud.ESTANDAR,
+        estado: {
+          estado: Estado.BORRADOR
+        }
+      }
+    } as ISolicitudData
+  };
+  const routeMock = TestUtils.buildActivatedRouteMock('1', routeData);
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -32,11 +47,13 @@ describe('SolicitudDatosGeneralesComponent', () => {
         FormsModule,
         ReactiveFormsModule,
         RouterTestingModule,
-        SharedModule
+        SharedModule,
+        CspSharedModule
       ],
       providers: [
         SolicitudActionService,
-        SgiAuthService
+        SgiAuthService,
+        { provide: ActivatedRoute, useValue: routeMock }
       ],
     })
       .compileComponents();

@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IRolSocio } from '@core/models/csp/rol-socio';
 import { ISolicitudProyectoSocio } from '@core/models/csp/solicitud-proyecto-socio';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
@@ -9,14 +10,21 @@ import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-pro
 import { RolSocioService } from '@core/services/csp/rol-socio.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { IRange } from '@core/validators/range-validator';
+import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
 import { merge, Observable, Subscription } from 'rxjs';
 import { map, startWith, tap } from 'rxjs/operators';
 import { SolicitudProyectoSocioActionService } from '../../solicitud-proyecto-socio.action.service';
 import { SolicitudProyectoSocioDatosGeneralesFragment } from './solicitud-proyecto-socio-datos-generales.fragment';
 
-
-const MSG_ERROR_INIT = marker('csp.solicitud-proyecto-socio.rol.error.cargar');
+const MSG_ERROR_INIT = marker('error.load');
+const SOLICITUD_PROYECTO_SOCIO_IMPORTE_SOLICITADO_KEY = marker('csp.proyecto-socio.importe-solicitado');
+const SOLICITUD_PROYECTO_SOCIO_MES_FIN_KEY = marker('csp.proyecto-socio.mes-fin');
+const SOLICITUD_PROYECTO_SOCIO_MES_INICIO_KEY = marker('csp.proyecto-socio.mes-inicio');
+const SOLICITUD_PROYECTO_SOCIO_NUMERO_INVESTIGADOR_KEY = marker('csp.proyecto-socio.num-investigadores');
+const SOLICITUD_PROYECTO_SOCIO_ROL_SOCIO_KEY = marker('csp.proyecto-socio.rol-socio');
+const SOLICITUD_PROYECTO_SOCIO_SOCIO_KEY = marker('csp.proyecto-socio.socio');
+const SOLICITUD_PROYECTO_SOCIO_KEY = marker('csp.solicitud-proyecto-socio');
 
 @Component({
   selector: 'sgi-solicitud-proyecto-socio-datos-generales',
@@ -32,11 +40,21 @@ export class SolicitudProyectoSocioDatosGeneralesComponent extends FormFragmentC
   private rolSocioFiltered: IRolSocio[] = [];
   rolSocios$: Observable<IRolSocio[]>;
 
+  msgParamEntity = {};
+  msgParamSocioEntity = {};
+  msgParamRolSocioEntity = {};
+  msgParamNumInvestigadoresEntity = {};
+  msgParamImporteSolicitadoEntity = {};
+  msgParamMesInicioEntity = {};
+  msgParamMesFinEntity = {};
+
+
   constructor(
     private readonly logger: NGXLogger,
     protected actionService: SolicitudProyectoSocioActionService,
     private snackBarService: SnackBarService,
     private rolSocioService: RolSocioService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.DATOS_GENERALES, actionService);
     this.formPart = this.fragment as SolicitudProyectoSocioDatosGeneralesFragment;
@@ -55,6 +73,9 @@ export class SolicitudProyectoSocioDatosGeneralesComponent extends FormFragmentC
   ngOnInit(): void {
     super.ngOnInit();
     this.loadRolProyectos();
+
+    this.setupI18N();
+
     this.subscriptions.push(
       merge(
         this.formGroup.get('empresa').valueChanges,
@@ -64,6 +85,48 @@ export class SolicitudProyectoSocioDatosGeneralesComponent extends FormFragmentC
         tap(() => this.checkRangesMeses())
       ).subscribe()
     );
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      SOLICITUD_PROYECTO_SOCIO_IMPORTE_SOLICITADO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamImporteSolicitadoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_SOCIO_MES_FIN_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamMesFinEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_SOCIO_MES_INICIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamMesInicioEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_SOCIO_NUMERO_INVESTIGADOR_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamNumInvestigadoresEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_SOCIO_NUMERO_INVESTIGADOR_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamNumInvestigadoresEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_SOCIO_ROL_SOCIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamRolSocioEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_SOCIO_SOCIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamSocioEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_SOCIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
   }
 
   private loadRolProyectos(): void {
@@ -106,8 +169,8 @@ export class SolicitudProyectoSocioDatosGeneralesComponent extends FormFragmentC
 
     const mesInicio = mesInicioForm.value ? mesInicioForm.value : Number.MIN_VALUE;
     const mesFin = mesFinForm.value ? mesFinForm.value : Number.MAX_VALUE;
-    const ranges = this.actionService.getSelectedSolicitudProyectoSocios().filter(
-      element => element.empresa.personaRef === empresaForm.value?.personaRef
+    const ranges = this.actionService.solicitudProyectoSocios.filter(
+      element => element.empresa.id === empresaForm.value?.id
         && element.id !== this.formPart.solicitudProyectoSocio.id)
       .map(solicitudProyectoSocio => {
         const range: IRange = {

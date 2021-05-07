@@ -1,20 +1,17 @@
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { IProyecto } from '@core/models/csp/proyecto';
 import { IProyectoEntidadGestora } from '@core/models/csp/proyecto-entidad-gestora';
-import { IEmpresaEconomica } from '@core/models/sgp/empresa-economica';
+import { IEmpresa } from '@core/models/sgemp/empresa';
 import { FormFragment } from '@core/services/action-service';
 import { ProyectoEntidadGestoraService } from '@core/services/csp/proyecto-entidad-gestora.service';
 import { ProyectoService } from '@core/services/csp/proyecto.service';
-import { EmpresaEconomicaService } from '@core/services/sgp/empresa-economica.service';
+import { EmpresaService } from '@core/services/sgemp/empresa.service';
 import { Observable, of } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
-import { ProyectoActionService } from '../../proyecto.action.service';
+import { map, switchMap, takeLast, tap } from 'rxjs/operators';
 
 export class ProyectoEntidadGestoraFragment extends FormFragment<IProyectoEntidadGestora> {
 
   private proyectoEntidadGestora: IProyectoEntidadGestora;
 
-  private padreRef: IEmpresaEconomica;
   ocultarSubEntidad: boolean;
 
   constructor(
@@ -22,8 +19,7 @@ export class ProyectoEntidadGestoraFragment extends FormFragment<IProyectoEntida
     key: number,
     private proyectoService: ProyectoService,
     private proyectoEntidadGestoraService: ProyectoEntidadGestoraService,
-    private empresaEconomicaService: EmpresaEconomicaService,
-    private actionService: ProyectoActionService
+    private empresaService: EmpresaService
   ) {
     super(key, true);
     this.setComplete(true);
@@ -33,14 +29,14 @@ export class ProyectoEntidadGestoraFragment extends FormFragment<IProyectoEntida
   protected initializer(key: number): Observable<IProyectoEntidadGestora> {
     if (this.getKey()) {
       return this.proyectoService.findEntidadGestora(key).pipe(
-        switchMap((entidadGestora) => {
-          const proyectoEntidadesGestoras = entidadGestora.items;
+        switchMap((entidadesGestoras) => {
+          const proyectoEntidadesGestoras = entidadesGestoras.items;
           if (proyectoEntidadesGestoras.length > 0) {
-            this.proyectoEntidadGestora = proyectoEntidadesGestoras[0];
-            return this.empresaEconomicaService.findById(this.proyectoEntidadGestora.empresaEconomica.personaRef).pipe(
-              map((empresaEconomica) => {
-                this.getFormGroup().get('entidadGestora').setValue(empresaEconomica);
-                return this.proyectoEntidadGestora;
+            const entidadGestora = proyectoEntidadesGestoras[0];
+            return this.empresaService.findById(entidadGestora.empresa.id).pipe(
+              map((empresa) => {
+                entidadGestora.empresa = empresa;
+                return entidadGestora;
               })
             );
           }
@@ -53,7 +49,7 @@ export class ProyectoEntidadGestoraFragment extends FormFragment<IProyectoEntida
   protected buildFormGroup(): FormGroup {
     const form = this.fb.group({
       entidadGestora: new FormControl({
-        value: '',
+        value: null,
         disabled: false
       }),
       identificadorFiscal: new FormControl({
@@ -92,7 +88,7 @@ export class ProyectoEntidadGestoraFragment extends FormFragment<IProyectoEntida
         value: '',
         disabled: true
       }),
-      raazonSocialPrincipal: new FormControl({
+      razonSocialPrincipal: new FormControl({
         value: '',
         disabled: true
       })
@@ -108,15 +104,14 @@ export class ProyectoEntidadGestoraFragment extends FormFragment<IProyectoEntida
   }
 
   buildPatch(entidadGestora: IProyectoEntidadGestora): { [key: string]: any } {
-    return {};
+    this.proyectoEntidadGestora = entidadGestora;
+    return {
+      entidadGestora: entidadGestora.empresa
+    };
   }
 
   getValue(): IProyectoEntidadGestora {
-    if (this.proyectoEntidadGestora === null) {
-      this.proyectoEntidadGestora = {} as IProyectoEntidadGestora;
-    }
-
-    this.proyectoEntidadGestora.proyecto = this.actionService.proyectoDatosGenerales;
+    this.proyectoEntidadGestora.empresa = this.getFormGroup().controls.entidadGestora.value;
 
     return this.proyectoEntidadGestora;
   }
@@ -125,108 +120,97 @@ export class ProyectoEntidadGestoraFragment extends FormFragment<IProyectoEntida
    * Setea la entidad gestora seleccionada en el formulario
    * @param entidadGestora empresa
    */
-  private onEntidadGestoraChange(entidadGestora: IEmpresaEconomica): void {
+  private onEntidadGestoraChange(entidadGestora: IEmpresa): void {
     if (entidadGestora) {
 
-      this.getFormGroup().controls.identificadorFiscal.setValue(entidadGestora.tipoDocumento);
+      this.getFormGroup().controls.identificadorFiscal.setValue(entidadGestora.tipoIdentificador.nombre);
+      this.getFormGroup().controls.nombre.setValue(entidadGestora.nombre);
       this.getFormGroup().controls.razonSocial.setValue(entidadGestora.razonSocial);
-      this.getFormGroup().controls.direccionPostal.setValue(entidadGestora.direccion);
-      this.getFormGroup().controls.tipoEmpresa.setValue(entidadGestora.tipoEmpresa);
+      this.getFormGroup().controls.direccionPostal.setValue(''); // TODO: añadir cuando se implemente /datos-contacto/empresa/{id}
+      this.getFormGroup().controls.tipoEmpresa.setValue(''); // TODO: añadir cuando se implemente /datos-tipo-empresa/empresa/{id}
 
-      if (entidadGestora.personaRefPadre) {
+      const entidadGestoraPadreRef = undefined; // TODO: cambiar cuando este definido como va
+      if (entidadGestoraPadreRef) {
 
         this.getFormGroup().controls.entidad.setValue(2);
-        this.getFormGroup().controls.nombre.setValue(entidadGestora.tipoEmpresa);
-        this.getFormGroup().controls.razonSocial.setValue(entidadGestora.razonSocial);
-        this.getFormGroup().controls.codigoSubentidad.setValue(entidadGestora.numeroDocumento);
+        this.getFormGroup().controls.codigoSubentidad.setValue(entidadGestora.numeroIdentificacion);
 
         this.subscriptions.push(
-          this.empresaEconomicaService.findById(entidadGestora.personaRefPadre).subscribe(
-            personaRef => {
-              if (personaRef) {
-                this.getFormGroup().controls.raazonSocialPrincipal.setValue(personaRef.razonSocial);
-                this.getFormGroup().controls.nombrePrincipal.setValue(personaRef.tipoEmpresa);
-                this.getFormGroup().controls.numeroIdentificadorFiscal.setValue(personaRef.numeroDocumento);
+          this.empresaService.findById(entidadGestoraPadreRef)
+            .subscribe(empresa => {
+              if (empresa) {
+                this.getFormGroup().controls.numeroIdentificadorFiscal.setValue(empresa.numeroIdentificacion);
+                this.getFormGroup().controls.razonSocialPrincipal.setValue(empresa.razonSocial);
+                this.getFormGroup().controls.nombrePrincipal.setValue(empresa.nombre);
               } else {
-                this.getFormGroup().controls.raazonSocialPrincipal.setValue('');
+                this.getFormGroup().controls.numeroIdentificadorFiscal.setValue(entidadGestora.numeroIdentificacion);
+                this.getFormGroup().controls.razonSocialPrincipal.setValue('');
                 this.getFormGroup().controls.nombrePrincipal.setValue('');
-                this.getFormGroup().controls.numeroIdentificadorFiscal.setValue('');
               }
-
             }
-          )
+            )
         );
 
         this.ocultarSubEntidad = true;
       } else {
         this.getFormGroup().controls.entidad.setValue(1);
-        this.getFormGroup().controls.razonSocial.setValue(entidadGestora.razonSocial);
-        this.getFormGroup().controls.nombre.setValue(entidadGestora.tipoEmpresa);
-        this.getFormGroup().controls.numeroIdentificadorFiscal.setValue(entidadGestora.numeroDocumento);
-
+        this.getFormGroup().controls.numeroIdentificadorFiscal.setValue(entidadGestora.numeroIdentificacion);
         this.getFormGroup().controls.nombrePrincipal.setValue('');
-        this.getFormGroup().controls.raazonSocialPrincipal.setValue('');
+        this.getFormGroup().controls.razonSocialPrincipal.setValue('');
         this.getFormGroup().controls.codigoSubentidad.setValue('');
         this.ocultarSubEntidad = false;
       }
+    } else {
+      this.getFormGroup().controls.identificadorFiscal.setValue('');
+      this.getFormGroup().controls.numeroIdentificadorFiscal.setValue('');
+      this.getFormGroup().controls.nombre.setValue('');
+      this.getFormGroup().controls.razonSocial.setValue('');
+      this.getFormGroup().controls.entidad.setValue('');
+      this.getFormGroup().controls.direccionPostal.setValue('');
+      this.getFormGroup().controls.tipoEmpresa.setValue('');
+      this.getFormGroup().controls.nombrePrincipal.setValue('');
+      this.getFormGroup().controls.razonSocialPrincipal.setValue('');
     }
   }
 
-  saveOrUpdate(): Observable<number> {
+  saveOrUpdate(): Observable<void> {
     let observable$: Observable<any>;
-    const fichaGeneral = this.getValue();
-    fichaGeneral.proyecto = {
-      id: this.getKey()
-    } as IProyecto;
-    const entidadRef = this.getFormGroup().controls.entidadGestora.value?.personaRef;
-    if (entidadRef !== this.proyectoEntidadGestora.empresaEconomica?.personaRef) {
-      if (!entidadRef) {
-        observable$ = this.deleteProyectoEntidadGestora();
-      }
-      else {
-        observable$ = this.proyectoEntidadGestora.id ?
-          this.updateProyectoEntidadGestora() : this.createProyectoEntidadGestora();
-      }
-      return observable$.pipe(
-        map((value) => {
-          if (entidadRef) {
-            this.proyectoEntidadGestora = value;
-          }
-          return this.proyectoEntidadGestora.id;
-        })
-      );
+    const proyectoEntidadGestora = this.getValue();
+    if (!proyectoEntidadGestora.empresa) {
+      observable$ = this.deleteProyectoEntidadGestora(proyectoEntidadGestora);
+    } else {
+      observable$ = proyectoEntidadGestora.id ?
+        this.updateProyectoEntidadGestora(proyectoEntidadGestora) : this.createProyectoEntidadGestora(proyectoEntidadGestora);
     }
+    return observable$.pipe(
+      takeLast(1)
+    );
   }
 
-
-  private createProyectoEntidadGestora(): Observable<IProyectoEntidadGestora> {
-    this.proyectoEntidadGestora.empresaEconomica = this.getFormGroup().controls.entidadGestora.value;
-    return this.proyectoEntidadGestoraService.create(this.proyectoEntidadGestora).pipe(
-      tap(result => {
-        this.proyectoEntidadGestora = result;
-        this.proyectoEntidadGestora.empresaEconomica = this.getFormGroup().controls.entidadGestora.value;
+  private createProyectoEntidadGestora(proyectoEntidadGestora: IProyectoEntidadGestora): Observable<void> {
+    proyectoEntidadGestora.proyectoId = this.getKey() as number;
+    return this.proyectoEntidadGestoraService.create(proyectoEntidadGestora).pipe(
+      map(result => {
+        this.proyectoEntidadGestora = Object.assign(this.proyectoEntidadGestora, result);
       })
     );
   }
 
-  private updateProyectoEntidadGestora(): Observable<IProyectoEntidadGestora> {
-    this.proyectoEntidadGestora.empresaEconomica = this.getFormGroup().controls.entidadGestora.value;
+  private updateProyectoEntidadGestora(proyectoEntidadGestora: IProyectoEntidadGestora): Observable<void> {
     return this.proyectoEntidadGestoraService.update(
-      this.proyectoEntidadGestora.id, this.proyectoEntidadGestora).pipe(
-        tap(result => {
-          this.proyectoEntidadGestora = result;
-          this.proyectoEntidadGestora.empresaEconomica = this.getFormGroup().controls.entidadGestora.value;
+      proyectoEntidadGestora.id, proyectoEntidadGestora).pipe(
+        map(result => {
+          this.proyectoEntidadGestora = Object.assign(this.proyectoEntidadGestora, result);
         })
       );
   }
 
-  private deleteProyectoEntidadGestora(): Observable<void> {
-    this.proyectoEntidadGestora.empresaEconomica = this.getFormGroup().controls.entidadGestora.value;
+  private deleteProyectoEntidadGestora(proyectoEntidadGestora: IProyectoEntidadGestora): Observable<void> {
     return this.proyectoEntidadGestoraService.deleteById(
-      this.proyectoEntidadGestora.id).pipe(
+      proyectoEntidadGestora.id).pipe(
         tap(() => {
           this.proyectoEntidadGestora = {} as IProyectoEntidadGestora;
-          this.proyectoEntidadGestora.empresaEconomica = {} as IEmpresaEconomica;
+          this.proyectoEntidadGestora.empresa = {} as IEmpresa;
         })
       );
   }

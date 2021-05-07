@@ -4,11 +4,16 @@ import { IEntidadFinanciadora } from '@core/models/csp/entidad-financiadora';
 import { ActionService } from '@core/services/action-service';
 import { SolicitudProyectoPresupuestoService } from '@core/services/csp/solicitud-proyecto-presupuesto.service';
 import { SolicitudService } from '@core/services/csp/solicitud.service';
-import { NGXLogger } from 'ngx-logger';
+import { SOLICITUD_ROUTE_PARAMS } from '../solicitud/solicitud-route-params';
+import { SOLICITUD_PROYECTO_PRESUPUESTO_DATA_KEY } from './solicitud-proyecto-presupuesto-data.resolver';
 import { SolicitudProyectoPresupuestoDatosGeneralesFragment } from './solicitud-proyecto-presupuesto-formulario/solicitud-proyecto-presupuesto-datos-generales/solicitud-proyecto-presupuesto-datos-generales.fragment';
 import { SolicitudProyectoPresupuestoPartidasGastoFragment } from './solicitud-proyecto-presupuesto-formulario/solicitud-proyecto-presupuesto-partidas-gasto/solicitud-proyecto-presupuesto-partidas-gasto.fragment';
 
-
+export interface ISolicitudProyectoPresupuestoData {
+  entidadFinanciadora: IEntidadFinanciadora;
+  ajena: boolean;
+  readonly: boolean;
+}
 
 @Injectable()
 export class SolicitudProyectoPresupuestoActionService extends ActionService {
@@ -21,33 +26,24 @@ export class SolicitudProyectoPresupuestoActionService extends ActionService {
   private datosGenerales: SolicitudProyectoPresupuestoDatosGeneralesFragment;
   private partidasGasto: SolicitudProyectoPresupuestoPartidasGastoFragment;
 
-  private solicitudId: number;
-  private convocatoriaId: number;
-  private entidadFinanciadora: IEntidadFinanciadora;
-  private isEntidadFinanciadoraConvocatoria: boolean;
-
-  readonly = false;
-
+  private readonly data: ISolicitudProyectoPresupuestoData;
 
   constructor(
-    private readonly logger: NGXLogger,
     route: ActivatedRoute,
-    private solicitudService: SolicitudService,
-    private solicitudProyectoPresupuestoService: SolicitudProyectoPresupuestoService
+    solicitudService: SolicitudService,
+    solicitudProyectoPresupuestoService: SolicitudProyectoPresupuestoService,
   ) {
     super();
+    this.data = route.snapshot.data[SOLICITUD_PROYECTO_PRESUPUESTO_DATA_KEY];
+    const solicitudId = Number(route.snapshot.paramMap.get(SOLICITUD_ROUTE_PARAMS.ID));
 
-    this.solicitudId = history.state.solicitudId;
-    this.convocatoriaId = history.state.convocatoriaId;
-    this.entidadFinanciadora = history.state.entidadFinanciadora;
-    this.isEntidadFinanciadoraConvocatoria = history.state.isEntidadFinanciadoraConvocatoria;
     this.enableEdit();
 
-
-    this.datosGenerales = new SolicitudProyectoPresupuestoDatosGeneralesFragment(logger, this.solicitudId, this.entidadFinanciadora,
-      this.isEntidadFinanciadoraConvocatoria)
-    this.partidasGasto = new SolicitudProyectoPresupuestoPartidasGastoFragment(logger, this.solicitudId, this.entidadFinanciadora,
-      this.isEntidadFinanciadoraConvocatoria, this.convocatoriaId, this.solicitudService, this.solicitudProyectoPresupuestoService, this.readonly)
+    this.datosGenerales = new SolicitudProyectoPresupuestoDatosGeneralesFragment(
+      solicitudId, this.data.entidadFinanciadora, this.data.ajena);
+    this.partidasGasto = new SolicitudProyectoPresupuestoPartidasGastoFragment(
+      solicitudId, this.data.entidadFinanciadora.empresa, this.data.ajena, solicitudService,
+      solicitudProyectoPresupuestoService, this.data.readonly);
 
     this.addFragment(this.FRAGMENT.DATOS_GENERALES, this.datosGenerales);
     this.addFragment(this.FRAGMENT.PARTIDAS_GASTO, this.partidasGasto);

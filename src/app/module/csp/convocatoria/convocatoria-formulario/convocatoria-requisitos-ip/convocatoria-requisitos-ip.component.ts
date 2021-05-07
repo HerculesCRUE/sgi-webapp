@@ -1,11 +1,17 @@
 import { Component, OnInit } from '@angular/core';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IConvocatoriaRequisitoIP } from '@core/models/csp/convocatoria-requisito-ip';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { TranslateService } from '@ngx-translate/core';
 import { ConvocatoriaActionService } from '../../convocatoria.action.service';
 import { ConvocatoriaRequisitosIPFragment } from './convocatoria-requisitos-ip.fragment';
+
+
+const CONVOCATORIA_REQUISITOS_IP_MODALIDAD_CONTRATOS_KEY = marker('csp.convocatoria-requisito-ip.modalidad-contratos');
+const CONVOCATORIA_REQUISITOS_IP_NIVEL_ACADEMICO_KEY = marker('csp.convocatoria-requisito-ip.nivel-academico');
 
 @Component({
   selector: 'sgi-convocatoria-requisitos-ip',
@@ -20,6 +26,9 @@ export class ConvocatoriaRequisitosIPComponent extends FormFragmentComponent<ICo
   fxLayoutProperties: FxLayoutProperties;
   fxFlexPropertiesInline: FxFlexProperties;
   fxFlexPropertiesEntidad: FxFlexProperties;
+
+  msgParamModalidadContratoEntity = {};
+  msgParamNivelAcademicoEntity = {};
 
   constructor(
     protected actionService: ConvocatoriaActionService,
@@ -48,6 +57,20 @@ export class ConvocatoriaRequisitosIPComponent extends FormFragmentComponent<ICo
 
   ngOnInit() {
     super.ngOnInit();
+    this.setupI18N();
   }
+
+  private setupI18N(): void {
+    this.translate.get(
+      CONVOCATORIA_REQUISITOS_IP_MODALIDAD_CONTRATOS_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamModalidadContratoEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR });
+
+    this.translate.get(
+      CONVOCATORIA_REQUISITOS_IP_NIVEL_ACADEMICO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamNivelAcademicoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR });
+  }
+
 
 }

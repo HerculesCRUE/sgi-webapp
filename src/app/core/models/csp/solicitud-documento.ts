@@ -1,9 +1,8 @@
-import { ISolicitud } from './solicitud';
 import { ITipoDocumento } from './tipos-configuracion';
 
 export interface ISolicitudDocumento {
   id: number;
-  solicitud: ISolicitud;
+  solicitudId: number;
   comentario: string;
   documentoRef: string;
   nombre: string;

@@ -4,11 +4,11 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IComite } from '@core/models/eti/comite';
 import { IMemoria } from '@core/models/eti/memoria';
-import { IMemoriaPeticionEvaluacion } from '@core/models/eti/memoriaPeticionEvaluacion';
-import { TipoEstadoMemoria } from '@core/models/eti/tipo-estado-memoria';
-import { IPersona } from '@core/models/sgp/persona';
+import { IMemoriaPeticionEvaluacion } from '@core/models/eti/memoria-peticion-evaluacion';
+import { ESTADO_MEMORIA, TipoEstadoMemoria } from '@core/models/eti/tipo-estado-memoria';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ROUTE_NAMES } from '@core/route.names';
@@ -17,28 +17,28 @@ import { ComiteService } from '@core/services/eti/comite.service';
 import { MemoriaService } from '@core/services/eti/memoria.service';
 import { TipoEstadoMemoriaService } from '@core/services/eti/tipo-estado-memoria.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
+import { TipoColectivo } from '@shared/select-persona/select-persona.component';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
 import { map, startWith, switchMap } from 'rxjs/operators';
 import { MEMORIAS_ROUTE } from '../memoria-route-names';
 
-
-const MSG_BUTTON_SAVE = marker('footer.eti.peticionEvaluacion.crear');
-const MSG_ERROR = marker('eti.memoria.listado.error');
-const TEXT_USER_TITLE = marker('eti.peticionEvaluacion.listado.buscador.solicitante');
-const TEXT_USER_BUTTON = marker('eti.peticionEvaluacion.listado.buscador.buscar.solicitante');
-const MSG_SUCCESS_ENVIAR_SECRETARIA = marker('eti.memorias.formulario.memorias.listado.enviarSecretaria.correcto');
-const MSG_ERROR_ENVIAR_SECRETARIA = marker('eti.memorias.formulario.memorias.listado.enviarSecretaria.error');
-const MSG_CONFIRM_ENVIAR_SECRETARIA = marker('eti.memorias.formulario.memorias.listado.enviarSecretaria.confirmar');
-const MSG_CONFIRM_ELIMINAR = marker('eti.memorias.formulario.memorias.listado.eliminar.confirmar');
+const MSG_BUTTON_SAVE = marker('btn.add.entity');
+const MSG_ERROR = marker('error.load');
+const MSG_SUCCESS_ENVIAR_SECRETARIA = marker('msg.eti.memoria.enviar-secretaria.success');
+const MSG_ERROR_ENVIAR_SECRETARIA = marker('error.eti.memoria.enviar-secretaria');
+const MSG_CONFIRM_ENVIAR_SECRETARIA = marker('msg.eti.memoria.enviar-secretaria');
+const MSG_CONFIRM_ELIMINAR = marker('msg.delete.entity');
 const MSG_SUCCESS_ENVIAR_SECRETARIA_RETROSPECTIVA = marker(
-  'eti.memorias.formulario.memorias.listado.enviarSecretariaRetrospectiva.correcto');
-const MSG_SUCCESS_ELIMINAR = marker('eti.memorias.formulario.memorias.listado.eliminar.correcto');
-const MSG_ERROR_ENVIAR_ELIMINAR = marker('eti.memorias.formulario.memorias.listado.eliminar.error');
-const MSG_ERROR_ENVIAR_SECRETARIA_RETROSPECTIVA = marker('eti.memorias.formulario.memorias.listado.enviarSecretariaRetrospectiva.error');
-const MSG_CONFIRM_ENVIAR_SECRETARIA_RETROSPECTIVA = marker('eti.memorias.formulario.memorias.listado.enviarSecretariaRetrospectiva.confirmar');
-
+  'msg.eti.memoria.enviar-secretaria.retrospectiva.success');
+const MSG_SUCCESS_ELIMINAR = marker('msg.delete.entity.success');
+const MSG_ERROR_ELIMINAR = marker('error.delete.entity');
+const MSG_ERROR_ENVIAR_SECRETARIA_RETROSPECTIVA = marker('error.eti.memoria.enviar-secretaria.retrospectiva');
+const MSG_CONFIRM_ENVIAR_SECRETARIA_RETROSPECTIVA = marker('msg.eti.memoria.enviar-secretaria.retrospectiva');
+const MEMORIA_KEY = marker('eti.memoria');
+const PETICION_EVALUACION_KEY = marker('eti.peticion-evaluacion');
 
 @Component({
   selector: 'sgi-memoria-listado-inv',
@@ -55,7 +55,7 @@ export class MemoriaListadoInvComponent extends AbstractTablePaginationComponent
   displayedColumns: string[];
   totalElementos: number;
 
-  textoCrear = MSG_BUTTON_SAVE;
+  textoCrear: string;
 
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   @ViewChild(MatPaginator, { static: false }) paginator: MatPaginator;
@@ -68,13 +68,9 @@ export class MemoriaListadoInvComponent extends AbstractTablePaginationComponent
   estadoMemoriaListado: TipoEstadoMemoria[];
   filteredEstadosMemoria: Observable<TipoEstadoMemoria[]>;
 
-
-  textoUsuarioLabel = TEXT_USER_TITLE;
-  textoUsuarioInput = TEXT_USER_TITLE;
-  textoUsuarioButton = TEXT_USER_BUTTON;
-  personaRef: string;
-  datosSolicitante: string;
-
+  textoDelete: string;
+  textoDeleteSuccess: string;
+  textoDeleteError: string;
 
   constructor(
     private readonly logger: NGXLogger,
@@ -83,12 +79,12 @@ export class MemoriaListadoInvComponent extends AbstractTablePaginationComponent
     private readonly memoriaService: MemoriaService,
     protected readonly snackBarService: SnackBarService,
     protected readonly dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(snackBarService, MSG_ERROR);
 
     this.totalElementos = 0;
     this.suscripciones = [];
-
 
     this.fxFlexProperties = new FxFlexProperties();
     this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
@@ -105,24 +101,73 @@ export class MemoriaListadoInvComponent extends AbstractTablePaginationComponent
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
+
     this.formGroup = new FormGroup({
       comite: new FormControl('', []),
       titulo: new FormControl('', []),
       numReferencia: new FormControl('', []),
-      tipoEstadoMemoria: new FormControl('', []),
-      solicitante: new FormControl('', [])
+      tipoEstadoMemoria: new FormControl('', [])
     });
 
     this.loadComites();
     this.loadEstadosMemoria();
   }
 
+  private setupI18N(): void {
+    this.translate.get(
+      MEMORIA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_CONFIRM_ELIMINAR,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+
+    this.translate.get(
+      MEMORIA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS_ELIMINAR,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDeleteSuccess = value);
+
+    this.translate.get(
+      MEMORIA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR_ELIMINAR,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDeleteError = value);
+
+    this.translate.get(
+      PETICION_EVALUACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_BUTTON_SAVE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoCrear = value);
+  }
+
   protected createObservable(): Observable<SgiRestListResult<IMemoriaPeticionEvaluacion>> {
     const observable$ = this.memoriaService.findAllMemoriasEvaluacionByPersonaRef(this.getFindOptions());
     return observable$;
   }
-
-
 
   protected initColumns(): void {
     this.displayedColumns = ['numReferencia', 'comite', 'estadoActual', 'fechaEvaluacion', 'fechaLimite', 'acciones'];
@@ -133,8 +178,7 @@ export class MemoriaListadoInvComponent extends AbstractTablePaginationComponent
     return new RSQLSgiRestFilter('comite.id', SgiRestFilterOperator.EQUALS, controls.comite.value?.id?.toString())
       .and('peticionEvaluacion.titulo', SgiRestFilterOperator.LIKE_ICASE, controls.titulo.value)
       .and('numReferencia', SgiRestFilterOperator.LIKE_ICASE, controls.numReferencia.value)
-      .and('estadoActual.id', SgiRestFilterOperator.EQUALS, controls.tipoEstadoMemoria.value?.id?.toString())
-      .and('personaRef', SgiRestFilterOperator.EQUALS, this.personaRef);
+      .and('estadoActual.id', SgiRestFilterOperator.EQUALS, controls.tipoEstadoMemoria.value?.id?.toString());
   }
 
   protected loadTable(reset?: boolean) {
@@ -233,16 +277,6 @@ export class MemoriaListadoInvComponent extends AbstractTablePaginationComponent
       (estadoMemoria => estadoMemoria.nombre.toLowerCase().includes(filterValue));
   }
 
-  /**
-   * Setea el persona seleccionado a través del componente
-   * @param personaRef referencia del persona seleccionado
-   */
-  public setUsuario(solicitante: IPersona) {
-    this.formGroup.controls.solicitante.setValue(solicitante?.personaRef);
-    this.datosSolicitante = solicitante?.nombre ? solicitante.nombre + ' ' + solicitante.primerApellido + ' ' + solicitante.segundoApellido : '';
-    this.personaRef = solicitante?.personaRef;
-  }
-
   hasPermisoEnviarSecretaria(estadoMemoriaId: number, responsable: boolean): boolean {
     // Si el estado es 'Completada', 'Favorable pendiente de modificaciones mínima',
     // 'Pendiente de correcciones', 'No procede evaluar', 'Completada seguimiento anual',
@@ -255,7 +289,6 @@ export class MemoriaListadoInvComponent extends AbstractTablePaginationComponent
       return false;
     }
   }
-
 
   hasPermisoEliminar(estadoMemoriaId: number): boolean {
     // Si el estado es 'En elaboración' o 'Completada'.
@@ -282,14 +315,13 @@ export class MemoriaListadoInvComponent extends AbstractTablePaginationComponent
     this.suscripciones.push(dialogSubscription);
   }
 
-
   /**
    * Elimina la memoria.
    *
    * @param idMemoria Identificador de la memoria
    */
   delete(idMemoria: number): void {
-    this.dialogService.showConfirmation(MSG_CONFIRM_ELIMINAR)
+    this.dialogService.showConfirmation(this.textoDelete)
       .pipe(switchMap((aceptado) => {
         if (aceptado) {
           return this.memoriaService.deleteById(idMemoria);
@@ -298,11 +330,11 @@ export class MemoriaListadoInvComponent extends AbstractTablePaginationComponent
       })).subscribe(
         () => {
           this.loadTable();
-          this.snackBarService.showSuccess(MSG_SUCCESS_ELIMINAR);
+          this.snackBarService.showSuccess(this.textoDeleteSuccess);
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_ENVIAR_ELIMINAR);
+          this.snackBarService.showError(this.textoDeleteError);
         }
       );
   }
@@ -310,12 +342,9 @@ export class MemoriaListadoInvComponent extends AbstractTablePaginationComponent
   hasPermisoEnviarSecretariaRetrospectiva(memoria: IMemoria, responsable: boolean): boolean {
     // Si el estado es 'Completada', es de tipo CEEA y requiere retrospectiva se muestra el botón de enviar.
     // Si la retrospectiva ya está 'En secretaría' no se muestra el botón.
-    if (memoria.estadoActual.id === 2 && memoria.comite.comite === 'CEEA' && memoria.requiereRetrospectiva
-      && memoria.retrospectiva.estadoRetrospectiva.id !== 3 && !responsable) {
-      return true;
-    } else {
-      return false;
-    }
+    // El estado de la memoria debe de ser mayor a FIN_EVALUACION
+    return (memoria.estadoActual.id > ESTADO_MEMORIA.FIN_EVALUACION && memoria.comite.comite === 'CEEA' && memoria.requiereRetrospectiva
+      && memoria.retrospectiva.estadoRetrospectiva.id !== 3 && !responsable);
   }
 
   enviarSecretariaRetrospectiva(memoria: IMemoriaPeticionEvaluacion) {
@@ -336,13 +365,4 @@ export class MemoriaListadoInvComponent extends AbstractTablePaginationComponent
         }
       );
   }
-
-  /**
-   * Clean filters an reload the table
-   */
-  onClearFilters(): void {
-    super.onClearFilters();
-    this.setUsuario({} as IPersona);
-  }
-
 }

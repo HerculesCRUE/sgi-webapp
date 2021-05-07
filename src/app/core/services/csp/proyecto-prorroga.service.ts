@@ -1,24 +1,28 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { PROYECTO_PRORROGA_DOCUMENTO_CONVERTER } from '@core/converters/csp/proyecto-prorroga-documento.converter';
+import { PROYECTO_PRORROGA_CONVERTER } from '@core/converters/csp/proyecto-prorroga.converter';
+import { IProyectoProrrogaBackend } from '@core/models/csp/backend/proyecto-prorroga-backend';
+import { IProyectoProrrogaDocumentoBackend } from '@core/models/csp/backend/proyecto-prorroga-documento-backend';
 import { IProyectoProrroga } from '@core/models/csp/proyecto-prorroga';
 import { IProyectoProrrogaDocumento } from '@core/models/csp/proyecto-prorroga-documento';
 import { environment } from '@env';
-import { SgiRestFindOptions, SgiRestListResult, SgiRestService } from '@sgi/framework/http';
+import { SgiMutableRestService, SgiRestFindOptions, SgiRestListResult } from '@sgi/framework/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ProyectoProrrogaService extends SgiRestService<number, IProyectoProrroga>  {
+export class ProyectoProrrogaService extends SgiMutableRestService<number, IProyectoProrrogaBackend, IProyectoProrroga>  {
   private static readonly MAPPING = '/proyectoprorrogas';
-
 
   constructor(protected http: HttpClient) {
     super(
       ProyectoProrrogaService.name,
       `${environment.serviceServers.csp}${ProyectoProrrogaService.MAPPING}`,
-      http
+      http,
+      PROYECTO_PRORROGA_CONVERTER
     );
   }
 
@@ -41,8 +45,11 @@ export class ProyectoProrrogaService extends SgiRestService<number, IProyectoPro
    * @return la lista de ProyectoPeridoSeguimientoDocumento
    */
   findDocumentos(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IProyectoProrrogaDocumento>> {
-    return this.find<IProyectoProrrogaDocumento, IProyectoProrrogaDocumento>(
-      `${this.endpointUrl}/${id}/prorrogadocumentos`, options);
+    return this.find<IProyectoProrrogaDocumentoBackend, IProyectoProrrogaDocumento>(
+      `${this.endpointUrl}/${id}/prorrogadocumentos`,
+      options,
+      PROYECTO_PRORROGA_DOCUMENTO_CONVERTER
+    );
   }
 
   /**

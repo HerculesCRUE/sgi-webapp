@@ -2,10 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { Estado, ESTADO_MAP } from '@core/models/csp/estado-proyecto';
 import { IFuenteFinanciacion } from '@core/models/csp/fuente-financiacion';
 import { IPrograma } from '@core/models/csp/programa';
 import { IProyecto } from '@core/models/csp/proyecto';
+import { IRolProyecto } from '@core/models/csp/rol-proyecto';
 import { ITipoAmbitoGeografico } from '@core/models/csp/tipo-ambito-geografico';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
@@ -14,27 +16,29 @@ import { ROUTE_NAMES } from '@core/route.names';
 import { FuenteFinanciacionService } from '@core/services/csp/fuente-financiacion.service';
 import { ProgramaService } from '@core/services/csp/programa.service';
 import { ProyectoService } from '@core/services/csp/proyecto.service';
+import { RolProyectoService } from '@core/services/csp/rol-proyecto.service';
 import { TipoAmbitoGeograficoService } from '@core/services/csp/tipo-ambito-geografico.service';
 import { UnidadGestionService } from '@core/services/csp/unidad-gestion.service';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { DateUtils } from '@core/utils/date-utils';
+import { LuxonUtils } from '@core/utils/luxon-utils';
 import { IsEntityValidator } from '@core/validators/is-entity-validador';
+import { TranslateService } from '@ngx-translate/core';
 import { SgiAuthService } from '@sgi/framework/auth';
-import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
+import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestFindOptions, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of, Subscription } from 'rxjs';
 import { map, startWith, switchMap } from 'rxjs/operators';
 
-const MSG_ERROR = marker('csp.proyecto.listado.error');
-const MSG_ERROR_INIT = marker('csp.proyecto.listado.error.cargar');
-const MSG_BUTTON_NEW = marker('footer.csp.proyecto.crear');
-const MSG_DEACTIVATE = marker('csp.proyecto.desactivar');
-const MSG_SUCCESS_DEACTIVATE = marker('csp.proyecto.desactivar.correcto');
-const MSG_ERROR_DEACTIVATE = marker('csp.proyecto.desactivar.error');
-const MSG_REACTIVE = marker('csp.proyecto.reactivar');
-const MSG_SUCCESS_REACTIVE = marker('csp.proyecto.reactivar.correcto');
-const MSG_ERROR_REACTIVE = marker('csp.proyecto.reactivar.error');
+const MSG_ERROR = marker('error.load');
+const MSG_BUTTON_NEW = marker('btn.add.entity');
+const MSG_DEACTIVATE = marker('msg.deactivate.entity');
+const MSG_SUCCESS_DEACTIVATE = marker('msg.csp.deactivate.success');
+const MSG_ERROR_DEACTIVATE = marker('error.csp.deactivate.entity');
+const MSG_REACTIVE = marker('msg.csp.reactivate');
+const MSG_SUCCESS_REACTIVE = marker('msg.reactivate.entity.success');
+const MSG_ERROR_REACTIVE = marker('error.reactivate.entity');
+const PROYECTO_KEY = marker('csp.proyecto');
 
 @Component({
   selector: 'sgi-proyecto-listado',
@@ -44,10 +48,19 @@ const MSG_ERROR_REACTIVE = marker('csp.proyecto.reactivar.error');
 export class ProyectoListadoComponent extends AbstractTablePaginationComponent<IProyecto> implements OnInit {
   ROUTE_NAMES = ROUTE_NAMES;
   textoCrear = MSG_BUTTON_NEW;
+  textoDesactivar: string;
+  textoReactivar: string;
+  textoErrorDesactivar: string;
+  textoSuccessDesactivar: string;
+  textoSuccessReactivar: string;
+  textoErrorReactivar: string;
 
   fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
   proyecto$: Observable<IProyecto[]>;
+
+  colectivosResponsableProyecto: string[];
+  colectivosMiembroEquipo: string[];
 
   get Estado() {
     return Estado;
@@ -82,7 +95,9 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
     private unidadGestionService: UnidadGestionService,
     private tipoAmbitoGeograficoService: TipoAmbitoGeograficoService,
     private programaService: ProgramaService,
-    private fuenteFinanciacionService: FuenteFinanciacionService
+    private fuenteFinanciacionService: FuenteFinanciacionService,
+    private rolProyectoService: RolProyectoService,
+    private readonly translate: TranslateService
   ) {
     super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
@@ -99,19 +114,20 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.formGroup = new FormGroup({
       titulo: new FormControl(''),
       acronimo: new FormControl(''),
       estado: new FormControl(''),
       activo: new FormControl('true'),
       unidadGestion: new FormControl('', [IsEntityValidator.isValid()]),
-      fechaInicioDesde: new FormControl(''),
-      fechaInicioHasta: new FormControl(''),
-      fechaFinDesde: new FormControl(''),
-      fechaFinHasta: new FormControl(''),
+      fechaInicioDesde: new FormControl(),
+      fechaInicioHasta: new FormControl(),
+      fechaFinDesde: new FormControl(),
+      fechaFinHasta: new FormControl(),
       ambitoGeografico: new FormControl(''),
-      responsableProyecto: new FormControl(''),
-      miembroEquipo: new FormControl(''),
+      responsableProyecto: new FormControl({ value: '', disabled: true }),
+      miembroEquipo: new FormControl({ value: '', disabled: true }),
       socioColaborador: new FormControl(''),
       convocatoria: new FormControl(''),
       entidadConvocante: new FormControl(''),
@@ -123,12 +139,105 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
     this.loadAmbitoGeografico();
     this.loadPlanInvestigacion();
     this.loadFuenteFinanciacion();
+    this.loadColectivos();
     this.filter = this.createFilter();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      PROYECTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_BUTTON_NEW,
+          { entity: value }
+        );
+      })
+    ).subscribe((value) => this.textoCrear = value);
+
+    this.translate.get(
+      PROYECTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DEACTIVATE,
+          { entity: value }
+        );
+      })
+    ).subscribe((value) => this.textoDesactivar = value);
+
+    this.translate.get(
+      PROYECTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoErrorDesactivar = value);
+
+    this.translate.get(
+      PROYECTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoSuccessDesactivar = value);
+
+
+    this.translate.get(
+      PROYECTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoReactivar = value);
+
+    this.translate.get(
+      PROYECTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoSuccessReactivar = value);
+
+
+    this.translate.get(
+      PROYECTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoErrorReactivar = value);
   }
 
   onClearFilters() {
     super.onClearFilters();
     this.formGroup.controls.activo.setValue('true');
+    this.formGroup.controls.fechaInicioDesde.setValue(null);
+    this.formGroup.controls.fechaInicioHasta.setValue(null);
+    this.formGroup.controls.fechaFinDesde.setValue(null);
+    this.formGroup.controls.fechaFinHasta.setValue(null);
     this.onSearch();
   }
 
@@ -138,7 +247,7 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
   }
 
   protected initColumns(): void {
-    this.columnas = ['acronimo', 'titulo', 'fechaInicio', 'fechaFin', 'estado', 'activo', 'acciones'];
+    this.columnas = ['titulo', 'acronimo', 'fechaInicio', 'fechaFin', 'estado', 'activo', 'acciones'];
   }
 
   protected loadTable(reset?: boolean): void {
@@ -156,18 +265,18 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
     }
     filter
       .and('unidadGestionRef', SgiRestFilterOperator.EQUALS, controls.unidadGestion.value?.acronimo)
-      .and('fechaInicio', SgiRestFilterOperator.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODate(controls.fechaInicioDesde.value))
-      .and('fechaInicio', SgiRestFilterOperator.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODate(controls.fechaInicioHasta.value))
-      .and('fechaFin', SgiRestFilterOperator.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODate(controls.fechaFinDesde.value))
-      .and('fechaFin', SgiRestFilterOperator.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODate(controls.fechaFinHasta.value))
+      .and('fechaInicio', SgiRestFilterOperator.GREATHER_OR_EQUAL, LuxonUtils.toBackend(controls.fechaInicioDesde.value))
+      .and('fechaInicio', SgiRestFilterOperator.LOWER_OR_EQUAL, LuxonUtils.toBackend(controls.fechaInicioHasta.value))
+      .and('fechaFin', SgiRestFilterOperator.GREATHER_OR_EQUAL, LuxonUtils.toBackend(controls.fechaFinDesde.value))
+      .and('fechaFin', SgiRestFilterOperator.LOWER_OR_EQUAL, LuxonUtils.toBackend(controls.fechaFinHasta.value))
       .and('ambitoGeografico.id', SgiRestFilterOperator.EQUALS, controls.ambitoGeografico.value?.id?.toString())
-      .and('responsableProyecto', SgiRestFilterOperator.EQUALS, controls.responsableProyecto.value?.personaRef)
-      .and('equipos.personaRef', SgiRestFilterOperator.EQUALS, controls.miembroEquipo.value?.personaRef)
-      .and('socios.empresaRef', SgiRestFilterOperator.EQUALS, controls.socioColaborador.value?.personaRef)
+      .and('responsableProyecto', SgiRestFilterOperator.EQUALS, controls.responsableProyecto.value?.id)
+      .and('equipos.personaRef', SgiRestFilterOperator.EQUALS, controls.miembroEquipo.value?.id)
+      .and('socios.empresaRef', SgiRestFilterOperator.EQUALS, controls.socioColaborador.value?.id)
       .and('convocatoria.id', SgiRestFilterOperator.EQUALS, controls.convocatoria.value?.id?.toString())
-      .and('entidadesConvocantes.entidadRef', SgiRestFilterOperator.EQUALS, controls.entidadConvocante.value?.personaRef)
+      .and('entidadesConvocantes.entidadRef', SgiRestFilterOperator.EQUALS, controls.entidadConvocante.value?.id)
       .and('planInvestigacion', SgiRestFilterOperator.EQUALS, controls.planInvestigacion.value?.id?.toString())
-      .and('entidadesFinanciadoras.entidadRef', SgiRestFilterOperator.EQUALS, controls.entidadFinanciadora.value?.personaRef)
+      .and('entidadesFinanciadoras.entidadRef', SgiRestFilterOperator.EQUALS, controls.entidadFinanciadora.value?.id)
       .and('entidadesFinanciadoras.fuenteFinanciacion.id', SgiRestFilterOperator.EQUALS, controls.fuenteFinanciacion.value?.id?.toString());
 
     return filter;
@@ -178,7 +287,7 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
    * @param proyecto proyecto
    */
   deactivateProyecto(proyecto: IProyecto): void {
-    const subcription = this.dialogService.showConfirmation(MSG_DEACTIVATE).pipe(
+    const subcription = this.dialogService.showConfirmation(this.textoDesactivar).pipe(
       switchMap((accept) => {
         if (accept) {
           return this.proyectoService.desactivar(proyecto.id);
@@ -187,12 +296,12 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
         }
       })).subscribe(
         () => {
-          this.snackBarService.showSuccess(MSG_SUCCESS_DEACTIVATE);
+          this.snackBarService.showSuccess(this.textoSuccessDesactivar);
           this.loadTable();
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_DEACTIVATE);
+          this.snackBarService.showError(this.textoErrorDesactivar);
         }
       );
     this.suscripciones.push(subcription);
@@ -203,7 +312,7 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
    * @param proyecto proyecto
    */
   activateProyecto(proyecto: IProyecto): void {
-    const suscription = this.dialogService.showConfirmation(MSG_REACTIVE).pipe(
+    const suscription = this.dialogService.showConfirmation(this.textoReactivar).pipe(
       switchMap((accept) => {
         if (accept) {
           proyecto.activo = true;
@@ -213,96 +322,96 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
         }
       })).subscribe(
         () => {
-          this.snackBarService.showSuccess(MSG_SUCCESS_REACTIVE);
+          this.snackBarService.showSuccess(this.textoSuccessDesactivar);
           this.loadTable();
         },
         (error) => {
           this.logger.error(error);
           proyecto.activo = false;
-          this.snackBarService.showError(MSG_ERROR_REACTIVE);
+          this.snackBarService.showError(this.textoErrorDesactivar);
         }
       );
     this.suscripciones.push(suscription);
   }
 
   /**
-  * Mostrar busqueda avanzada
-  */
+   * Mostrar busqueda avanzada
+   */
   toggleBusquedaAvanzada(): void {
     this.busquedaAvanzada = !this.busquedaAvanzada;
   }
 
   /**
-  * Devuelve el nombre de una unidad de gestión.
-  * @param unidadGestion unidad de gestión
-  * @returns nombre de una unidad de gestión
-  */
+   * Devuelve el nombre de una unidad de gestión.
+   * @param unidadGestion unidad de gestión
+   * @returns nombre de una unidad de gestión
+   */
   getUnidadGestion(unidadGestion?: IUnidadGestion): string | undefined {
     return typeof unidadGestion === 'string' ? unidadGestion : unidadGestion?.nombre;
   }
 
   /**
-* Devuelve el nombre de una fuente de financiacion.
-* @param fuente de financiacion fuente de financiacion.
-* @returns nombre de una fuente de financiacion
-*/
+   * Devuelve el nombre de una fuente de financiacion.
+   * @param fuente de financiacion fuente de financiacion.
+   * @returns nombre de una fuente de financiacion
+   */
   getFuenteFinanciacion(fuente?: IFuenteFinanciacion): string | undefined {
     return typeof fuente === 'string' ? fuente : fuente?.nombre;
   }
 
   /**
-  * Devuelve el nombre de un tipo de ámbito geográfico.
-  * @param ambito de un ámbito geográfico
-  * @returns nombre de un ámbito geográfico
-  */
+   * Devuelve el nombre de un tipo de ámbito geográfico.
+   * @param ambito de un ámbito geográfico
+   * @returns nombre de un ámbito geográfico
+   */
   getAmbitoGeografico(ambito?: ITipoAmbitoGeografico): string | undefined {
     return typeof ambito === 'string' ? ambito : ambito?.nombre;
   }
 
   /**
-  * Devuelve el nombre de un plan de investigación.
-  * @param plan de un plan de investigación.
-  * @returns nombre de de un plan de investigación
-  */
+   * Devuelve el nombre de un plan de investigación.
+   * @param plan de un plan de investigación.
+   * @returns nombre de de un plan de investigación
+   */
   getPlanInvestigacion(plan?: IFuenteFinanciacion): string | undefined {
     return typeof plan === 'string' ? plan : plan?.nombre;
   }
 
   /**
-  * Filtra la lista devuelta por el servicio de Unidades de Gestión
-  *
-  * @param value del input para autocompletar
-  */
+   * Filtra la lista devuelta por el servicio de Unidades de Gestión
+   *
+   * @param value del input para autocompletar
+   */
   private filtroUnidadGestion(value: string): IUnidadGestion[] {
     const filterValue = value.toString().toLowerCase();
     return this.unidadGestionFiltered.filter(unidadGestion => unidadGestion.nombre.toLowerCase().includes(filterValue));
   }
 
   /**
-  * Filtra la lista devuelta por el servicio de Tipos de ámbitos geográficos
-  *
-  * @param value del input para autocompletar
-  */
+   * Filtra la lista devuelta por el servicio de Tipos de ámbitos geográficos
+   *
+   * @param value del input para autocompletar
+   */
   private filtroAmbitoGeografico(value: string): ITipoAmbitoGeografico[] {
     const filterValue = value.toString().toLowerCase();
     return this.ambitoGeograficoFiltered.filter(ambitoGeografico => ambitoGeografico.nombre.toLowerCase().includes(filterValue));
   }
 
   /**
-  * Filtra la lista devuelta por el servicio de Planes e Investigación
-  *
-  * @param value del input para autocompletar
-  */
+   * Filtra la lista devuelta por el servicio de Planes e Investigación
+   *
+   * @param value del input para autocompletar
+   */
   private filtroPlanInvestigacion(value: string): IPrograma[] {
     const filterValue = value.toString().toLowerCase();
     return this.planInvestigacionFiltered.filter(fuente => fuente.nombre.toLowerCase().includes(filterValue));
   }
 
   /**
-  * Filtra la lista devuelta por el servicio de Fuentes de Financiación
-  *
-  * @param value del input para autocompletar
-  */
+   * Filtra la lista devuelta por el servicio de Fuentes de Financiación
+   *
+   * @param value del input para autocompletar
+   */
   private filtroFuenteFinanciacion(value: string): IFuenteFinanciacion[] {
     const filterValue = value.toString().toLowerCase();
     return this.fuenteFinanciacionFiltered.filter(fuente => fuente.nombre.toLowerCase().includes(filterValue));
@@ -325,7 +434,7 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_INIT);
+          this.snackBarService.showError(MSG_ERROR);
         }
       )
     );
@@ -347,15 +456,15 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_INIT);
+          this.snackBarService.showError(MSG_ERROR);
         }
       )
     );
   }
 
   /**
-  * Cargar planes de investigación
-  */
+   * Cargar planes de investigación
+   */
   private loadPlanInvestigacion() {
     this.suscripciones.push(
       this.programaService.findAllPlan().subscribe(
@@ -369,15 +478,15 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_INIT);
+          this.snackBarService.showError(MSG_ERROR);
         }
       )
     );
   }
 
   /**
-  * Cargar ámbitos geográficos
-  */
+   * Cargar ámbitos geográficos
+   */
   private loadAmbitoGeografico() {
     this.suscripciones.push(
       this.tipoAmbitoGeograficoService.findAll().subscribe(
@@ -391,11 +500,60 @@ export class ProyectoListadoComponent extends AbstractTablePaginationComponent<I
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_INIT);
+          this.snackBarService.showError(MSG_ERROR);
         }
       )
     );
   }
 
-}
+  /**
+   * Carga las listas de colectivos para hacer la busqueda de responsables de proyecto y miembros de equipo
+   * y activa ambos campos en el buscador.
+   */
+  private loadColectivos() {
+    const queryOptions: SgiRestFindOptions = {};
+    queryOptions.filter = new RSQLSgiRestFilter('rolPrincipal', SgiRestFilterOperator.EQUALS, 'false')
+      .and('responsableEconomico', SgiRestFilterOperator.EQUALS, 'false');
+    this.subscriptions.push(this.rolProyectoService.findAll(queryOptions).subscribe(
+      (response) => {
+        response.items.forEach((rolProyecto: IRolProyecto) => {
+          this.rolProyectoService.findAllColectivos(rolProyecto.id).subscribe(
+            (res) => {
+              this.colectivosMiembroEquipo = res.items;
+              this.formGroup.controls.miembroEquipo.enable();
+            }
+          );
+        });
+      },
+      (error) => {
+        this.logger.error(error);
+        this.snackBarService.showError(MSG_ERROR);
+      }
+    ));
 
+    const queryOptionsResponsable: SgiRestFindOptions = {};
+    queryOptionsResponsable.filter = new RSQLSgiRestFilter('rolPrincipal', SgiRestFilterOperator.EQUALS, 'true')
+      .or('responsableEconomico', SgiRestFilterOperator.EQUALS, 'true');
+    this.rolProyectoService.findAll(queryOptionsResponsable).subscribe(
+      (response) => {
+        response.items.forEach((rolProyecto: IRolProyecto) => {
+          this.rolProyectoService.findAllColectivos(rolProyecto.id).subscribe(
+            (res) => {
+              this.colectivosResponsableProyecto = res.items;
+              this.formGroup.controls.responsableProyecto.enable();
+            }
+          );
+        });
+      },
+      (error) => {
+        this.logger.error(error);
+        this.snackBarService.showError(MSG_ERROR);
+      }
+    );
+  }
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
+
+}

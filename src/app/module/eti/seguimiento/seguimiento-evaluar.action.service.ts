@@ -2,9 +2,8 @@ import { Injectable } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { IEvaluacion } from '@core/models/eti/evaluacion';
-import { ActionService } from '@core/services/action-service';
 import { EvaluacionService } from '@core/services/eti/evaluacion.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { NGXLogger } from 'ngx-logger';
 import { SeguimientoComentarioFragment } from '../seguimiento-formulario/seguimiento-comentarios/seguimiento-comentarios.fragment';
 import { SeguimientoDatosMemoriaFragment } from '../seguimiento-formulario/seguimiento-datos-memoria/seguimiento-datos-memoria.fragment';
@@ -20,7 +19,7 @@ export class SeguimientoEvaluarActionService extends SeguimientoFormularioAction
     fb: FormBuilder,
     route: ActivatedRoute,
     service: EvaluacionService,
-    personaFisicaService: PersonaFisicaService
+    personaService: PersonaService
   ) {
     super();
     this.evaluacion = {} as IEvaluacion;
@@ -29,7 +28,7 @@ export class SeguimientoEvaluarActionService extends SeguimientoFormularioAction
       this.enableEdit();
     }
     this.comentarios = new SeguimientoComentarioFragment(this.evaluacion?.id, Gestion.EVALUADOR, service);
-    this.datosMemoria = new SeguimientoDatosMemoriaFragment(this.logger, fb, this.evaluacion?.id, service, personaFisicaService);
+    this.datosMemoria = new SeguimientoDatosMemoriaFragment(this.logger, fb, this.evaluacion?.id, service, personaService);
     this.documentacion = new SeguimientoDocumentacionFragment(this.evaluacion?.id);
 
     this.addFragment(this.FRAGMENT.COMENTARIOS, this.comentarios);

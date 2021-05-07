@@ -1,25 +1,16 @@
-import { FormFragment } from '@core/services/action-service';
-import { FormGroup, FormControl } from '@angular/forms';
-import { Observable, of } from 'rxjs';
-import { NGXLogger } from 'ngx-logger';
-import { tap } from 'rxjs/operators';
+import { FormControl, FormGroup } from '@angular/forms';
 import { IEntidadFinanciadora } from '@core/models/csp/entidad-financiadora';
+import { FormFragment } from '@core/services/action-service';
+import { Observable, of } from 'rxjs';
 
 export class SolicitudProyectoPresupuestoDatosGeneralesFragment extends FormFragment<IEntidadFinanciadora> {
-  entidadFinanciadora: IEntidadFinanciadora;
-
-  isEntidadFinanciadoraConvocatoria: boolean;
 
   constructor(
-    private logger: NGXLogger,
-    key: number,
-    entidadFinanciadora: IEntidadFinanciadora,
-    isEntidadFinanciadoraConvocatoria: boolean
+    solicitudId: number,
+    private entidadFinanciadora: IEntidadFinanciadora,
+    public ajena: boolean,
   ) {
-    super(key);
-    this.entidadFinanciadora = entidadFinanciadora;
-    this.isEntidadFinanciadoraConvocatoria = isEntidadFinanciadoraConvocatoria;
-
+    super(solicitudId);
   }
 
   protected buildFormGroup(): FormGroup {
@@ -30,7 +21,7 @@ export class SolicitudProyectoPresupuestoDatosGeneralesFragment extends FormFrag
       }
     );
 
-    if (this.isEntidadFinanciadoraConvocatoria) {
+    if (!this.ajena) {
       form.addControl('fuenteFinanciacion', new FormControl({ value: '', disabled: true }));
       form.addControl('ambito', new FormControl({ value: '', disabled: true }));
       form.addControl('tipoFinanciacion', new FormControl({ value: '', disabled: true }));
@@ -41,13 +32,14 @@ export class SolicitudProyectoPresupuestoDatosGeneralesFragment extends FormFrag
   }
 
   protected buildPatch(entidadFinanciadora: IEntidadFinanciadora): { [key: string]: any; } {
+    this.entidadFinanciadora = entidadFinanciadora;
     const result = {
-      nombre: entidadFinanciadora.empresa.razonSocial,
-      cif: entidadFinanciadora.empresa.numeroDocumento,
-      fuenteFinanciacion: entidadFinanciadora.fuenteFinanciacion?.nombre,
-      ambito: entidadFinanciadora.fuenteFinanciacion?.tipoAmbitoGeografico?.nombre,
-      tipoFinanciacion: entidadFinanciadora.tipoFinanciacion?.nombre,
-      porcentajeFinanciacion: entidadFinanciadora.porcentajeFinanciacion
+      nombre: entidadFinanciadora?.empresa?.nombre,
+      cif: entidadFinanciadora?.empresa?.numeroIdentificacion,
+      fuenteFinanciacion: entidadFinanciadora?.fuenteFinanciacion?.nombre,
+      ambito: entidadFinanciadora?.fuenteFinanciacion?.tipoAmbitoGeografico?.nombre,
+      tipoFinanciacion: entidadFinanciadora?.tipoFinanciacion?.nombre,
+      porcentajeFinanciacion: entidadFinanciadora?.porcentajeFinanciacion
     };
 
     return result;
@@ -62,8 +54,7 @@ export class SolicitudProyectoPresupuestoDatosGeneralesFragment extends FormFrag
   }
 
   saveOrUpdate(): Observable<number> {
-    return of(this.entidadFinanciadora.id);
+    return of(this.getKey() as number);
   }
-
 
 }

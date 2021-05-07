@@ -1,4 +1,4 @@
 export const CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES = {
-  CONCEPTO_GASTO: 'concepto-gasto',
+  DATOS_GENERALES: 'datos-generales',
   CODIGOS_ECONOMICOS: 'codigos-economicos'
 };

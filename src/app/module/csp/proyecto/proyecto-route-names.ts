@@ -5,7 +5,7 @@ export const PROYECTO_ROUTE_NAMES = {
   SOCIOS: 'socios',
   HITOS: 'hitos',
   PAQUETE_TRABAJO: 'paquete-trabajo',
-  PLAZOS: 'plazos',
+  FASES: 'fases',
   CONTEXTO_PROYECTO: 'contexto-proyecto',
   SEGUIMIENTO_CIENTIFICO: 'seguimiento-cientificos',
   ENTIDAD_GESTORA: 'entidad-gestora',

@@ -5,14 +5,14 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { IConvocatoriaEntidadConvocante } from '@core/models/csp/convocatoria-entidad-convocante';
-import { IEmpresaEconomica, TipoEmpresaEconomica } from '@core/models/sgp/empresa-economica';
+import { IEmpresa } from '@core/models/sgemp/empresa';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
 import { SharedModule } from '@shared/shared.module';
 import { LoggerTestingModule } from 'ngx-logger/testing';
-
+import { CspSharedModule } from '../../../shared/csp-shared.module';
 import { ConvocatoriaEntidadConvocanteModalComponent, ConvocatoriaEntidadConvocanteModalData } from './convocatoria-entidad-convocante-modal.component';
 
 describe('ConvocatoriaEntidadConvocanteModalComponent', () => {
@@ -20,26 +20,15 @@ describe('ConvocatoriaEntidadConvocanteModalComponent', () => {
   let fixture: ComponentFixture<ConvocatoriaEntidadConvocanteModalComponent>;
 
   const data: IConvocatoriaEntidadConvocante = {
-    convocatoria: undefined,
+    convocatoriaId: undefined,
     entidad: undefined,
     id: 1,
     programa: undefined
   };
 
-  const empresaEconomica: IEmpresaEconomica = {
-    direccion: '',
-    numeroDocumento: '',
-    personaRef: '',
-    personaRefPadre: '',
-    razonSocial: '',
-    tipo: TipoEmpresaEconomica.ENTIDAD,
-    tipoDocumento: '',
-    tipoEmpresa: ''
-  };
-
   const modalData: ConvocatoriaEntidadConvocanteModalData = {
     entidadConvocanteData: {
-      empresaEconomica,
+      empresa: {} as IEmpresa,
       entidadConvocante: new StatusWrapper<IConvocatoriaEntidadConvocante>(data),
       plan: undefined,
       programa: undefined,
@@ -63,11 +52,12 @@ describe('ConvocatoriaEntidadConvocanteModalComponent', () => {
         RouterTestingModule,
         FormsModule,
         ReactiveFormsModule,
-        SharedModule
+        SharedModule,
+        CspSharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },
-        { provide: MatDialogRef, useValue: modalData },
+        { provide: MatDialogRef, useValue: {} },
         { provide: MAT_DIALOG_DATA, useValue: modalData },
       ]
     })

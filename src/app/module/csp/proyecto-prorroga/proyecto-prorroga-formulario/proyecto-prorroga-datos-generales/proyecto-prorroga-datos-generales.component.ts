@@ -1,13 +1,17 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoProrroga, TIPO_MAP } from '@core/models/csp/proyecto-prorroga';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { FormGroupUtil } from '@core/utils/form-group-util';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { ProyectoProrrogaActionService } from '../../proyecto-prorroga.action.service';
 import { ProyectoProrrogaDatosGeneralesFragment } from './proyecto-prorroga-datos-generales.fragment';
 
+const PROYECTO_PRORROGA_OBSERVACIONES = marker('csp.proyecto-prorroga.observaciones');
 @Component({
   selector: 'sgi-solicitud-proyecto-prorroga-datos-generales',
   templateUrl: './proyecto-prorroga-datos-generales.component.html',
@@ -22,11 +26,15 @@ export class ProyectoProrrogaDatosGeneralesComponent extends FormFragmentCompone
   private subscriptions: Subscription[] = [];
   periodoSeguimientosSelectedProyecto: IProyectoProrroga[] = [];
   FormGroupUtil = FormGroupUtil;
+  msgParamOvservaciones = {};
 
-
+  get TIPO_MAP() {
+    return TIPO_MAP;
+  }
 
   constructor(
-    protected actionService: ProyectoProrrogaActionService
+    protected actionService: ProyectoProrrogaActionService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.DATOS_GENERALES, actionService);
     this.formPart = this.fragment as ProyectoProrrogaDatosGeneralesFragment;
@@ -50,19 +58,19 @@ export class ProyectoProrrogaDatosGeneralesComponent extends FormFragmentCompone
 
   ngOnInit(): void {
     super.ngOnInit();
-    this.loadProrrogasSelectedProyecto();
+    this.setupI18N();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      PROYECTO_PRORROGA_OBSERVACIONES,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamOvservaciones = { entity: value, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.PLURAL });
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
-  private loadProrrogasSelectedProyecto(): void {
-    this.periodoSeguimientosSelectedProyecto = this.formPart.selectedProyectoProrrogas;
-  }
-
-  get TIPO_MAP() {
-    return TIPO_MAP;
-  }
 
 }

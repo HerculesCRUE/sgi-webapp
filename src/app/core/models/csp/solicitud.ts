@@ -1,45 +1,32 @@
 
-import { IConvocatoria } from './convocatoria';
-import { IEstadoSolicitud } from './estado-solicitud';
-import { IPersona } from '../sgp/persona';
 import { FormularioSolicitud } from '@core/enums/formulario-solicitud';
+import { IPersona } from '../sgp/persona';
 import { IUnidadGestion } from '../usr/unidad-gestion';
+import { IEstadoSolicitud } from './estado-solicitud';
 
 export interface ISolicitud {
   /** Id */
   id: number;
-
   /** Activo */
   activo: boolean;
-
   /** Codigo externo */
   codigoExterno: string;
-
   /** Codigo registro interno */
   codigoRegistroInterno: string;
-
   /** Estado solicitud */
   estado: IEstadoSolicitud;
-
-  /** Convocatoria */
-  convocatoria: IConvocatoria;
-
+  /** Id de Convocatoria */
+  convocatoriaId: number;
   /** Convocatoria externa */
   convocatoriaExterna: string;
-
   /** Creador */
   creador: IPersona;
-
   /** Solicitante */
   solicitante: IPersona;
-
   /** Tipo formulario solicitud */
   formularioSolicitud: FormularioSolicitud;
-
   /** Unidad gestion */
   unidadGestion: IUnidadGestion;
-
   /** Observaciones */
   observaciones: string;
-
 }

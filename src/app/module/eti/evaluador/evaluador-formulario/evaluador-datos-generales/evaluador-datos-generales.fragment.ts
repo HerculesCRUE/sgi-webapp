@@ -1,111 +1,72 @@
-import { FormFragment } from '@core/services/action-service';
-import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
-import { NullIdValidador } from '@core/validators/null-id-validador';
-import { Observable, of, EMPTY } from 'rxjs';
-import { switchMap, catchError, map } from 'rxjs/operators';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IEvaluador } from '@core/models/eti/evaluador';
+import { FormFragment } from '@core/services/action-service';
 import { EvaluadorService } from '@core/services/eti/evaluador.service';
 import { PersonaService } from '@core/services/sgp/persona.service';
-import { IPersona } from '@core/models/sgp/persona';
-import { DateUtils } from '@core/utils/date-utils';
 import { DateValidator } from '@core/validators/date-validator';
+import { NullIdValidador } from '@core/validators/null-id-validador';
+import { Observable } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 export class EvaluadorDatosGeneralesFragment extends FormFragment<IEvaluador> {
 
   private evaluador: IEvaluador;
-  private selectedPersona: IPersona;
-  private initialPersonaRef: string;
-
   constructor(private fb: FormBuilder, key: number, private service: EvaluadorService, private personaService: PersonaService) {
-    super(key, true);
+    super(key);
     this.evaluador = {} as IEvaluador;
     this.evaluador.activo = true;
   }
 
-  setPersona(value: IPersona): void {
-    const id = value?.personaRef;
-    if (this.isEdit()) {
-      this.setChanges(this.initialPersonaRef !== id);
-    }
-    else if (!this.isEdit()) {
-      this.setComplete(value ? true : false);
-      this.setChanges(value ? true : false);
-    }
-    this.selectedPersona = value;
-  }
-
-  getPersona(): IPersona {
-    return this.selectedPersona;
-  }
-
-  get personaText(): string {
-    if (this.selectedPersona) {
-      const p = this.selectedPersona;
-      return `${p.nombre} ${p.primerApellido} ${p.segundoApellido} (${p.identificadorNumero}${p.identificadorLetra})`;
-    }
-    else {
-      return '';
-    }
-  }
-
   protected buildFormGroup(): FormGroup {
-
     return this.fb.group({
-      comite: new FormControl({ value: '', disabled: this.isEdit() }, [new NullIdValidador().isValid()]),
-      fechaAlta: ['', Validators.required],
-      fechaBaja: [''],
-      cargoComite: new FormControl({ value: null }, [new NullIdValidador().isValid()]),
-      resumen: ['']
+      comite: [{ value: '', disabled: this.isEdit() }, new NullIdValidador().isValid()],
+      fechaAlta: [null, Validators.required],
+      fechaBaja: [null],
+      cargoComite: [{ value: null }, new NullIdValidador().isValid()],
+      resumen: [''],
+      persona: [{ value: null, disabled: this.isEdit() }, Validators.required]
     }, {
-      validator: [DateValidator.isAfterOrEqual('fechaAlta', 'fechaBaja')]
+      validators: [DateValidator.isAfterOrEqual('fechaAlta', 'fechaBaja')]
     });
   }
 
   protected initializer(key: number): Observable<IEvaluador> {
     return this.service.findById(key).pipe(
       switchMap((value) => {
-        this.evaluador = value;
-        this.loadPersona(value.personaRef);
-        this.initialPersonaRef = this.evaluador.personaRef;
-        return of(this.evaluador);
-      }),
-      catchError(() => {
-        return EMPTY;
+        return this.personaService
+          .findById(value.persona.id).pipe(
+            map(persona => {
+              value.persona = persona;
+              return value;
+            })
+          );
       })
     );
   }
 
   buildPatch(value: IEvaluador): { [key: string]: any } {
+    this.evaluador = value;
     return {
       comite: value.comite,
       fechaAlta: value.fechaAlta,
       fechaBaja: value.fechaBaja,
       cargoComite: value.cargoComite,
-      resumen: value.resumen
+      resumen: value.resumen,
+      persona: value.persona
     };
   }
 
   getValue(): IEvaluador {
-    const form = this.getFormGroup().value;
+    const form = this.getFormGroup().controls;
     if (!this.isEdit()) {
-      this.evaluador.comite = form.comite;
+      this.evaluador.comite = form.comite.value;
     }
-    this.evaluador.fechaAlta = form.fechaAlta;
-    this.evaluador.fechaBaja = form.fechaBaja;
-    this.evaluador.cargoComite = form.cargoComite === '' ? null : form.cargoComite;
-    this.evaluador.resumen = form.resumen;
-    this.evaluador.personaRef = this.selectedPersona?.personaRef;
+    this.evaluador.fechaAlta = form.fechaAlta.value;
+    this.evaluador.fechaBaja = form.fechaBaja.value;
+    this.evaluador.cargoComite = form.cargoComite.value === '' ? null : form.cargoComite.value;
+    this.evaluador.resumen = form.resumen.value;
+    this.evaluador.persona = form.persona.value;
     return this.evaluador;
-  }
-
-  private loadPersona(personaRef: string) {
-    this.personaService
-      .findById(personaRef)
-      .subscribe(
-        (persona) => {
-          this.selectedPersona = persona;
-        }
-      );
   }
 
   saveOrUpdate(): Observable<number> {

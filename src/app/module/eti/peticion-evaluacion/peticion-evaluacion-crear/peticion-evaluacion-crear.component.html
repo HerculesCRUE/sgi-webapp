@@ -6,15 +6,15 @@
         [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[PETICION_EVALUACION_ROUTE_NAMES.EQUIPO_INVESTIGADOR]"
-        [title]="'eti.peticionEvaluacion.formulario.equipoInvestigador.listado.cabecera' | translate"
+        [title]="'eti.peticion-evaluacion.equipo-investigador' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.EQUIPO_INVESTIGADOR)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[PETICION_EVALUACION_ROUTE_NAMES.TAREAS]"
-        [title]="'eti.peticionEvaluacion.listado.tareas.title' | translate"
+        [title]="'eti.peticion-evaluacion.tarea.asignacion' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.TAREAS)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[PETICION_EVALUACION_ROUTE_NAMES.MEMORIAS]"
-        [title]="'eti.peticionEvaluacion.formulario.memorias.listado.cabecera' | translate"
+        [title]="'eti.memoria' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.MEMORIAS)">
       </sgi-action-fragment-menu-item>
     </mat-list>

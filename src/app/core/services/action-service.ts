@@ -1,7 +1,7 @@
-import { Observable, BehaviorSubject, Subscription, throwError, from, of } from 'rxjs';
-import { FormGroup, AbstractControl, FormControl } from '@angular/forms';
 import { Directive, OnDestroy } from '@angular/core';
-import { mergeMap, tap, filter, switchMap, takeLast } from 'rxjs/operators';
+import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
+import { BehaviorSubject, from, Observable, of, Subscription, throwError } from 'rxjs';
+import { filter, mergeMap, switchMap, takeLast, tap } from 'rxjs/operators';
 
 export interface IActionService {
   /**
@@ -232,6 +232,10 @@ export interface ActionLink {
    */
   title: string;
   /**
+   * Params for de title of the action link
+   */
+  titleParams?: { [key: string]: any };
+  /**
    * Router link of the action link
    */
   routerLink: string | string[];
@@ -242,6 +246,7 @@ export abstract class Fragment implements IFragment {
   private key: number | string;
   private edit: boolean;
   readonly initialized$: BehaviorSubject<boolean>;
+  private initialing = false;
   protected subscriptions: Subscription[] = [];
 
   /**
@@ -260,7 +265,8 @@ export abstract class Fragment implements IFragment {
   }
 
   initialize(): void {
-    if (!this.initialized$.value) {
+    if (!this.initialized$.value && !this.initialing) {
+      this.initialing = true;
       this.onInitialize();
       this.initialized$.next(true);
     }
@@ -346,6 +352,7 @@ export abstract class FormFragment<T> implements IFormFragment<T> {
   private auxiliarStatus: boolean;
   private group: IGroup;
   readonly initialized$: BehaviorSubject<boolean>;
+  private initializing = false;
   protected subscriptions: Subscription[] = [];
   private key: number | string;
   private edit: boolean;
@@ -392,7 +399,8 @@ export abstract class FormFragment<T> implements IFormFragment<T> {
   }
 
   initialize(): void {
-    if (!this.initialized$.value) {
+    if (!this.initialized$.value && !this.initializing) {
+      this.initializing = true;
       this.group.load(this.buildFormGroup());
       if (this.key) {
         this.initializer(this.key).subscribe((initialValue) => {
@@ -402,6 +410,7 @@ export abstract class FormFragment<T> implements IFormFragment<T> {
             this.formStatus = status;
             this.mergeStatus();
           }));
+          this.initialized$.next(true);
         });
       }
       else {
@@ -410,9 +419,8 @@ export abstract class FormFragment<T> implements IFormFragment<T> {
           this.formStatus = status;
           this.mergeStatus();
         }));
+        this.initialized$.next(true);
       }
-
-      this.initialized$.next(true);
     }
   }
 
@@ -539,7 +547,7 @@ export class Group implements IGroup {
 
   load(form: FormGroup): void {
     this.form = form;
-    this.initialState = form.value;
+    this.initialState = form.getRawValue();
   }
 
   initialize(): void {
@@ -574,7 +582,7 @@ export class Group implements IGroup {
 
   patch(value: { [key: string]: any }) {
     this.form.patchValue(value, { onlySelf: false, emitEvent: true });
-    this.initialState = this.form.value;
+    this.initialState = this.form.getRawValue();
     this.editing = true;
   }
 
@@ -640,7 +648,7 @@ export class Group implements IGroup {
       return this.status$.value.changes;
     }
     else {
-      return this.form ? !this.deepEquals(this.initialState, this.form.value) : false;
+      return this.form ? !this.deepEquals(this.initialState, this.form.getRawValue()) : false;
     }
   }
 
@@ -654,7 +662,7 @@ export class Group implements IGroup {
   private checkChanges(): void {
     let value = false;
     if (this.form) {
-      value = !this.deepEquals(this.initialState, this.form.value);
+      value = !this.deepEquals(this.initialState, this.form.getRawValue());
     }
     this.publishChanges(value);
   }
@@ -683,7 +691,7 @@ export class Group implements IGroup {
   }
 
   refreshInitialState(transitionToEdit?: boolean): void {
-    this.initialState = this.form ? this.form.value : undefined;
+    this.initialState = this.form ? this.form.getRawValue() : undefined;
     if (transitionToEdit) {
       this.editing = true;
     }
@@ -896,6 +904,9 @@ export abstract class ActionService implements IActionService, OnDestroy {
    * @param value action link to add
    */
   protected addActionLink(value: ActionLink) {
+    if (!value.titleParams) {
+      value.titleParams = {};
+    }
     this.actionLinks.push(value);
   }
 

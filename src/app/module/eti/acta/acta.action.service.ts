@@ -6,7 +6,7 @@ import { ActionService } from '@core/services/action-service';
 import { ActaService } from '@core/services/eti/acta.service';
 import { AsistenteService } from '@core/services/eti/asistente.service';
 import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 
 import {
   ActaAsistentesFragment,
@@ -35,7 +35,7 @@ export class ActaActionService extends ActionService {
     route: ActivatedRoute,
     service: ActaService,
     convocatoriaReunionService: ConvocatoriaReunionService,
-    personaFisicaService: PersonaFisicaService,
+    personaService: PersonaService,
     asistenteService: AsistenteService
   ) {
     super();
@@ -48,7 +48,7 @@ export class ActaActionService extends ActionService {
     this.datosGenerales = new ActaDatosGeneralesFragment(fb, this.acta?.id, service);
     this.memorias = new ActaMemoriasFragment(this.acta?.convocatoriaReunion?.id, convocatoriaReunionService);
     this.asistentes = new ActaAsistentesFragment(
-      this.acta?.convocatoriaReunion?.id, convocatoriaReunionService, personaFisicaService, asistenteService);
+      this.acta?.convocatoriaReunion?.id, convocatoriaReunionService, personaService, asistenteService);
 
 
 

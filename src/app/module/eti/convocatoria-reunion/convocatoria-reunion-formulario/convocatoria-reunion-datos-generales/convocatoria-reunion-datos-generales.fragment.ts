@@ -1,13 +1,14 @@
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { IAsistente } from '@core/models/eti/asistente';
 import { IConvocatoriaReunion } from '@core/models/eti/convocatoria-reunion';
+import { IConvocatoriaReunionDatosGenerales } from '@core/models/eti/convocatoria-reunion-datos-generales';
 import { IEvaluador } from '@core/models/eti/evaluador';
 import { IPersona } from '@core/models/sgp/persona';
 import { FormFragment } from '@core/services/action-service';
 import { AsistenteService } from '@core/services/eti/asistente.service';
 import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
 import { EvaluadorService } from '@core/services/eti/evaluador.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { DateValidator } from '@core/validators/date-validator';
 import { HoraValidador } from '@core/validators/hora-validator';
 import { MinutoValidador } from '@core/validators/minuto-validator';
@@ -17,8 +18,8 @@ import { NGXLogger } from 'ngx-logger';
 import { EMPTY, from, Observable, of } from 'rxjs';
 import { catchError, map, mergeMap, switchMap, takeLast } from 'rxjs/operators';
 
-export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<IConvocatoriaReunion> {
-  private convocatoriaReunion: IConvocatoriaReunion;
+export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<IConvocatoriaReunionDatosGenerales> {
+  private convocatoriaReunion: IConvocatoriaReunionDatosGenerales;
   evaluadoresComite: IEvaluador[] = [];
   asistentes: IAsistente[] = [];
 
@@ -28,19 +29,20 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
     key: number,
     private convocatoriaReunionService: ConvocatoriaReunionService,
     private asistenteService: AsistenteService,
-    private personaFisicaService: PersonaFisicaService,
-    private evaluadorService: EvaluadorService
+    private personaService: PersonaService,
+    private evaluadorService: EvaluadorService,
+    private readonly: boolean
   ) {
     super(key);
-    this.convocatoriaReunion = {} as IConvocatoriaReunion;
+    this.convocatoriaReunion = {} as IConvocatoriaReunionDatosGenerales;
     this.convocatoriaReunion.activo = true;
   }
 
   protected buildFormGroup(): FormGroup {
     const fb = this.fb.group({
       comite: ['', new NullIdValidador().isValid()],
-      fechaEvaluacion: ['', Validators.required],
-      fechaLimite: ['', Validators.required],
+      fechaEvaluacion: [null, Validators.required],
+      fechaLimite: [null, Validators.required],
       tipoConvocatoriaReunion: ['', new NullIdValidador().isValid()],
       horaInicio: ['', new HoraValidador().isValid()],
       minutoInicio: ['', new MinutoValidador().isValid()],
@@ -58,10 +60,14 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
       fb.addControl('codigo', new FormControl({ value: '', disabled: true }));
     }
 
+    if (this.readonly) {
+      fb.disable();
+    }
+
     return fb;
   }
 
-  protected initializer(key: number): Observable<IConvocatoriaReunion> {
+  protected initializer(key: number): Observable<IConvocatoriaReunionDatosGenerales> {
     return this.convocatoriaReunionService.findByIdWithDatosGenerales(key).pipe(
       switchMap((value) => {
         this.convocatoriaReunion = value;
@@ -77,14 +83,14 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
   /**
    * Carga los convocantes de la convocatoria
    */
-  loadConvocantes(): Observable<IConvocatoriaReunion> {
+  loadConvocantes(): Observable<IConvocatoriaReunionDatosGenerales> {
     const options: SgiRestFindOptions = {
       filter: new RSQLSgiRestFilter('comite.id', SgiRestFilterOperator.EQUALS, this.convocatoriaReunion.comite.id.toString())
     };
     return this.evaluadorService.findAll(options).pipe(
       switchMap((listadoConvocantes) => {
-        const personaRefs = listadoConvocantes.items.map((convocante) => convocante.personaRef);
-        return this.personaFisicaService.findByPersonasRefs(personaRefs).pipe(
+        const personaIds = new Set<string>(listadoConvocantes.items.map((convocante) => convocante.persona.id));
+        return this.personaService.findAllByIdIn([...personaIds]).pipe(
           map((personas) => this.loadDatosPersona(personas, listadoConvocantes.items))
         );
       }),
@@ -107,10 +113,8 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
   private loadDatosPersona(listado: SgiRestListResult<IPersona>, evaluadores: IEvaluador[]): IEvaluador[] {
     const personas = listado.items;
     evaluadores.forEach((convocante) => {
-      const datosPersonaConvocante = personas.find((persona) => convocante.personaRef === persona.personaRef);
-      convocante.nombre = datosPersonaConvocante?.nombre;
-      convocante.primerApellido = datosPersonaConvocante?.primerApellido;
-      convocante.segundoApellido = datosPersonaConvocante?.segundoApellido;
+      const datosPersonaConvocante = personas.find((persona) => convocante.persona.id === persona.id);
+      convocante.persona = datosPersonaConvocante;
     });
     return evaluadores;
   }
@@ -136,7 +140,7 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
     );
   }
 
-  buildPatch(value: IConvocatoriaReunion): { [key: string]: any } {
+  buildPatch(value: IConvocatoriaReunionDatosGenerales): { [key: string]: any } {
     const result = {
       codigo: value.codigo,
       comite: value.comite,
@@ -184,7 +188,7 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
     return (this.convocatoriaReunion && this.convocatoriaReunion.idActa) ? true : false;
   }
 
-  getValue(): IConvocatoriaReunion {
+  getValue(): IConvocatoriaReunionDatosGenerales {
     const form = this.getFormGroup();
     this.convocatoriaReunion.comite = (this.getFormGroup().controls.comite.disabled) ?
       this.getFormGroup().controls.comite.value : form.controls.comite.value;
@@ -205,7 +209,7 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
     const obs$ = this.isEdit() ? this.update(datosGenerales) : this.create(datosGenerales);
     return obs$.pipe(
       map((value) => {
-        this.convocatoriaReunion = value;
+        this.convocatoriaReunion = Object.assign(this.convocatoriaReunion, value);
         return value.id;
       })
     );
@@ -232,11 +236,7 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
     });
     return from(asistentes).pipe(
       mergeMap((asistente) => {
-        return this.asistenteService.create(asistente).pipe(
-          map((createdAsistente) => {
-            convocatoriaReunion.convocantes.push(createdAsistente);
-          })
-        );
+        return this.asistenteService.create(asistente);
       }),
       takeLast(1),
       map(() => convocatoriaReunion)
@@ -264,11 +264,7 @@ export class ConvocatoriaReunionDatosGeneralesFragment extends FormFragment<ICon
 
     return from(this.asistentes).pipe(
       mergeMap((asistente) => {
-        return this.asistenteService.update(asistente.id, asistente).pipe(
-          map((createdAsistente) => {
-            convocatoriaReunion.convocantes.push(createdAsistente);
-          })
-        );
+        return this.asistenteService.update(asistente.id, asistente);
       }),
       takeLast(1),
       map(() => convocatoriaReunion)

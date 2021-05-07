@@ -1,18 +1,13 @@
-import { IEmpresaEconomica } from '../sgp/empresa-economica';
-import { ISolicitud } from './solicitud';
+import { IEmpresa } from '../sgemp/empresa';
 import { IPrograma } from './programa';
 
 export interface ISolicitudModalidad {
   /** Id */
   id: number;
-
-  /** Solicitud */
-  solicitud: ISolicitud;
-
+  /** Id de Solicitud */
+  solicitudId: number;
   /** Entidad */
-  entidad: IEmpresaEconomica;
-
+  entidad: IEmpresa;
   /** Programa */
   programa: IPrograma;
-
 }

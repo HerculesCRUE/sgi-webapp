@@ -1,5 +1,5 @@
-import { ValidatorFn, FormGroup, ValidationErrors, AbstractControl } from '@angular/forms';
-import { DateUtils } from '@core/utils/date-utils';
+import { AbstractControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { DateTime } from 'luxon';
 
 export class DateValidator {
 
@@ -20,8 +20,8 @@ export class DateValidator {
         return;
       }
 
-      const fechaAnteriorDate = DateUtils.fechaToDate(fechaAnteriorControl.value);
-      const fechaPosteriorDate = DateUtils.fechaToDate(fechaPosteriorControl.value);
+      const fechaAnteriorDate: DateTime = fechaAnteriorControl.value;
+      const fechaPosteriorDate: DateTime = fechaPosteriorControl.value;
 
       if (fechaPosteriorDate && ((!fechaAnteriorDate && errorIfFirstDateEmpty)
         || (fechaAnteriorDate && fechaAnteriorDate >= fechaPosteriorDate))) {
@@ -50,8 +50,8 @@ export class DateValidator {
         return;
       }
 
-      const fechaAnteriorDate = DateUtils.fechaToDate(fechaAnteriorControl.value);
-      const fechaPosteriorDate = DateUtils.fechaToDate(fechaPosteriorControl.value);
+      const fechaAnteriorDate: DateTime = fechaAnteriorControl.value;
+      const fechaPosteriorDate: DateTime = fechaPosteriorControl.value;
 
 
       if (fechaPosteriorDate && (fechaAnteriorDate > fechaPosteriorDate)) {
@@ -65,11 +65,11 @@ export class DateValidator {
   }
 
   /**
-  * Comprueba que la segunda fecha sea anterior o igual a la primera.
-  *
-  * @param firstDateFieldName Nombre del campo contra el que se quiere hacer la validacion.
-  * @param secondDateFieldName Nombre del campo que se quiere validar.
-  */
+   * Comprueba que la segunda fecha sea anterior o igual a la primera.
+   *
+   * @param firstDateFieldName Nombre del campo contra el que se quiere hacer la validacion.
+   * @param secondDateFieldName Nombre del campo que se quiere validar.
+   */
   static isBeforeOrEqual(firstDateFieldName: string, secondDateFieldName: string): ValidatorFn {
     return (formGroup: FormGroup): ValidationErrors | null => {
 
@@ -80,26 +80,26 @@ export class DateValidator {
         return;
       }
 
-      const fechaAnteriorDate = DateUtils.fechaToDate(fechaAnteriorControl.value);
-      const fechaPosteriorDate = DateUtils.fechaToDate(fechaPosteriorControl.value);
+      const fechaAnteriorDate: DateTime = fechaAnteriorControl.value;
+      const fechaPosteriorDate: DateTime = fechaPosteriorControl.value;
 
 
       if (fechaAnteriorDate && (fechaPosteriorDate < fechaAnteriorDate)) {
         fechaAnteriorControl.setErrors({ before: true });
         fechaAnteriorControl.markAsTouched({ onlySelf: true });
       } else if (fechaAnteriorControl.errors) {
-        delete fechaAnteriorControl.errors.before
+        delete fechaAnteriorControl.errors.before;
         fechaAnteriorControl.updateValueAndValidity({ onlySelf: true });
       }
     };
   }
 
   /**
-  * Comprueba que la segunda fecha sea anterior a la primera.
-  *
-  * @param firstDateFieldName Nombre del campo contra el que se quiere hacer la validacion.
-  * @param secondDateFieldName Nombre del campo que se quiere validar.
-  */
+   * Comprueba que la segunda fecha sea anterior a la primera.
+   *
+   * @param firstDateFieldName Nombre del campo contra el que se quiere hacer la validacion.
+   * @param secondDateFieldName Nombre del campo que se quiere validar.
+   */
   static isBefore(firstDateFieldName: string, secondDateFieldName: string): ValidatorFn {
     return (formGroup: FormGroup): ValidationErrors | null => {
 
@@ -110,40 +110,38 @@ export class DateValidator {
         return;
       }
 
-      const fechaAnteriorDate = DateUtils.fechaToDate(fechaAnteriorControl.value);
-      const fechaPosteriorDate = DateUtils.fechaToDate(fechaPosteriorControl.value);
+      const fechaAnteriorDate: DateTime = fechaAnteriorControl.value;
+      const fechaPosteriorDate: DateTime = fechaPosteriorControl.value;
 
 
       if (fechaAnteriorDate && (fechaPosteriorDate <= fechaAnteriorDate)) {
         fechaAnteriorControl.setErrors({ before: true });
         fechaAnteriorControl.markAsTouched({ onlySelf: true });
       } else if (fechaAnteriorControl.errors) {
-        delete fechaAnteriorControl.errors.before
+        delete fechaAnteriorControl.errors.before;
         fechaAnteriorControl.updateValueAndValidity({ onlySelf: true });
       }
     };
   }
 
-  static maxDate(maxDate: Date): ValidatorFn {
+  static maxDate(maxDate: DateTime): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value) {
         return null;
       }
-      const date = new Date(control.value);
-      if (date > maxDate) {
+      if (control.value > maxDate) {
         return { maxDate: true };
       }
       return null;
     };
   }
 
-  static minDate(minDate: Date): ValidatorFn {
+  static minDate(minDate: DateTime): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value) {
         return null;
       }
-      const date = new Date(control.value);
-      if (date < minDate) {
+      if (control.value < minDate) {
         return { minDate: true };
       }
       return null;
@@ -162,15 +160,9 @@ export class DateValidator {
       const beforeControl = formGroup.controls[beforeControlName];
       const afterControl = formGroup.controls[afterControlName];
       if (beforeControl.value && afterControl.value && control.value) {
-        const date = new Date(control.value);
-        const before = new Date(beforeControl.value);
-        before.setHours(0);
-        before.setMinutes(0);
-        before.setSeconds(0);
-        const after = new Date(afterControl.value);
-        after.setHours(23);
-        after.setMinutes(59);
-        after.setSeconds(59);
+        const date: DateTime = control.value;
+        const before: DateTime = beforeControl.value;
+        const after: DateTime = afterControl.value;
         if (after >= date && date >= before) {
           return;
         }
@@ -180,4 +172,27 @@ export class DateValidator {
       }
     };
   }
+
+  /**
+   * Comprueba que la fecha este entre las fecha indicadas
+   *
+   * @param minDate fecha minima
+   * @param maxDate fecha maxima
+   */
+  static isBetween(minDate: DateTime, maxDate: DateTime): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if ((control.errors && !control.errors.invalid
+        || control.errors && !control.errors.invalid)) {
+        return null;
+      }
+
+      const date = control.value;
+      if (date && (date < minDate || date > maxDate)) {
+        return { invalid: true } as ValidationErrors;
+      }
+
+      return null;
+    };
+  }
+
 }

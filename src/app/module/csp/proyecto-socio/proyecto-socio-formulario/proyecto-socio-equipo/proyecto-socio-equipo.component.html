@@ -1,10 +1,11 @@
 <section class="proyecto-socio-equipo">
+  <h2>{{'menu.csp.proyectos.socios.equipos' | translate}}</h2>
   <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSource" matSort matSortActive="id"
     matSortDirection="asc" matSortDisableClear>
 
     <!-- Nombre Column -->
     <ng-container matColumnDef="nombre">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto-socio-equipo.listado.nombre' |
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto-socio.equipo.nombre' |
         translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.persona.nombre}} </td>
@@ -12,16 +13,15 @@
 
     <!-- Apellidos Column -->
     <ng-container matColumnDef="apellidos">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto-socio-equipo.listado.apellidos' |
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto-socio.equipo.apellidos' |
         translate}}
       </th>
-      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.persona.primerApellido}}
-        {{wrapper.value.persona.segundoApellido}}</td>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.persona.apellidos}} </td>
     </ng-container>
 
     <!-- Rol de proyecto Column -->
     <ng-container matColumnDef="rolProyecto">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto-socio-equipo.listado.rolProyecto'
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto-socio.equipo.rol-proyecto'
         | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.rolProyecto?.nombre | translate}}
@@ -30,34 +30,34 @@
 
     <!-- fechaInicio Column -->
     <ng-container matColumnDef="fechaInicio">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto-socio-equipo.listado.fechaInicio'
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto-socio.equipo.fecha-inicio'
         | translate}}
       </th>
-      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.fechaInicio | date: 'dd/MM/yyyy'}}
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.fechaInicio | luxon: 'short'}}
       </td>
     </ng-container>
 
     <!-- fechaFin Column -->
     <ng-container matColumnDef="fechaFin">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto-socio-equipo.listado.fechaFin'
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.proyecto-socio.equipo.fecha-fin'
         | translate}}
       </th>
-      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.fechaFin | date: 'dd/MM/yyyy'}}
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.fechaFin | luxon: 'short'}}
       </td>
     </ng-container>
 
     <!-- Acciones Column -->
     <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef> {{'csp.proyecto-socio-equipo.listado.acciones' | translate}}
+      <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper, let i = index">
         <ng-container>
-          <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModal(wrapper, i)">
+          <button mat-button matTooltip="{{'btn.edit' | translate}}" (click)="openModal(wrapper, i)">
             <mat-icon color="primary">border_color</mat-icon>
           </button>
         </ng-container>
         <ng-container>
-          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deleteProyectoSocioEquipo(wrapper)">
+          <button mat-button matTooltip="{{'btn.delete' | translate}}" (click)="deleteProyectoSocioEquipo(wrapper)">
             <mat-icon color="warn">highlight_off</mat-icon>
           </button>
         </ng-container>
@@ -69,7 +69,7 @@
   <div class="separation-button">
     <button color="three" mat-button mat-raised-button (click)="openModal()">
       <mat-icon color="accent">add_circle</mat-icon>
-      {{'csp.proyecto-socio-equipo.añadir' | translate}}
+      {{ 'btn.add.entity' | translate:msgParamEntity }}
     </button>
   </div>
 </section>

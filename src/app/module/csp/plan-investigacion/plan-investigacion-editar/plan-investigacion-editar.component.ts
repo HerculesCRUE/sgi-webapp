@@ -2,15 +2,19 @@ import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActionComponent } from '@core/component/action.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
+import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
+import { switchMap } from 'rxjs/operators';
 import { PLAN_INVESTIGACION_ROUTE_NAMES } from '../plan-investigacion-route-names';
 import { PlanInvestigacionActionService } from '../plan-investigacion.action.service';
 
-const MSG_BUTTON_SAVE = marker('botones.guardar');
-const MSG_SUCCESS = marker('csp.plan.investigacion.editar.correcto');
-const MSG_ERROR = marker('csp.plan.investigacion.editar.error');
+const MSG_BUTTON_SAVE = marker('btn.save.entity');
+const MSG_SUCCESS = marker('msg.update.entity.success');
+const MSG_ERROR = marker('error.update.entity');
+const PLAN_INVESTIGACION_KEY = marker('csp.plan-investigacion');
 
 @Component({
   selector: 'sgi-plan-investigacion-editar',
@@ -24,7 +28,9 @@ export class PlanInvestigacionEditarComponent extends ActionComponent {
 
   PLAN_INVESTIGACION_ROUTE_NAMES = PLAN_INVESTIGACION_ROUTE_NAMES;
 
-  textoCrear = MSG_BUTTON_SAVE;
+  textoCrear: string;
+  textoUpdateSuccess: string;
+  textoUpdateError: string;
 
   constructor(
     private readonly logger: NGXLogger,
@@ -32,20 +38,65 @@ export class PlanInvestigacionEditarComponent extends ActionComponent {
     protected readonly router: Router,
     protected readonly route: ActivatedRoute,
     public readonly actionService: PlanInvestigacionActionService,
-    dialogService: DialogService
+    dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(router, route, actionService, dialogService);
   }
+
+  ngOnInit(): void {
+    super.ngOnInit();
+    this.setupI18N();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      PLAN_INVESTIGACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_BUTTON_SAVE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoCrear = value);
+
+    this.translate.get(
+      PLAN_INVESTIGACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoUpdateSuccess = value);
+
+    this.translate.get(
+      PLAN_INVESTIGACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoUpdateError = value);
+  }
+
 
   saveOrUpdate(): void {
     this.actionService.saveOrUpdate().subscribe(
       () => { },
       (error) => {
         this.logger.error(error);
-        this.snackBarService.showError(MSG_ERROR);
+        this.snackBarService.showError(this.textoUpdateError);
       },
       () => {
-        this.snackBarService.showSuccess(MSG_SUCCESS);
+        this.snackBarService.showSuccess(this.textoUpdateSuccess);
         this.router.navigate(['../'], { relativeTo: this.route });
       }
     );

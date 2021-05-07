@@ -1,5 +1,5 @@
 <section class="evaluacion-evaluacion">
-  <h2>{{'eti.evaluacion.evaluacion.title' | translate}}</h2>
+  <h2>{{'eti.evaluacion' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR}}</h2>
   <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
     [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
 
@@ -7,9 +7,9 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'eti.evaluacion.evaluar.evaluacion.comite' | translate}}</mat-label>
-        <input type="text" placeholder="{{'eti.evaluacion.evaluar.evaluacion.comite' | translate}}" arial-label="Number"
-          matInput formControlName="comite">
+        <mat-label>{{'label.eti.comite' | translate}}</mat-label>
+        <input type="text" placeholder="{{'label.eti.comite' | translate}}" arial-label="Number" matInput
+          formControlName="comite">
       </mat-form-field>
     </div>
 
@@ -17,10 +17,10 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field color="primary">
-        <mat-label>{{'eti.evaluacion.evaluar.evaluacion.fechaEvaluacion'| translate}}</mat-label>
-        <input matInput [matDatepicker]="fechaEvaluacion" formControlName="fechaEvaluacion" appDatepickerFormat>
+        <mat-label>{{'eti.evaluacion.fecha-evaluacion'| translate}}</mat-label>
+        <input matInput [ngxMatDatetimePicker]="fechaEvaluacion" formControlName="fechaEvaluacion">
         <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="fechaEvaluacion"></mat-datepicker-toggle>
-        <mat-datepicker #fechaEvaluacion></mat-datepicker>
+        <ngx-mat-datetime-picker #fechaEvaluacion showSeconds="true" [defaultTime]="[0,0,0]"></ngx-mat-datetime-picker>
       </mat-form-field>
     </div>
 
@@ -28,9 +28,8 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'eti.evaluacion.evaluar.evaluacion.referenciaMemoria' | translate}}</mat-label>
-        <input matInput formControlName="referenciaMemoria"
-          placeholder="{{'eti.evaluacion.evaluar.evaluacion.referenciaMemoria' | translate}}">
+        <mat-label>{{'eti.memoria.referencia' | translate}}</mat-label>
+        <input matInput formControlName="referenciaMemoria" placeholder="{{'eti.memoria.referencia' | translate}}">
       </mat-form-field>
     </div>
 
@@ -38,9 +37,8 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'eti.evaluacion.evaluar.evaluacion.solicitante' | translate}}</mat-label>
-        <input matInput formControlName="solicitante"
-          placeholder="{{'eti.evaluacion.evaluar.evaluacion.solicitante' | translate}}">
+        <mat-label>{{'eti.solicitante' | translate}}</mat-label>
+        <input matInput formControlName="solicitante" placeholder="{{'eti.solicitante' | translate}}">
       </mat-form-field>
     </div>
 
@@ -48,9 +46,9 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'eti.evaluacion.evaluar.evaluacion.version' | translate}}</mat-label>
+        <mat-label>{{'eti.evaluacion-evaluador.memoria.version' | translate}}</mat-label>
         <input matInput formControlName="version"
-          placeholder="{{'eti.evaluacion.evaluar.evaluacion.version' | translate}}">
+          placeholder="{{'eti.evaluacion-evaluador.memoria.version' | translate}}">
       </mat-form-field>
     </div>
 
@@ -59,14 +57,17 @@
       [fxFlexOrder]="fxFlexProperties.order">
       <div fxLayout="row">
         <mat-form-field class="input-form">
-          <mat-label>{{'eti.evaluacion.evaluar.evaluacion.dictamen' | translate}}</mat-label>
-          <input type="text" [placeholder]="'eti.evaluacion.evaluar.evaluacion.dictamen' | translate"
-            arial-label="Number" matInput formControlName="dictamen" [matAutocomplete]="autocompleteDictamen" required>
+          <mat-label>{{'eti.dictamen' | translate}}</mat-label>
+          <input type="text" [placeholder]="'eti.dictamen' | translate" arial-label="Number" matInput
+            formControlName="dictamen" [matAutocomplete]="autocompleteDictamen" required>
           <mat-autocomplete #autocompleteDictamen="matAutocomplete" [displayWith]="getDictamen">
             <mat-option *ngFor="let dictamen of dictamenListado" [value]="dictamen">
               {{dictamen.nombre}}
             </mat-option>
           </mat-autocomplete>
+          <mat-error *ngIf="formGroup.controls.dictamen.errors?.required">
+            {{'error.required.entity' | translate:msgParamDictamenEntity}}
+          </mat-error>
         </mat-form-field>
         <div fxLayoutAlign="center center">
           <button mat-icon-button

@@ -1,39 +1,38 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentGuard } from '@core/guards/detail-form.guard';
 import { ActionGuard } from '@core/guards/master-form.guard';
 import { SgiRoutes } from '@core/route';
 import { ROUTE_NAMES } from '@core/route.names';
 import { SgiAuthGuard } from '@sgi/framework/auth';
 import { ConvocatoriaConceptoGastoCrearComponent } from './convocatoria-concepto-gasto-crear/convocatoria-concepto-gasto-crear.component';
-import { ConvocatoriaConceptoGastoEditarComponent } from './convocatoria-concepto-gasto-editar/convocatoria-concepto-gasto-editar.component';
+import { ConvocatoriaConceptoGastoDataResolver, CONVOCATORIA_CONCEPTO_GASTO_DATA_KEY } from './convocatoria-concepto-gasto-data.resolver';
+import {
+  ConvocatoriaConceptoGastoEditarComponent
+} from './convocatoria-concepto-gasto-editar/convocatoria-concepto-gasto-editar.component';
 import { ConvocatoriaConceptoGastoCodigoEcComponent } from './convocatoria-concepto-gasto-formulario/convocatoria-concepto-gasto-codigo-ec/convocatoria-concepto-gasto-codigo-ec.component';
-import { ConvocatoriaConceptoGastoComponent } from './convocatoria-concepto-gasto-formulario/convocatoria-concepto-gasto/convocatoria-concepto-gasto.component';
+import { ConvocatoriaConceptoGastoDatosGeneralesComponent } from './convocatoria-concepto-gasto-formulario/convocatoria-concepto-gasto-datos-generales/convocatoria-concepto-gasto-datos-generales.component';
 import { CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES } from './convocatoria-concepto-gasto-route-names';
-import { ConvocatoriaConceptoGastoGuard } from './convocatoria-concepto-gasto.guard';
-
-const MSG_NEW_TITLE = marker('csp.convocatoria.concepto-gasto.crear.titulo');
-const MSG_EDIT_TITLE = marker('csp.convocatoria.concepto-gasto.editar.titulo');
+import { CONVOCATORIA_CONCEPTO_GASTO_ROUTE_PARAMS } from './convocatoria-concepto-gasto-route-params';
 
 const routes: SgiRoutes = [
   {
     path: `${ROUTE_NAMES.NEW}`,
     component: ConvocatoriaConceptoGastoCrearComponent,
-    canActivate: [SgiAuthGuard, ConvocatoriaConceptoGastoGuard],
+    canActivate: [SgiAuthGuard],
     canDeactivate: [ActionGuard],
-    data: {
-      title: MSG_NEW_TITLE,
+    resolve: {
+      [CONVOCATORIA_CONCEPTO_GASTO_DATA_KEY]: ConvocatoriaConceptoGastoDataResolver
     },
     children: [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES.CONCEPTO_GASTO
+        redirectTo: CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES.DATOS_GENERALES
       },
       {
-        path: CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES.CONCEPTO_GASTO,
-        component: ConvocatoriaConceptoGastoComponent,
+        path: CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES.DATOS_GENERALES,
+        component: ConvocatoriaConceptoGastoDatosGeneralesComponent,
         canDeactivate: [FragmentGuard]
       },
       {
@@ -44,22 +43,22 @@ const routes: SgiRoutes = [
     ]
   },
   {
-    path: `:id`,
+    path: `:${CONVOCATORIA_CONCEPTO_GASTO_ROUTE_PARAMS.ID}`,
     component: ConvocatoriaConceptoGastoEditarComponent,
-    canActivate: [SgiAuthGuard, ConvocatoriaConceptoGastoGuard],
+    canActivate: [SgiAuthGuard],
     canDeactivate: [ActionGuard],
-    data: {
-      title: MSG_EDIT_TITLE
+    resolve: {
+      [CONVOCATORIA_CONCEPTO_GASTO_DATA_KEY]: ConvocatoriaConceptoGastoDataResolver
     },
     children: [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES.CONCEPTO_GASTO
+        redirectTo: CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES.DATOS_GENERALES
       },
       {
-        path: CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES.CONCEPTO_GASTO,
-        component: ConvocatoriaConceptoGastoComponent,
+        path: CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES.DATOS_GENERALES,
+        component: ConvocatoriaConceptoGastoDatosGeneralesComponent,
         canDeactivate: [FragmentGuard]
       },
       {
@@ -71,10 +70,8 @@ const routes: SgiRoutes = [
   }
 ];
 
-
 @NgModule({
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
-export class ConvocatoriaConceptoGastoRouting {
-}
+export class ConvocatoriaConceptoGastoRouting { }

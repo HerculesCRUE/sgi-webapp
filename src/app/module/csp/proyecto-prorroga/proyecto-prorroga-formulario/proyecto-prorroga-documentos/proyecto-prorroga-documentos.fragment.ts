@@ -1,6 +1,4 @@
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { IProyecto } from '@core/models/csp/proyecto';
-import { IProyectoProrroga } from '@core/models/csp/proyecto-prorroga';
 import { IProyectoProrrogaDocumento } from '@core/models/csp/proyecto-prorroga-documento';
 import { IDocumento } from '@core/models/sgdoc/documento';
 import { Fragment } from '@core/services/action-service';
@@ -35,7 +33,7 @@ export class NodeDocumento {
     this.title = title;
     this._level = level;
     if (level === 0 && !title) {
-      this.title = marker('csp.proyecto-prorroga.documentos.sinTipoDocumento.title');
+      this.title = marker('label.csp.documentos.sin-tipo-documento');
     }
 
     this.documento = documento;
@@ -90,7 +88,7 @@ export class ProyectoProrrogaDocumentosFragment extends Fragment {
     private prorrogaService: ProyectoProrrogaService,
     private prorrogaDocumentoService: ProyectoProrrogaDocumentoService,
     private documentoService: DocumentoService,
-    public proyecto: IProyecto,
+    public proyectoModeloEjecucionId: number,
     public readonly: boolean
   ) {
     super(key);
@@ -291,8 +289,8 @@ export class ProyectoProrrogaDocumentosFragment extends Fragment {
               return this.documentoService.eliminarFichero(documento.documentoRef);
             })
           );
-      }));
-
+      })
+    );
   }
 
   private updateDocumentos(nodes: NodeDocumento[]): Observable<void> {
@@ -306,7 +304,8 @@ export class ProyectoProrrogaDocumentosFragment extends Fragment {
             node.documento = new StatusWrapper<IProyectoProrrogaDocumento>(updated);
           })
         );
-      }));
+      })
+    );
   }
 
   private createDocumentos(nodes: NodeDocumento[]): Observable<void> {
@@ -315,15 +314,14 @@ export class ProyectoProrrogaDocumentosFragment extends Fragment {
     }
     return from(nodes).pipe(
       mergeMap(node => {
-        node.documento.value.proyectoProrroga = {
-          id: this.getKey() as number
-        } as IProyectoProrroga;
+        node.documento.value.proyectoProrrogaId = this.getKey() as number;
         return this.prorrogaDocumentoService.create(node.documento.value).pipe(
           map(created => {
             node.documento = new StatusWrapper<IProyectoProrrogaDocumento>(created);
           })
         );
-      }));
+      })
+    );
   }
 
   private isSaveOrUpdateComplete(nodes: NodeDocumento[]): boolean {

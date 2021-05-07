@@ -27,22 +27,22 @@ export class AppMatPaginatorIntl extends MatPaginatorIntl {
 
   private load(): void {
     this.translate.get(
-      'paginator.itemsPerPageLabel'
+      'label.page.items'
     ).subscribe((value) => this.itemsPerPageLabel = value);
     this.translate.get(
-      'paginator.nextPageLabel'
+      'label.page.next'
     ).subscribe((value) => this.nextPageLabel = value);
     this.translate.get(
-      'paginator.previousPageLabel'
+      'label.page.prev'
     ).subscribe((value) => this.previousPageLabel = value);
     this.translate.get(
-      'paginator.firstPageLabel'
+      'label.page.first'
     ).subscribe((value) => this.firstPageLabel = value);
     this.translate.get(
-      'paginator.lastPageLabel'
+      'label.page.last'
     ).subscribe((value) => this.lastPageLabel = value);
     this.translate.get(
-      'paginator.of'
+      'label.page.of'
     ).subscribe((value) => this.ofLabel = value);
   }
 }

@@ -1,6 +1,4 @@
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { IProyecto } from '@core/models/csp/proyecto';
-import { IProyectoPeriodoSeguimiento } from '@core/models/csp/proyecto-periodo-seguimiento';
 import { IProyectoPeriodoSeguimientoDocumento } from '@core/models/csp/proyecto-periodo-seguimiento-documento';
 import { IDocumento } from '@core/models/sgdoc/documento';
 import { Fragment } from '@core/services/action-service';
@@ -36,7 +34,7 @@ export class NodeDocumento {
     this._level = level;
 
     if (level === 0 && !title) {
-      this.title = marker('csp.proyecto-periodo-seguimiento.documentos.sinTipoDocumento.title');
+      this.title = marker('label.csp.documento.sin-tipo');
     }
     this.documento = documento;
     this._childs = [];
@@ -95,7 +93,6 @@ export class ProyectoPeriodoSeguimientoDocumentosFragment extends Fragment {
     private periodoSeguimientoService: ProyectoPeriodoSeguimientoService,
     private periodoSeguimientoDocumentoService: ProyectoPeriodoSeguimientoDocumentoService,
     private documentoService: DocumentoService,
-    public proyecto: IProyecto,
     public readonly
   ) {
     super(key);
@@ -310,7 +307,8 @@ export class ProyectoPeriodoSeguimientoDocumentosFragment extends Fragment {
             node.documento = new StatusWrapper<IProyectoPeriodoSeguimientoDocumento>(updated);
           })
         );
-      }));
+      })
+    );
   }
 
   private createDocumentos(nodes: NodeDocumento[]): Observable<void> {
@@ -319,15 +317,14 @@ export class ProyectoPeriodoSeguimientoDocumentosFragment extends Fragment {
     }
     return from(nodes).pipe(
       mergeMap(node => {
-        node.documento.value.proyectoPeriodoSeguimiento = {
-          id: this.getKey() as number
-        } as IProyectoPeriodoSeguimiento;
+        node.documento.value.proyectoPeriodoSeguimientoId = this.getKey() as number;
         return this.periodoSeguimientoDocumentoService.create(node.documento.value).pipe(
           map(created => {
             node.documento = new StatusWrapper<IProyectoPeriodoSeguimientoDocumento>(created);
           })
         );
-      }));
+      })
+    );
   }
 
   private isSaveOrUpdateComplete(nodes: NodeDocumento[]): boolean {

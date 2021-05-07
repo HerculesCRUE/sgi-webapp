@@ -1,27 +1,27 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { ACTA_WITH_NUM_EVALUACIONES_CONVERTER } from '@core/converters/eti/acta-with-num-evaluaciones.converter';
+import { ACTA_CONVERTER } from '@core/converters/eti/acta.converter';
 import { IActa } from '@core/models/eti/acta';
-import { IActaEvaluaciones } from '@core/models/eti/acta-evaluaciones';
+import { IActaWithNumEvaluaciones } from '@core/models/eti/acta-with-num-evaluaciones';
+import { IActaBackend } from '@core/models/eti/backend/acta-backend';
+import { IActaWithNumEvaluacionesBackend } from '@core/models/eti/backend/acta-with-num-evaluaciones-backend';
 import { environment } from '@env';
-import { SgiRestFindOptions, SgiRestService } from '@sgi/framework/http';
+import { SgiMutableRestService, SgiRestFindOptions } from '@sgi/framework/http';
 import { Observable } from 'rxjs';
-
-
-
 
 @Injectable({
   providedIn: 'root'
 })
-
-export class ActaService extends SgiRestService<number, IActa> {
+export class ActaService extends SgiMutableRestService<number, IActaBackend, IActa> {
   private static readonly MAPPING = '/actas';
-
 
   constructor(protected http: HttpClient) {
     super(
       ActaService.name,
       `${environment.serviceServers.eti}${ActaService.MAPPING}`,
-      http
+      http,
+      ACTA_CONVERTER
     );
   }
 
@@ -31,17 +31,19 @@ export class ActaService extends SgiRestService<number, IActa> {
    * @returns listado de actas.
    */
   findActivasWithEvaluaciones(options?: SgiRestFindOptions) {
-    return this.find<IActaEvaluaciones, IActaEvaluaciones>(`${this.endpointUrl}`, options);
+    return this.find<IActaWithNumEvaluacionesBackend, IActaWithNumEvaluaciones>(
+      `${this.endpointUrl}`,
+      options,
+      ACTA_WITH_NUM_EVALUACIONES_CONVERTER
+    );
   }
-
 
   /**
    * Finaliza el acta recibido por parámetro.
    * @param actaId id de acta.
    */
-  finishActa(actaId: number): Observable<IActa[]> {
-    return this.http.put<IActa[]>(`${this.endpointUrl}/${actaId}/finalizar`, null);
+  finishActa(actaId: number): Observable<void> {
+    return this.http.put<void>(`${this.endpointUrl}/${actaId}/finalizar`, null);
   }
-
 
 }

@@ -1,4 +1,5 @@
 import { IModeloTipoDocumento } from '@core/models/csp/modelo-tipo-documento';
+import { IModeloTipoFase } from '@core/models/csp/modelo-tipo-fase';
 import { IModeloEjecucion } from '@core/models/csp/tipos-configuracion';
 import { Fragment } from '@core/services/action-service';
 import { ModeloEjecucionService } from '@core/services/csp/modelo-ejecucion.service';
@@ -6,24 +7,23 @@ import { ModeloTipoDocumentoService } from '@core/services/csp/modelo-tipo-docum
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
 import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
-import { ModeloEjecucionActionService } from '../../modelo-ejecucion.action.service';
 
 export class ModeloEjecucionTipoDocumentoFragment extends Fragment {
   modeloTipoDocumento$ = new BehaviorSubject<StatusWrapper<IModeloTipoDocumento>[]>([]);
   modeloTipoDocumentoEliminados: StatusWrapper<IModeloTipoDocumento>[] = [];
 
+  modeloTipoFases: IModeloTipoFase[] = [];
+
   constructor(
     key: number,
     private modeloEjecucionService: ModeloEjecucionService,
-    private modeloTipoDocumentoService: ModeloTipoDocumentoService,
-    private modeloEjecucionActionService: ModeloEjecucionActionService
+    private modeloTipoDocumentoService: ModeloTipoDocumentoService
   ) {
     super(key);
     this.setComplete(true);
   }
 
   protected onInitialize(): void {
-    this.modeloEjecucionActionService.getFragment(this.modeloEjecucionActionService.FRAGMENT.TIPO_FASES).initialize();
     if (this.getKey()) {
       this.modeloEjecucionService.findModeloTipoDocumento(this.getKey() as number).pipe(
         map((response) => response.items)
@@ -94,7 +94,6 @@ export class ModeloEjecucionTipoDocumentoFragment extends Fragment {
     if (createdModelos.length === 0) {
       return of(void 0);
     }
-    const modeloTipoFases = this.modeloEjecucionActionService.getModeloTipoFases();
     createdModelos.forEach((wrapper) => {
       wrapper.value.modeloEjecucion = {
         id: this.getKey(),
@@ -102,7 +101,7 @@ export class ModeloEjecucionTipoDocumentoFragment extends Fragment {
       } as IModeloEjecucion;
 
       if (wrapper.value.modeloTipoFase.tipoFase != null) {
-        const fase = modeloTipoFases.find(element =>
+        const fase = this.modeloTipoFases.find(element =>
           element.tipoFase.id === wrapper.value.modeloTipoFase.tipoFase.id);
         wrapper.value.modeloTipoFase = fase;
       }

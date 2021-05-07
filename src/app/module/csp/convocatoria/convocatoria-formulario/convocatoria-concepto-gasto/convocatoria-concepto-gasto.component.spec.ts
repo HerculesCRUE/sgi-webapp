@@ -1,17 +1,17 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
-import { ConvocatoriaConceptoGastoComponent } from './convocatoria-concepto-gasto.component';
-import { MaterialDesignModule } from '@material/material-design.module';
-import TestUtils from '@core/utils/test-utils';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FlexModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { ConvocatoriaActionService } from '../../convocatoria.action.service';
-import { LoggerTestingModule } from 'ngx-logger/testing';
+import TestUtils from '@core/utils/test-utils';
+import { MaterialDesignModule } from '@material/material-design.module';
 import { SgiAuthService } from '@sgi/framework/auth';
+import { SharedModule } from '@shared/shared.module';
+import { LoggerTestingModule } from 'ngx-logger/testing';
+import { ConvocatoriaActionService } from '../../convocatoria.action.service';
+import { ConvocatoriaConceptoGastoComponent } from './convocatoria-concepto-gasto.component';
 
 describe('ConvocatoriaConceptoGastoComponent', () => {
   let component: ConvocatoriaConceptoGastoComponent;
@@ -30,6 +30,7 @@ describe('ConvocatoriaConceptoGastoComponent', () => {
         ReactiveFormsModule,
         RouterTestingModule,
         LoggerTestingModule,
+        SharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },

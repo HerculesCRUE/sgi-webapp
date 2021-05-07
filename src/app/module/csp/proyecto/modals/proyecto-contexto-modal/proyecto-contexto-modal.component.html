@@ -1,26 +1,27 @@
-<div class="modal-proyecto-contexto-area-tematica">
-  <header mat-dialog-title class="modal-header-material">
-    <h3>
-      {{'csp.proyecto.contexto.area.tematica.modal.titulo' | translate}}</h3>
-  </header>
-  <mat-dialog-content>
+<div class="sgi-dialog-header" fxLayout="row" fxLayoutGap="20px">
+  <span fxFlexAlign="center" mat-mat-dialog-title role="heading" aria-level="3" fxFlex>{{title}}</span>
+  <button fxFlex="nogrow" mat-icon-button mat-dialog-close>
+    <mat-icon class="close-icon">close</mat-icon>
+  </button>
+</div>
+<mat-dialog-content>
     <form class="form-inline" [formGroup]="formGroup">
       <div>
         <div>
           <mat-form-field class="input-form">
-            <mat-label>{{'csp.proyecto.contexto.area.tematica.listado' | translate}}</mat-label>
-            <input type="text" placeholder="{{'csp.proyecto.contexto.area.tematica.listado' | translate}}"
-              arial-label="Number" matInput formControlName="padre" [matAutocomplete]="auto" required>
+            <mat-label>{{'list.entity' | translate:msgParamEntity}}</mat-label>
+            <input type="text" placeholder="{{'list.entity' | translate:msgParamEntity}}" arial-label="Number" matInput
+              formControlName="padre" [matAutocomplete]="auto" required>
             <mat-autocomplete #auto="matAutocomplete" [displayWith]="getNombreAreaTematica">
               <mat-option *ngFor="let areaTematica of areasTematicas$ | async" [value]="areaTematica">
                 {{areaTematica.nombre}}
               </mat-option>
             </mat-autocomplete>
             <mat-error *ngIf="formGroup.controls.padre.errors?.required">
-              {{'csp.proyecto.contexto.area.tematica.listado.error.required' | translate}}
+              {{'error.required.entity' | translate:msgParamListadoEntity}}
             </mat-error>
             <mat-error *ngIf="formGroup.controls.padre.errors?.invalid">
-              {{'csp.proyecto.contexto.area.tematica.listado.error.invalid' | translate}}
+              {{'error.invalid.entity' | translate:msgParamListadoEntity}}
             </mat-error>
           </mat-form-field>
         </div>
@@ -63,10 +64,10 @@
       </div>
     </form>
   </mat-dialog-content>
-</div>
-<div id="modals-buttons" class="float-right" mat-dialog-actions>
-  <button color="accent" md-button mat-raised-button (click)="saveOrUpdate()">{{textSaveOrUpdate |
+<mat-dialog-actions>
+  <button color="accent" (click)="saveOrUpdate()" mat-raised-button type="submit">
+    <mat-icon class="save-icon">save</mat-icon>{{textSaveOrUpdate | translate}}
+  </button>
+  <button class="link-cancelar" mat-button type="button" mat-dialog-close>{{'btn.cancel' |
     translate}}</button>
-  <button class="link-cancelar" mat-button (click)="closeModal()">{{'botones.cancelar' |
-    translate}}</button>
-</div>
+</mat-dialog-actions>

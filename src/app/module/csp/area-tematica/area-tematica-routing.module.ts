@@ -3,6 +3,7 @@ import { RouterModule } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentGuard } from '@core/guards/detail-form.guard';
 import { ActionGuard } from '@core/guards/master-form.guard';
+import { MSG_PARAMS } from '@core/i18n';
 import { SgiRoutes } from '@core/route';
 import { ROUTE_NAMES } from '@core/route.names';
 import { SgiAuthGuard } from '@sgi/framework/auth';
@@ -14,9 +15,8 @@ import { AreaTematicaListadoComponent } from './area-tematica-listado/area-temat
 import { AREA_TEMATICA_ROUTE_NAMES } from './area-tematica-route-names';
 import { AreaTematicaResolver } from './area-tematica.resolver';
 
-const MSG_LISTADO_TITLE = marker('csp.area.tematica.listado.titulo');
-const MSG_NEW_TITLE = marker('csp.area.tematica.crear.titulo');
-const MSG_EDIT_TITLE = marker('csp.area.tematica.editar.titulo');
+const MSG_NEW_TITLE = marker('title.new.entity');
+const AREA_TEMATICA_KEY = marker('csp.area-tematica');
 
 const routes: SgiRoutes = [
   {
@@ -24,7 +24,8 @@ const routes: SgiRoutes = [
     component: AreaTematicaListadoComponent,
     canActivate: [SgiAuthGuard],
     data: {
-      title: MSG_LISTADO_TITLE
+      title: AREA_TEMATICA_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.PLURAL
     },
   },
   {
@@ -34,6 +35,9 @@ const routes: SgiRoutes = [
     canDeactivate: [ActionGuard],
     data: {
       title: MSG_NEW_TITLE,
+      titleParams: {
+        entity: AREA_TEMATICA_KEY, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR
+      }
     },
     children: [
       {
@@ -62,7 +66,8 @@ const routes: SgiRoutes = [
       area: AreaTematicaResolver
     },
     data: {
-      title: MSG_EDIT_TITLE,
+      title: AREA_TEMATICA_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.SINGULAR
     },
     children: [
       {

@@ -16,7 +16,7 @@ module.exports = function (config) {
       clearContext: false // leave Jasmine Spec Runner output visible in browser
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, '<%= relativePathToWorkspaceRoot %>/coverage/<%= appName%>'),
+      dir: require('path').join(__dirname, './coverage/sgi-webapp'),
       subdir: '.',
       reporters: [
         { type: 'html' },
@@ -30,14 +30,15 @@ module.exports = function (config) {
     autoWatch: true,
     browsers: ['Chrome'],
     captureTimeout: 120000,
+    browserNoActivityTimeout: 60000,
+    browserDisconnectTimeout: 60000,
+    retryLimit: 4,
     customLaunchers: {
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',
-        flags: ['--no-sandbox']
-      },
-      ChromeDebug: {
-        base: 'Chrome',
-        flags: ['--remote-debugging-port=9333']
+        flags: [
+          '--no-sandbox'
+        ]
       }
     },
     singleRun: false,

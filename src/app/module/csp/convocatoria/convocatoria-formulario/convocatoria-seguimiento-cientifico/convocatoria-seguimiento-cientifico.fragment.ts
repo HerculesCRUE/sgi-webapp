@@ -1,4 +1,4 @@
-import { IConvocatoriaSeguimientoCientifico } from '@core/models/csp/convocatoria-seguimiento-cientifico';
+import { IConvocatoriaPeriodoSeguimientoCientifico } from '@core/models/csp/convocatoria-periodo-seguimiento-cientifico';
 import { Fragment } from '@core/services/action-service';
 import { ConvocatoriaSeguimientoCientificoService } from '@core/services/csp/convocatoria-seguimiento-cientifico.service';
 import { ConvocatoriaService } from '@core/services/csp/convocatoria.service';
@@ -7,8 +7,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map, takeLast, tap } from 'rxjs/operators';
 
 export class ConvocatoriaSeguimientoCientificoFragment extends Fragment {
-  seguimientosCientificos$ = new BehaviorSubject<StatusWrapper<IConvocatoriaSeguimientoCientifico>[]>([]);
-  seguimientosCientificosEliminados: StatusWrapper<IConvocatoriaSeguimientoCientifico>[] = [];
+  seguimientosCientificos$ = new BehaviorSubject<StatusWrapper<IConvocatoriaPeriodoSeguimientoCientifico>[]>([]);
+  seguimientosCientificosEliminados: StatusWrapper<IConvocatoriaPeriodoSeguimientoCientifico>[] = [];
 
   constructor(
     key: number,
@@ -26,7 +26,7 @@ export class ConvocatoriaSeguimientoCientificoFragment extends Fragment {
         map((response) => response.items)
       ).subscribe((seguimientosCientificos) => {
         this.seguimientosCientificos$.next(seguimientosCientificos.map(
-          seguimientoCientifico => new StatusWrapper<IConvocatoriaSeguimientoCientifico>(seguimientoCientifico))
+          seguimientoCientifico => new StatusWrapper<IConvocatoriaPeriodoSeguimientoCientifico>(seguimientoCientifico))
         );
       });
     }
@@ -37,8 +37,8 @@ export class ConvocatoriaSeguimientoCientificoFragment extends Fragment {
    *
    * @param seguimientoCientifico seguimiento cientifico
    */
-  public addSeguimientoCientifico(seguimientoCientifico: IConvocatoriaSeguimientoCientifico): void {
-    const wrapped = new StatusWrapper<IConvocatoriaSeguimientoCientifico>(seguimientoCientifico);
+  public addSeguimientoCientifico(seguimientoCientifico: IConvocatoriaPeriodoSeguimientoCientifico): void {
+    const wrapped = new StatusWrapper<IConvocatoriaPeriodoSeguimientoCientifico>(seguimientoCientifico);
     wrapped.setCreated();
     const current = this.seguimientosCientificos$.value;
     current.push(wrapped);
@@ -52,10 +52,10 @@ export class ConvocatoriaSeguimientoCientificoFragment extends Fragment {
    *
    * @param seguimientoCientifico seguimiento cientifico
    */
-  public deleteSeguimientoCientifico(seguimientoCientifico: StatusWrapper<IConvocatoriaSeguimientoCientifico>): void {
+  public deleteSeguimientoCientifico(seguimientoCientifico: StatusWrapper<IConvocatoriaPeriodoSeguimientoCientifico>): void {
     const current = this.seguimientosCientificos$.value;
     const indexseguimientoCientifico = current.findIndex(
-      (value: StatusWrapper<IConvocatoriaSeguimientoCientifico>) => value === seguimientoCientifico
+      (value: StatusWrapper<IConvocatoriaPeriodoSeguimientoCientifico>) => value === seguimientoCientifico
     );
 
     if (!seguimientoCientifico.created) {
@@ -67,7 +67,6 @@ export class ConvocatoriaSeguimientoCientificoFragment extends Fragment {
     this.seguimientosCientificos$.next(current);
   }
 
-
   saveOrUpdate(): Observable<void> {
     const seguimientosCientificos = this.seguimientosCientificos$.value.map(wrapper => wrapper.value);
 
@@ -78,7 +77,7 @@ export class ConvocatoriaSeguimientoCientificoFragment extends Fragment {
           this.seguimientosCientificosEliminados = [];
           this.seguimientosCientificos$.next(
             seguimientosCientificosActualizados
-              .map(seguimientoCientifico => new StatusWrapper<IConvocatoriaSeguimientoCientifico>(seguimientoCientifico)));
+              .map(seguimientoCientifico => new StatusWrapper<IConvocatoriaPeriodoSeguimientoCientifico>(seguimientoCientifico)));
         }),
         tap(() => {
           if (this.isSaveOrUpdateComplete()) {

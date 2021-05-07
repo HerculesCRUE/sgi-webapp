@@ -5,6 +5,9 @@ import { LoggerTestingModule } from 'ngx-logger/testing';
 
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { TranslateService } from '@ngx-translate/core';
+import TestUtils from '@core/utils/test-utils';
+import { TranslateTestingModule } from 'ngx-translate-testing';
 
 describe('LayoutService', () => {
   let service: LayoutService;
@@ -14,8 +17,10 @@ describe('LayoutService', () => {
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
-        LoggerTestingModule
-      ]
+        LoggerTestingModule,
+        TestUtils.getIdiomas(),
+      ],
+
     });
     service = TestBed.inject(LayoutService);
   });

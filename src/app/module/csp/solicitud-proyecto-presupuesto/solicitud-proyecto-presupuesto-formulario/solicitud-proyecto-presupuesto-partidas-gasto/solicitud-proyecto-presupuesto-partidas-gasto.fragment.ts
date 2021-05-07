@@ -1,15 +1,12 @@
-import { Fragment } from '@core/services/action-service';
-import { BehaviorSubject, from, merge, Observable, of, Subscription } from 'rxjs';
-import { NGXLogger } from 'ngx-logger';
-import { map, mergeMap, switchMap, takeLast, tap } from 'rxjs/operators';
-import { IEntidadFinanciadora } from '@core/models/csp/entidad-financiadora';
-import { StatusWrapper } from '@core/utils/status-wrapper';
 import { ISolicitudProyectoPresupuesto } from '@core/models/csp/solicitud-proyecto-presupuesto';
-import { SolicitudService } from '@core/services/csp/solicitud.service';
-import { SolicitudProyectoPresupuestoService } from '@core/services/csp/solicitud-proyecto-presupuesto.service';
-import { ISolicitudProyectoDatos } from '@core/models/csp/solicitud-proyecto-datos';
 import { ISolicitudProyectoPresupuestoTotalConceptoGasto } from '@core/models/csp/solicitud-proyecto-presupuesto-total-concepto-gasto';
-
+import { IEmpresa } from '@core/models/sgemp/empresa';
+import { Fragment } from '@core/services/action-service';
+import { SolicitudProyectoPresupuestoService } from '@core/services/csp/solicitud-proyecto-presupuesto.service';
+import { SolicitudService } from '@core/services/csp/solicitud.service';
+import { StatusWrapper } from '@core/utils/status-wrapper';
+import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
+import { map, mergeMap, switchMap, takeLast, tap } from 'rxjs/operators';
 
 export interface SolicitudProyectoPresupuestoListado {
   partidaGasto: StatusWrapper<ISolicitudProyectoPresupuesto>;
@@ -19,70 +16,70 @@ export interface SolicitudProyectoPresupuestoListado {
 }
 
 export class SolicitudProyectoPresupuestoPartidasGastoFragment extends Fragment {
-  entidadFinanciadora: IEntidadFinanciadora;
-  isEntidadFinanciadoraConvocatoria: boolean;
-  convocatoriaId: number;
 
   partidasGastos$ = new BehaviorSubject<SolicitudProyectoPresupuestoListado[]>([]);
   private partidasGastosEliminadas: StatusWrapper<ISolicitudProyectoPresupuesto>[] = [];
   private solicitudProyectoPresupuestoTotalesConceptoGasto: ISolicitudProyectoPresupuestoTotalConceptoGasto[];
+  public convocatoriaId: number;
 
   constructor(
-    private readonly logger: NGXLogger,
-    private solicitudId: number,
-    entidadFinanciadora: IEntidadFinanciadora,
-    isEntidadFinanciadoraConvocatoria: boolean,
-    convocatoriaId: number,
+    solicitudId: number,
+    private empresa: IEmpresa,
+    private readonly ajena: boolean,
     private solicitudService: SolicitudService,
     private solicitudProyectoPresupuestoService: SolicitudProyectoPresupuestoService,
     public readonly: boolean
   ) {
     super(solicitudId);
-    this.entidadFinanciadora = entidadFinanciadora;
-    this.isEntidadFinanciadoraConvocatoria = isEntidadFinanciadoraConvocatoria;
-    this.convocatoriaId = convocatoriaId;
   }
 
   protected onInitialize(): void {
-    const subscription =
-      this.solicitudService.findAllSolicitudProyectoPresupuestoTotalesConceptoGasto(this.solicitudId).pipe(
-        map((result) => result.items),
-        switchMap((solicitudProyectoPresupuestoTotalesConceptoGasto) => {
-          this.solicitudProyectoPresupuestoTotalesConceptoGasto = solicitudProyectoPresupuestoTotalesConceptoGasto;
+    const key = this.getKey() as number;
+    const subscription = this.solicitudService.findById(key).pipe(
+      map(solicitud => {
+        this.convocatoriaId = solicitud?.convocatoriaId;
+      }),
+      switchMap(() => {
+        return this.solicitudService.findAllSolicitudProyectoPresupuestoTotalesConceptoGasto(key).pipe(
+          map((result) => result.items),
+          switchMap((solicitudProyectoPresupuestoTotalesConceptoGasto) => {
+            this.solicitudProyectoPresupuestoTotalesConceptoGasto = solicitudProyectoPresupuestoTotalesConceptoGasto;
 
-          const observable$ = this.isEntidadFinanciadoraConvocatoria ?
-            this.solicitudService.findAllSolicitudProyectoPresupuestoEntidadConvocatoria(this.solicitudId, this.entidadFinanciadora.empresa.personaRef) :
-            this.solicitudService.findAllSolicitudProyectoPresupuestoEntidadAjena(this.solicitudId, this.entidadFinanciadora.empresa.personaRef);
-          return observable$
-            .pipe(
-              map((result) => result.items),
-              switchMap((solicitudProyectoPresupuestos) =>
-                from(solicitudProyectoPresupuestos)
-                  .pipe(
-                    map(() => {
-                      return solicitudProyectoPresupuestos
-                        .map((element, index) => {
-                          element.empresa = this.entidadFinanciadora.empresa;
+            const observable$ = !this.ajena ?
+              this.solicitudService.findAllSolicitudProyectoPresupuestoEntidadConvocatoria(key, this.empresa.id) :
+              this.solicitudService.findAllSolicitudProyectoPresupuestoEntidadAjena(key, this.empresa.id);
+            return observable$
+              .pipe(
+                map((result) => result.items),
+                switchMap((solicitudProyectoPresupuestos) =>
+                  from(solicitudProyectoPresupuestos)
+                    .pipe(
+                      map(() => {
+                        return solicitudProyectoPresupuestos
+                          .map((element, index) => {
+                            element.empresa = this.empresa;
 
-                          return {
-                            partidaGasto: new StatusWrapper<ISolicitudProyectoPresupuesto>(element),
-                            importeSolicitadoPrevio: element.importeSolicitado,
-                            importeTotalConceptoGasto: solicitudProyectoPresupuestoTotalesConceptoGasto
-                              .find(concepto => concepto.conceptoGasto.id === element.conceptoGasto.id)?.importeTotal,
-                            index
-                          } as SolicitudProyectoPresupuestoListado
-                        });
-                    })
-                  )
-              ),
-              takeLast(1)
-            )
-        })
-      ).subscribe(
-        (solicitudProyectoPresupuestos) => {
-          this.partidasGastos$.next(solicitudProyectoPresupuestos);
-        }
-      );
+                            return {
+                              partidaGasto: new StatusWrapper<ISolicitudProyectoPresupuesto>(element),
+                              importeSolicitadoPrevio: element.importeSolicitado,
+                              importeTotalConceptoGasto: solicitudProyectoPresupuestoTotalesConceptoGasto
+                                .find(concepto => concepto.conceptoGasto.id === element.conceptoGasto.id)?.importeTotal,
+                              index
+                            } as SolicitudProyectoPresupuestoListado;
+                          });
+                      })
+                    )
+                ),
+                takeLast(1)
+              );
+          })
+        );
+      })
+    ).subscribe(
+      (solicitudProyectoPresupuestos) => {
+        this.partidasGastos$.next(solicitudProyectoPresupuestos);
+      }
+    );
     this.subscriptions.push(subscription);
   }
 
@@ -100,7 +97,6 @@ export class SolicitudProyectoPresupuestoPartidasGastoFragment extends Fragment 
       })
     );
   }
-
 
   /**
    * Elimina la partida de gasto y la marca como eliminada si ya existia previamente.
@@ -122,7 +118,7 @@ export class SolicitudProyectoPresupuestoPartidasGastoFragment extends Fragment 
       current
         .filter(value => value.partidaGasto.value.conceptoGasto.id === wrapper.partidaGasto.value.conceptoGasto.id)
         .map(value => {
-          value.importeTotalConceptoGasto = solicitudProyectoPresupuestoTotalesConceptoGasto?.importeTotal
+          value.importeTotalConceptoGasto = solicitudProyectoPresupuestoTotalesConceptoGasto?.importeTotal;
         });
 
       current.splice(index, 1);
@@ -133,8 +129,8 @@ export class SolicitudProyectoPresupuestoPartidasGastoFragment extends Fragment 
   }
 
   public addPartidaGasto(partidaGasto: ISolicitudProyectoPresupuesto) {
-    partidaGasto.empresa = this.entidadFinanciadora.empresa;
-    partidaGasto.financiacionAjena = !this.isEntidadFinanciadoraConvocatoria;
+    partidaGasto.empresa = this.empresa;
+    partidaGasto.financiacionAjena = this.ajena;
 
     const wrapped = new StatusWrapper<ISolicitudProyectoPresupuesto>(partidaGasto);
     wrapped.setCreated();
@@ -158,7 +154,7 @@ export class SolicitudProyectoPresupuestoPartidasGastoFragment extends Fragment 
       partidaGasto: wrapped,
       importeSolicitadoPrevio: partidaGasto.importeSolicitado,
       importeTotalConceptoGasto: importeTotalconceptoGasto,
-      index: current.reduce((prev, current) => ((prev.index > current.index) ? prev : current), { index: 0 }).index + 1
+      index: current.reduce((prev, acu) => ((prev.index > acu.index) ? prev : acu), { index: 0 }).index + 1
     } as SolicitudProyectoPresupuestoListado;
 
     current.push(solicitudProyectoPresupuestoListado);
@@ -198,9 +194,11 @@ export class SolicitudProyectoPresupuestoPartidasGastoFragment extends Fragment 
 
       // Actualiza el importe total de todos las partidas de gasto con el mismo concepto de gasto
       current
-        .filter(value => value.partidaGasto.value.conceptoGasto.id === solicitudProyectoPresupuestoListado.partidaGasto.value.conceptoGasto.id)
+        .filter(value =>
+          value.partidaGasto.value.conceptoGasto.id === solicitudProyectoPresupuestoListado.partidaGasto.value.conceptoGasto.id
+        )
         .map(value => {
-          value.importeTotalConceptoGasto = importeTotalconceptoGasto
+          value.importeTotalConceptoGasto = importeTotalconceptoGasto;
         });
     }
   }
@@ -234,7 +232,7 @@ export class SolicitudProyectoPresupuestoPartidasGastoFragment extends Fragment 
       current
         .filter(value => value.partidaGasto.value.conceptoGasto.id === wrapper.value.conceptoGasto.id)
         .map(value => {
-          value.importeTotalConceptoGasto = importeTotalconceptoGasto
+          value.importeTotalConceptoGasto = importeTotalconceptoGasto;
         });
     }
   }
@@ -285,28 +283,25 @@ export class SolicitudProyectoPresupuestoPartidasGastoFragment extends Fragment 
   }
 
   private createSolicitudProyectoPresupuestos(): Observable<void> {
-    const createdSolicitudProyectoPresupuestos = this.partidasGastos$.value.filter((solicitudProyectoPresupuesto) => solicitudProyectoPresupuesto.partidaGasto.created);
+    const createdSolicitudProyectoPresupuestos = this.partidasGastos$.value.filter(
+      (solicitudProyectoPresupuesto) => solicitudProyectoPresupuesto.partidaGasto.created
+    );
     if (createdSolicitudProyectoPresupuestos.length === 0) {
       return of(void 0);
     }
-    const id = this.getKey() as number;
 
-    return this.solicitudService.findSolicitudProyectoDatos(id).pipe(
-      switchMap(solicitudProyectoDatos => {
-        return from(createdSolicitudProyectoPresupuestos).pipe(
-          mergeMap((wrapped) => {
-            const solicitudProyectoPresupuesto = wrapped.partidaGasto.value;
-            solicitudProyectoPresupuesto.solicitudProyectoDatos = { id: solicitudProyectoDatos.id } as ISolicitudProyectoDatos;
-            return this.solicitudProyectoPresupuestoService.create(solicitudProyectoPresupuesto).pipe(
-              map((updated) => {
-                const index = this.partidasGastos$.value.findIndex((current) => current === wrapped);
-                this.partidasGastos$.value[index].partidaGasto = new StatusWrapper<ISolicitudProyectoPresupuesto>(updated);
-              })
-            );
-          }),
-          takeLast(1)
+    return from(createdSolicitudProyectoPresupuestos).pipe(
+      mergeMap((wrapped) => {
+        const solicitudProyectoPresupuesto = wrapped.partidaGasto.value;
+        solicitudProyectoPresupuesto.solicitudProyectoId = this.getKey() as number;
+        return this.solicitudProyectoPresupuestoService.create(solicitudProyectoPresupuesto).pipe(
+          map((updated) => {
+            const index = this.partidasGastos$.value.findIndex((current) => current === wrapped);
+            this.partidasGastos$.value[index].partidaGasto = new StatusWrapper<ISolicitudProyectoPresupuesto>(updated);
+          })
         );
-      })
+      }),
+      takeLast(1)
     );
   }
 
@@ -314,7 +309,5 @@ export class SolicitudProyectoPresupuestoPartidasGastoFragment extends Fragment 
     const touched: boolean = this.partidasGastos$.value.some((wrapper) => wrapper.partidaGasto.touched);
     return !(this.partidasGastosEliminadas.length > 0 || touched);
   }
-
-
 
 }

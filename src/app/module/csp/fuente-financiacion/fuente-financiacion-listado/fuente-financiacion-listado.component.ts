@@ -3,6 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IFuenteFinanciacion } from '@core/models/csp/fuente-financiacion';
 import { ITipoAmbitoGeografico } from '@core/models/csp/tipo-ambito-geografico';
 import { ITipoOrigenFuenteFinanciacion } from '@core/models/csp/tipo-origen-fuente-financiacion';
@@ -13,7 +14,7 @@ import { TipoAmbitoGeograficoService } from '@core/services/csp/tipo-ambito-geog
 import { TipoOrigenFuenteFinanciacionService } from '@core/services/csp/tipo-origen-fuente-financiacion.service';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
+import { TranslateService } from '@ngx-translate/core';
 import { SgiAuthService } from '@sgi/framework/auth';
 import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
@@ -21,19 +22,18 @@ import { Observable, of } from 'rxjs';
 import { map, startWith, switchMap } from 'rxjs/operators';
 import { FuenteFinanciacionModalComponent } from '../fuente-financiacion-modal/fuente-financiacion-modal.component';
 
-const MSG_ERROR = marker('csp.fuenteFinanciacion.listado.error');
-const MSG_DEACTIVATE = marker('csp.fuenteFinanciacion.desactivar');
-const MSG_SUCCESS_DEACTIVATE = marker('csp.fuenteFinanciacion.desactivar.correcto');
-const MSG_ERROR_DEACTIVATE = marker('csp.fuenteFinanciacion.desactivar.error');
-const MSG_REACTIVE = marker('csp.fuenteFinanciacion.reactivar');
-const MSG_SUCCESS_REACTIVE = marker('csp.fuenteFinanciacion.reactivar.correcto');
-const MSG_ERROR_REACTIVE = marker('csp.fuenteFinanciacion.reactivar.error');
-const MSG_ERROR_INIT = marker('csp.fuenteFinanciacion.datos.generales.error.cargar');
-const MSG_ERROR_SAVE = marker('csp.fuenteFinanciacion.añadir.error');
-const MSG_ERROR_UPDATE = marker('csp.fuenteFinanciacion.actualizar.error');
-const MSG_SAVE = marker('csp.fuenteFinanciacion.añadir');
-const MSG_UPDATE = marker('csp.fuenteFinanciacion.actualizar');
-
+const MSG_ERROR = marker('error.load');
+const MSG_SAVE_SUCCESS = marker('msg.save.entity.success');
+const MSG_SAVE_ERROR = marker('error.save.entity');
+const MSG_UPDATE_ERROR = marker('error.update.entity');
+const MSG_UPDATE_SUCCESS = marker('msg.update.entity.success');
+const MSG_REACTIVE = marker('msg.csp.reactivate');
+const MSG_SUCCESS_REACTIVE = marker('msg.reactivate.entity.success');
+const MSG_ERROR_REACTIVE = marker('error.reactivate.entity');
+const MSG_DEACTIVATE = marker('msg.deactivate.entity');
+const MSG_ERROR_DEACTIVATE = marker('error.csp.deactivate.entity');
+const MSG_SUCCESS_DEACTIVATE = marker('msg.csp.deactivate.success');
+const FUENTE_FINANCIACION_KEY = marker('csp.fuente-financiacion');
 @Component({
   selector: 'sgi-fuente-financiacion-listado',
   templateUrl: './fuente-financiacion-listado.component.html',
@@ -50,6 +50,19 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
   private ambitoGeograficoFiltered: ITipoAmbitoGeografico[];
   private origenFiltered: ITipoOrigenFuenteFinanciacion[];
 
+  msgParamEntity = {};
+
+  textoCrearSuccess: string;
+  textoCrearError: string;
+  textoUpdateSuccess: string;
+  textoUpdateError: string;
+  textoDesactivar: string;
+  textoReactivar: string;
+  textoErrorDesactivar: string;
+  textoSuccessDesactivar: string;
+  textoSuccessReactivar: string;
+  textoErrorReactivar: string;
+
   constructor(
     private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
@@ -58,7 +71,8 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
     private tipoOrigenFuenteFinanciacionService: TipoOrigenFuenteFinanciacionService,
     private matDialog: MatDialog,
     public authService: SgiAuthService,
-    private readonly dialogService: DialogService
+    private readonly dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
@@ -75,6 +89,7 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.formGroup = new FormGroup({
       nombre: new FormControl(''),
       ambitoGeografico: new FormControl(''),
@@ -84,6 +99,137 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
     this.filter = this.createFilter();
     this.loadAmbitosGeograficos();
     this.loadOrigenes();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      FUENTE_FINANCIACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+
+    this.translate.get(
+      FUENTE_FINANCIACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SAVE_SUCCESS,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoCrearSuccess = value);
+
+    this.translate.get(
+      FUENTE_FINANCIACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SAVE_ERROR,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoCrearError = value);
+
+    this.translate.get(
+      FUENTE_FINANCIACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_UPDATE_SUCCESS,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoUpdateSuccess = value);
+
+    this.translate.get(
+      FUENTE_FINANCIACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_UPDATE_ERROR,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoUpdateError = value);
+
+    this.translate.get(
+      FUENTE_FINANCIACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoDesactivar = value);
+
+    this.translate.get(
+      FUENTE_FINANCIACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoErrorDesactivar = value);
+
+    this.translate.get(
+      FUENTE_FINANCIACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoSuccessDesactivar = value);
+
+
+    this.translate.get(
+      FUENTE_FINANCIACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoReactivar = value);
+
+    this.translate.get(
+      FUENTE_FINANCIACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoSuccessReactivar = value);
+
+
+    this.translate.get(
+      FUENTE_FINANCIACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoErrorReactivar = value);
+
   }
 
   protected createObservable(): Observable<SgiRestListResult<IFuenteFinanciacion>> {
@@ -141,7 +287,7 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_INIT);
+          this.snackBarService.showError(MSG_ERROR);
         }
       )
     );
@@ -161,7 +307,7 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_INIT);
+          this.snackBarService.showError(MSG_ERROR);
         }
       )
     );
@@ -213,8 +359,7 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
    */
   openModal(fuenteFinanciacion?: IFuenteFinanciacion): void {
     const config = {
-      width: GLOBAL_CONSTANTS.widthModalCSP,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
+      panelClass: 'sgi-dialog-container',
       data: fuenteFinanciacion
     };
     const dialogRef = this.matDialog.open(FuenteFinanciacionModalComponent, config);
@@ -226,12 +371,12 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
 
           subscription.subscribe(
             () => {
-              this.snackBarService.showSuccess(fuenteFinanciacion ? MSG_UPDATE : MSG_SAVE);
+              this.snackBarService.showSuccess(fuenteFinanciacion ? this.textoUpdateSuccess : this.textoCrearSuccess);
               this.loadTable();
             },
             (error) => {
               this.logger.error(error);
-              this.snackBarService.showError(fuenteFinanciacion ? MSG_ERROR_UPDATE : MSG_ERROR_SAVE);
+              this.snackBarService.showError(fuenteFinanciacion ? this.textoUpdateError : this.textoCrearSuccess);
             }
           );
         }
@@ -243,7 +388,7 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
    * @param fuenteFinanciacion  Fuente de Financiación.
    */
   deactivateFuenteFinanciacion(fuenteFinanciacion: IFuenteFinanciacion): void {
-    const subcription = this.dialogService.showConfirmation(MSG_DEACTIVATE)
+    const subcription = this.dialogService.showConfirmation(this.textoDesactivar)
       .pipe(switchMap((accept) => {
         if (accept) {
           return this.fuenteFinanciacionService.desactivar(fuenteFinanciacion.id);
@@ -252,12 +397,12 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
         }
       })).subscribe(
         () => {
-          this.snackBarService.showSuccess(MSG_SUCCESS_DEACTIVATE);
+          this.snackBarService.showSuccess(this.textoSuccessDesactivar);
           this.loadTable();
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_DEACTIVATE);
+          this.snackBarService.showError(this.textoErrorDesactivar);
         }
       );
     this.suscripciones.push(subcription);
@@ -268,7 +413,7 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
    * @param fuenteFinanciacion  Fuente de Financiación.
    */
   activateFuenteFinanciacion(fuenteFinanciacion: IFuenteFinanciacion): void {
-    const subcription = this.dialogService.showConfirmation(MSG_REACTIVE)
+    const subcription = this.dialogService.showConfirmation(this.textoReactivar)
       .pipe(switchMap((accept) => {
         if (accept) {
           return this.fuenteFinanciacionService.reactivar(fuenteFinanciacion.id);
@@ -277,12 +422,12 @@ export class FuenteFinanciacionListadoComponent extends AbstractTablePaginationC
         }
       })).subscribe(
         () => {
-          this.snackBarService.showSuccess(MSG_SUCCESS_REACTIVE);
+          this.snackBarService.showSuccess(this.textoSuccessReactivar);
           this.loadTable();
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_REACTIVE);
+          this.snackBarService.showError(this.textoErrorReactivar);
         }
       );
     this.suscripciones.push(subcription);

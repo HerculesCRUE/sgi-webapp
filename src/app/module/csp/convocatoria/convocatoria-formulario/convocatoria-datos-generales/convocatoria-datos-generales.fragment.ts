@@ -1,20 +1,17 @@
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { IAreaTematica } from '@core/models/csp/area-tematica';
-import { Destinatarios, Estado, IConvocatoria } from '@core/models/csp/convocatoria';
+import { Estado, IConvocatoria } from '@core/models/csp/convocatoria';
 import { IConvocatoriaAreaTematica } from '@core/models/csp/convocatoria-area-tematica';
 import { IConvocatoriaEntidadGestora } from '@core/models/csp/convocatoria-entidad-gestora';
-import { IEmpresaEconomica } from '@core/models/sgp/empresa-economica';
-import { IUnidadGestion } from '@core/models/usr/unidad-gestion';
+import { IModeloEjecucion } from '@core/models/csp/tipos-configuracion';
+import { IEmpresa } from '@core/models/sgemp/empresa';
 import { FormFragment } from '@core/services/action-service';
 import { ConvocatoriaAreaTematicaService } from '@core/services/csp/convocatoria-area-tematica.service';
 import { ConvocatoriaEntidadGestoraService } from '@core/services/csp/convocatoria-entidad-gestora.service';
 import { ConvocatoriaService } from '@core/services/csp/convocatoria.service';
 import { UnidadGestionService } from '@core/services/csp/unidad-gestion.service';
-import { EmpresaEconomicaService } from '@core/services/sgp/empresa-economica.service';
+import { EmpresaService } from '@core/services/sgemp/empresa.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { IsEntityValidator } from '@core/validators/is-entity-validador';
-import { IsYearPlus } from '@core/validators/is-year-plus';
-import { RSQLSgiRestFilter, SgiRestFilterOperator, SgiRestFindOptions } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject, EMPTY, from, merge, Observable, of, Subject } from 'rxjs';
 import { catchError, map, mergeMap, switchMap, takeLast, tap } from 'rxjs/operators';
@@ -26,19 +23,19 @@ export interface AreaTematicaData {
 }
 
 export class ConvocatoriaDatosGeneralesFragment extends FormFragment<IConvocatoria> {
-  areasTematicas$ = new BehaviorSubject<AreaTematicaData[]>([]);
+  readonly areasTematicas$ = new BehaviorSubject<AreaTematicaData[]>([]);
   private convocatoriaAreaTematicaEliminadas: StatusWrapper<IConvocatoriaAreaTematica>[] = [];
 
-  convocatoria: IConvocatoria;
+  private convocatoria: IConvocatoria;
   private convocatoriaEntidadGestora: IConvocatoriaEntidadGestora;
 
-  destinatariosValue$: Subject<Destinatarios> = new Subject<Destinatarios>();
+  readonly modeloEjecucion$: Subject<IModeloEjecucion> = new BehaviorSubject<IModeloEjecucion>(null);
 
   constructor(
     private readonly logger: NGXLogger,
     key: number,
     private convocatoriaService: ConvocatoriaService,
-    private empresaEconomicaService: EmpresaEconomicaService,
+    private empresaService: EmpresaService,
     private convocatoriaEntidadGestoraService: ConvocatoriaEntidadGestoraService,
     private unidadGestionService: UnidadGestionService,
     private convocatoriaAreaTematicaService: ConvocatoriaAreaTematicaService,
@@ -55,44 +52,30 @@ export class ConvocatoriaDatosGeneralesFragment extends FormFragment<IConvocator
 
   protected buildFormGroup(): FormGroup {
     const form = new FormGroup({
-      codigo: new FormControl('', [
-        Validators.required, Validators.maxLength(50)]),
-      estado: new FormControl({
-        value: Estado.BORRADOR,
-        disabled: true
-      }),
-      unidadGestion: new FormControl('', [
-        Validators.required, IsEntityValidator.isValid()]),
-      anio: new FormControl(new Date().getFullYear(), [
-        Validators.required,
-        Validators.min(1000),
-        Validators.max(9999),
-        IsYearPlus.isValid(1)
-      ]),
-      titulo: new FormControl('', [
-        Validators.required, Validators.maxLength(250)]),
-      modeloEjecucion: new FormControl(''),
-      finalidad: new FormControl(''),
-      duracion: new FormControl('', [
-        Validators.min(1), Validators.max(9999)]),
-      ambitoGeografico: new FormControl(''),
+      codigo: new FormControl('', Validators.maxLength(50)),
+      unidadGestion: new FormControl(null, Validators.required),
+      fechaPublicacion: new FormControl(null, Validators.required),
+      fechaProvisional: new FormControl(null),
+      fechaConcesion: new FormControl(null),
+      titulo: new FormControl('', [Validators.required, Validators.maxLength(250)]),
+      modeloEjecucion: new FormControl(null),
+      finalidad: new FormControl(null),
+      duracion: new FormControl('', [Validators.min(1), Validators.max(9999)]),
+      ambitoGeografico: new FormControl(null),
       clasificacionCVN: new FormControl(null),
-      regimenConcurrencia: new FormControl(''),
+      regimenConcurrencia: new FormControl(null),
       colaborativos: new FormControl(null),
-      destinatarios: new FormControl(null),
-      entidadGestora: new FormControl(''),
-      objeto: new FormControl('',
-        Validators.maxLength(2000)),
-      observaciones: new FormControl('',
-        Validators.maxLength(2000))
+      entidadGestora: new FormControl(null),
+      objeto: new FormControl('', Validators.maxLength(2000)),
+      observaciones: new FormControl('', Validators.maxLength(2000))
     });
     if (this.readonly) {
       form.disable();
     }
 
     this.subscriptions.push(
-      form.controls.destinatarios.valueChanges.subscribe((value) => {
-        this.destinatariosValue$.next(value);
+      form.controls.modeloEjecucion.valueChanges.subscribe((value) => {
+        this.modeloEjecucion$.next(value);
       })
     );
 
@@ -101,18 +84,20 @@ export class ConvocatoriaDatosGeneralesFragment extends FormFragment<IConvocator
   }
 
   buildPatch(convocatoria: IConvocatoria): { [key: string]: any } {
+    this.convocatoria = convocatoria;
     const result = {
       modeloEjecucion: convocatoria.modeloEjecucion,
+      unidadGestion: convocatoria.unidadGestion,
       codigo: convocatoria.codigo,
-      anio: convocatoria.anio,
+      fechaPublicacion: convocatoria.fechaPublicacion,
+      fechaProvisional: convocatoria.fechaProvisional,
+      fechaConcesion: convocatoria.fechaConcesion,
       titulo: convocatoria.titulo,
       objeto: convocatoria.objeto,
       observaciones: convocatoria.observaciones,
       finalidad: convocatoria.finalidad,
       regimenConcurrencia: convocatoria.regimenConcurrencia,
-      destinatarios: convocatoria.destinatarios,
       colaborativos: convocatoria.colaborativos,
-      estado: convocatoria.estado,
       duracion: convocatoria.duracion,
       ambitoGeografico: convocatoria.ambitoGeografico,
       clasificacionCVN: convocatoria.clasificacionCVN,
@@ -127,15 +112,13 @@ export class ConvocatoriaDatosGeneralesFragment extends FormFragment<IConvocator
    */
   private checkEstado(formgroup: FormGroup, convocatoria: IConvocatoria): void {
     if (convocatoria.estado === Estado.BORRADOR) {
-      formgroup.get('modeloEjecucion').setValidators(IsEntityValidator.isValid());
-      formgroup.get('finalidad').setValidators(IsEntityValidator.isValid());
-      formgroup.get('ambitoGeografico').setValidators(IsEntityValidator.isValid());
+      formgroup.get('modeloEjecucion').clearValidators();
+      formgroup.get('finalidad').clearValidators();
+      formgroup.get('ambitoGeografico').clearValidators();
     } else {
-      formgroup.get('modeloEjecucion').setValidators([
-        Validators.required, IsEntityValidator.isValid()]);
-      formgroup.get('finalidad').setValidators([Validators.required, IsEntityValidator.isValid()]);
-      formgroup.get('ambitoGeografico').setValidators([
-        Validators.required, IsEntityValidator.isValid()]);
+      formgroup.get('modeloEjecucion').setValidators(Validators.required);
+      formgroup.get('finalidad').setValidators(Validators.required);
+      formgroup.get('ambitoGeografico').setValidators(Validators.required);
     }
   }
 
@@ -145,12 +128,11 @@ export class ConvocatoriaDatosGeneralesFragment extends FormFragment<IConvocator
 
   protected initializer(key: number): Observable<IConvocatoria> {
     return this.convocatoriaService.findById(key).pipe(
-      switchMap((value) => {
-        this.convocatoria = value;
-        return this.getUnidadGestion(value.unidadGestionRef).pipe(
+      switchMap((convocatoria) => {
+        return this.unidadGestionService.findByAcronimo(convocatoria.unidadGestion.acronimo).pipe(
           map(unidadGestion => {
-            this.getFormGroup().get('unidadGestion').setValue(unidadGestion);
-            return value;
+            convocatoria.unidadGestion = unidadGestion;
+            return convocatoria;
           })
         );
       }),
@@ -160,9 +142,9 @@ export class ConvocatoriaDatosGeneralesFragment extends FormFragment<IConvocator
             const convocatoriasEntidadGestoras = listResult.items;
             if (convocatoriasEntidadGestoras.length > 0) {
               this.convocatoriaEntidadGestora = convocatoriasEntidadGestoras[0];
-              return this.empresaEconomicaService.findById(this.convocatoriaEntidadGestora.empresaEconomica.personaRef).pipe(
-                map((empresaEconomica) => {
-                  this.getFormGroup().get('entidadGestora').setValue(empresaEconomica);
+              return this.empresaService.findById(this.convocatoriaEntidadGestora.empresa.id).pipe(
+                map((empresa) => {
+                  this.getFormGroup().get('entidadGestora').setValue(empresa);
                   return convocatoria;
                 })
               );
@@ -188,22 +170,6 @@ export class ConvocatoriaDatosGeneralesFragment extends FormFragment<IConvocator
       catchError((error) => {
         this.logger.error(error);
         return EMPTY;
-      })
-    );
-  }
-
-  private getUnidadGestion(unidadGestionRef: string): Observable<IUnidadGestion> {
-    const options: SgiRestFindOptions = {
-      filter: new RSQLSgiRestFilter('acronimo', SgiRestFilterOperator.EQUALS, unidadGestionRef)
-    };
-    return this.unidadGestionService.findAll(options).pipe(
-      map(list => {
-        if (list.items.length === 1) {
-          return list.items[0];
-        }
-        else {
-          return undefined;
-        }
       })
     );
   }
@@ -255,35 +221,20 @@ export class ConvocatoriaDatosGeneralesFragment extends FormFragment<IConvocator
 
   getValue(): IConvocatoria {
     const form = this.getFormGroup().controls;
-    this.convocatoria.unidadGestionRef = form.unidadGestion.value?.acronimo;
-    if (typeof form.modeloEjecucion.value === 'string') {
-      this.convocatoria.modeloEjecucion = undefined;
-    } else {
-      this.convocatoria.modeloEjecucion = form.modeloEjecucion.value;
-    }
+    this.convocatoria.unidadGestion = form.unidadGestion.value;
+    this.convocatoria.modeloEjecucion = form.modeloEjecucion.value;
     this.convocatoria.codigo = form.codigo.value;
-    this.convocatoria.anio = form.anio.value;
+    this.convocatoria.fechaPublicacion = form.fechaPublicacion.value;
+    this.convocatoria.fechaProvisional = form.fechaProvisional.value;
+    this.convocatoria.fechaConcesion = form.fechaConcesion.value;
     this.convocatoria.titulo = form.titulo.value;
     this.convocatoria.objeto = form.objeto.value;
     this.convocatoria.observaciones = form.observaciones.value;
-    if (typeof form.finalidad.value === 'string') {
-      this.convocatoria.finalidad = undefined;
-    } else {
-      this.convocatoria.finalidad = form.finalidad.value;
-    }
-    if (typeof form.regimenConcurrencia.value === 'string') {
-      this.convocatoria.regimenConcurrencia = undefined;
-    } else {
-      this.convocatoria.regimenConcurrencia = form.regimenConcurrencia.value;
-    }
-    this.convocatoria.destinatarios = form.destinatarios.value;
+    this.convocatoria.finalidad = form.finalidad.value;
+    this.convocatoria.regimenConcurrencia = form.regimenConcurrencia.value;
     this.convocatoria.colaborativos = form.colaborativos.value;
     this.convocatoria.duracion = form.duracion.value;
-    if (typeof form.ambitoGeografico.value === 'string') {
-      this.convocatoria.ambitoGeografico = undefined;
-    } else {
-      this.convocatoria.ambitoGeografico = form.ambitoGeografico.value;
-    }
+    this.convocatoria.ambitoGeografico = form.ambitoGeografico.value;
     this.convocatoria.clasificacionCVN = form.clasificacionCVN.value;
 
     return this.convocatoria;
@@ -319,10 +270,10 @@ export class ConvocatoriaDatosGeneralesFragment extends FormFragment<IConvocator
 
   private saveOrUpdateConvocatoriaEntidadGestora(result: IConvocatoria): Observable<IConvocatoria> {
     let observable$: Observable<any>;
-    const entidadRef = this.getFormGroup().controls.entidadGestora.value?.personaRef;
-    this.convocatoriaEntidadGestora.convocatoria = result;
-    if (entidadRef !== this.convocatoriaEntidadGestora.empresaEconomica?.personaRef) {
-      if (!entidadRef) {
+    const empresaId = this.getFormGroup().controls.entidadGestora.value?.id;
+    this.convocatoriaEntidadGestora.convocatoriaId = result.id;
+    if (empresaId !== this.convocatoriaEntidadGestora.empresa?.id) {
+      if (!empresaId) {
         observable$ = this.deleteConvocatoriaEntidadGestora();
       }
       else {
@@ -337,33 +288,33 @@ export class ConvocatoriaDatosGeneralesFragment extends FormFragment<IConvocator
   }
 
   private createConvocatoriaEntidadGestora(): Observable<IConvocatoriaEntidadGestora> {
-    this.convocatoriaEntidadGestora.empresaEconomica = this.getFormGroup().controls.entidadGestora.value;
+    this.convocatoriaEntidadGestora.empresa = this.getFormGroup().controls.entidadGestora.value;
     return this.convocatoriaEntidadGestoraService.create(this.convocatoriaEntidadGestora).pipe(
       tap(result => {
         this.convocatoriaEntidadGestora = result;
-        this.convocatoriaEntidadGestora.empresaEconomica = this.getFormGroup().controls.entidadGestora.value;
+        this.convocatoriaEntidadGestora.empresa = this.getFormGroup().controls.entidadGestora.value;
       })
     );
   }
 
   private updateConvocatoriaEntidadGestora(): Observable<IConvocatoriaEntidadGestora> {
-    this.convocatoriaEntidadGestora.empresaEconomica = this.getFormGroup().controls.entidadGestora.value;
+    this.convocatoriaEntidadGestora.empresa = this.getFormGroup().controls.entidadGestora.value;
     return this.convocatoriaEntidadGestoraService.update(
       this.convocatoriaEntidadGestora.id, this.convocatoriaEntidadGestora).pipe(
         tap(result => {
           this.convocatoriaEntidadGestora = result;
-          this.convocatoriaEntidadGestora.empresaEconomica = this.getFormGroup().controls.entidadGestora.value;
+          this.convocatoriaEntidadGestora.empresa = this.getFormGroup().controls.entidadGestora.value;
         })
       );
   }
 
   private deleteConvocatoriaEntidadGestora(): Observable<void> {
-    this.convocatoriaEntidadGestora.empresaEconomica = this.getFormGroup().controls.entidadGestora.value;
+    this.convocatoriaEntidadGestora.empresa = this.getFormGroup().controls.entidadGestora.value;
     return this.convocatoriaEntidadGestoraService.deleteById(
       this.convocatoriaEntidadGestora.id).pipe(
         tap(() => {
           this.convocatoriaEntidadGestora = {} as IConvocatoriaEntidadGestora;
-          this.convocatoriaEntidadGestora.empresaEconomica = {} as IEmpresaEconomica;
+          this.convocatoriaEntidadGestora.empresa = {} as IEmpresa;
         })
       );
   }
@@ -466,7 +417,7 @@ export class ConvocatoriaDatosGeneralesFragment extends FormFragment<IConvocator
       return of(void 0);
     }
     createdAreas.forEach(
-      (wrapper) => wrapper.convocatoriaAreaTematica.value.convocatoria = this.convocatoria
+      (wrapper) => wrapper.convocatoriaAreaTematica.value.convocatoriaId = this.convocatoria.id
     );
     return from(createdAreas).pipe(
       mergeMap((data) => {

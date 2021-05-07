@@ -3,15 +3,23 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoContexto, PROPIEDAD_RESULTADOS_MAP } from '@core/models/csp/proyecto-contexto';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { ProyectoContextoModalComponent } from '../../modals/proyecto-contexto-modal/proyecto-contexto-modal.component';
 import { ProyectoActionService } from '../../proyecto.action.service';
 import { AreaTematicaProyectoData, ProyectoContextoFragment } from './proyecto-contexto.fragment';
+
+const PROYECTO_CONTEXTO_INTERESES_KEY = marker('csp.proyecto.contexto.intereses');
+const PROYECTO_CONTEXTO_OBJETIVOS_KEY = marker('csp.proyecto.contexto.objetivos');
+const PROYECTO_CONTEXTO_RESULTADOS_KEY = marker('csp.proyecto.contexto.resultados');
+const AREA_KEY = marker('csp.area');
+const AREA_TEMATICA_KEY = marker('csp.area-tematica');
 
 @Component({
   selector: 'sgi-proyecto-contexto',
@@ -29,6 +37,10 @@ export class ProyectoContextoComponent extends FormFragmentComponent<IProyectoCo
   displayedColumns: string[];
   elementosPagina: number[];
 
+  msgParamInteresesEntity = {};
+  msgParamObjetivosEntity = {};
+  msgParamResultadosEntity = {};
+
   convocatoriaAreaTematicas = new MatTableDataSource<AreaTematicaProyectoData>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
@@ -36,9 +48,16 @@ export class ProyectoContextoComponent extends FormFragmentComponent<IProyectoCo
 
   private subscriptions = [] as Subscription[];
 
+  msgParamEntity = {};
+  msgParamAreaEntities = {};
+  msgParamAreaTematicaEntity = {};
+  msgParamAreaTematicaEntities = {};
+
   constructor(
     protected actionService: ProyectoActionService,
-    private matDialog: MatDialog
+    private matDialog: MatDialog,
+    private readonly translate: TranslateService
+
   ) {
     super(actionService.FRAGMENT.CONTEXTO_PROYECTO, actionService);
     this.formPart = this.fragment as ProyectoContextoFragment;
@@ -57,7 +76,43 @@ export class ProyectoContextoComponent extends FormFragmentComponent<IProyectoCo
 
   ngOnInit(): void {
     super.ngOnInit();
+
+    this.setupI18N();
+
     this.loadAreaTematicas();
+  }
+
+  private setupI18N(): void {
+
+    this.translate.get(
+      AREA_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamAreaEntities = { entity: value });
+
+    this.translate.get(
+      PROYECTO_CONTEXTO_INTERESES_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamInteresesEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE, ...MSG_PARAMS.CARDINALIRY.PLURAL });
+
+    this.translate.get(
+      PROYECTO_CONTEXTO_OBJETIVOS_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamObjetivosEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.PLURAL });
+
+    this.translate.get(
+      PROYECTO_CONTEXTO_RESULTADOS_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamResultadosEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.PLURAL });
+
+    this.translate.get(
+      AREA_TEMATICA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamAreaTematicaEntity = { entity: value });
+
+    this.translate.get(
+      AREA_TEMATICA_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamAreaTematicaEntities = { entity: value });
   }
 
   private loadAreaTematicas(): void {
@@ -75,8 +130,7 @@ export class ProyectoContextoComponent extends FormFragmentComponent<IProyectoCo
     };
 
     const config = {
-      width: GLOBAL_CONSTANTS.widthModalCSP,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
+      panelClass: 'sgi-dialog-container',
       data: wrapper ? wrapper : newData
     };
     const dialogRef = this.matDialog.open(ProyectoContextoModalComponent, config);

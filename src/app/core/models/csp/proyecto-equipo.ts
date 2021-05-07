@@ -1,37 +1,6 @@
-import { IPersona } from '../sgp/persona';
-import { IProyecto } from './proyecto';
-import { IRolProyecto } from './rol-proyecto';
+import { IMiembroEquipoProyecto } from './miembro-equipo-proyecto';
 
-export interface IProyectoEquipo {
-
-  /** Id */
-  id: number;
-
-  /** Proyecto */
-  proyecto: IProyecto;
-
-  /**
-   * personaRef
-   */
-  persona: IPersona;
-
-  /**
-   * rolProyecto
-   */
-  rolProyecto: IRolProyecto;
-
-  /**
-   * fechaInicio
-   */
-  fechaInicio: Date;
-
-  /**
-   * fechaFin
-   */
-  fechaFin: Date;
-
-  /**
-   * horas dedicacion
-   */
+export interface IProyectoEquipo extends IMiembroEquipoProyecto {
+  proyectoId: number;
   horasDedicacion: number;
 }

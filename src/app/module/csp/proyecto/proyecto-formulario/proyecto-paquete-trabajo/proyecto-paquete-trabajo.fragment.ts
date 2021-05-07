@@ -1,11 +1,10 @@
-import { IProyecto } from "@core/models/csp/proyecto";
-import { IProyectoPaqueteTrabajo } from "@core/models/csp/proyecto-paquete-trabajo";
-import { Fragment } from "@core/services/action-service";
-import { ProyectoPaqueteTrabajoService } from "@core/services/csp/proyecto-paquete-trabajo.service";
-import { ProyectoService } from "@core/services/csp/proyecto.service";
-import { StatusWrapper } from "@core/utils/status-wrapper";
-import { BehaviorSubject, from, merge, Observable, of } from "rxjs";
-import { map, mergeMap, takeLast, tap } from "rxjs/operators";
+import { IProyectoPaqueteTrabajo } from '@core/models/csp/proyecto-paquete-trabajo';
+import { Fragment } from '@core/services/action-service';
+import { ProyectoPaqueteTrabajoService } from '@core/services/csp/proyecto-paquete-trabajo.service';
+import { ProyectoService } from '@core/services/csp/proyecto.service';
+import { StatusWrapper } from '@core/utils/status-wrapper';
+import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
+import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
 
 export class ProyectoPaqueteTrabajoFragment extends Fragment {
   paquetesTrabajo$ = new BehaviorSubject<StatusWrapper<IProyectoPaqueteTrabajo>[]>([]);
@@ -14,8 +13,7 @@ export class ProyectoPaqueteTrabajoFragment extends Fragment {
   constructor(
     key: number,
     private proyectoService: ProyectoService,
-    private proyectoPaqueteTrabajoService: ProyectoPaqueteTrabajoService,
-    public readonly: boolean
+    private proyectoPaqueteTrabajoService: ProyectoPaqueteTrabajoService
   ) {
     super(key);
     this.setComplete(true);
@@ -95,10 +93,7 @@ export class ProyectoPaqueteTrabajoFragment extends Fragment {
       return of(void 0);
     }
     createdPaquetes.forEach(
-      (wrapper) => wrapper.value.proyecto = {
-        id: this.getKey(),
-        activo: true
-      } as IProyecto
+      (wrapper) => wrapper.value.proyectoId = this.getKey() as number
     );
     return from(createdPaquetes).pipe(
       mergeMap((wrappedPaquetes) => {

@@ -1,23 +1,22 @@
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { ISocioPeriodoJustificacionDocumento } from '@core/models/csp/socio-periodo-justificacion-documento';
+import { IProyectoSocioPeriodoJustificacionDocumento } from '@core/models/csp/proyecto-socio-periodo-justificacion-documento';
 import { ITipoDocumento } from '@core/models/csp/tipos-configuracion';
 import { IDocumento } from '@core/models/sgdoc/documento';
 import { Fragment } from '@core/services/action-service';
+import { ProyectoSocioPeriodoJustificacionDocumentoService } from '@core/services/csp/proyecto-socio-periodo-justificacion-documento.service';
 import { ProyectoSocioPeriodoJustificacionService } from '@core/services/csp/proyecto-socio-periodo-justificacion.service';
-import { SocioPeriodoJustificacionDocumentoService } from '@core/services/csp/socio-periodo-justificacion-documento.service';
-import { DocumentoService } from '@core/services/sgdoc/documento.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map, takeLast } from 'rxjs/operators';
 
-const SIN_TIPO_DOCUMENTO = marker('csp.proyecto-socio-periodo-justificacion.documentos.sin-tipo-documento');
+const SIN_TIPO_DOCUMENTO = marker('label.csp.documento.sin-tipo');
 
 export class NodeDocumentoProyecto {
   parent: NodeDocumentoProyecto;
   key: string;
   title: string;
-  documento?: StatusWrapper<ISocioPeriodoJustificacionDocumento>;
+  documento?: StatusWrapper<IProyectoSocioPeriodoJustificacionDocumento>;
   fichero?: IDocumento;
   // tslint:disable-next-line: variable-name
   _level: number;
@@ -31,7 +30,7 @@ export class NodeDocumentoProyecto {
     return this._level;
   }
 
-  constructor(key: string, title: string, level: number, documento?: StatusWrapper<ISocioPeriodoJustificacionDocumento>) {
+  constructor(key: string, title: string, level: number, documento?: StatusWrapper<IProyectoSocioPeriodoJustificacionDocumento>) {
     this.key = key;
     this.title = title;
     this._level = level;
@@ -97,7 +96,7 @@ function sortByTitle(nodes: NodeDocumentoProyecto[]): NodeDocumentoProyecto[] {
 
 export class ProyectoSocioPeriodoJustificacionDocumentosFragment extends Fragment {
   documentos$ = new BehaviorSubject<NodeDocumentoProyecto[]>([]);
-  private documentosEliminados: ISocioPeriodoJustificacionDocumento[] = [];
+  private documentosEliminados: IProyectoSocioPeriodoJustificacionDocumento[] = [];
 
   private nodeLookup = new Map<string, NodeDocumentoProyecto>();
 
@@ -105,8 +104,7 @@ export class ProyectoSocioPeriodoJustificacionDocumentosFragment extends Fragmen
     private readonly logger: NGXLogger,
     key: number,
     private proyectoSocioPeriodoJustificacionService: ProyectoSocioPeriodoJustificacionService,
-    private socioPeriodoJustificacionDocumentoService: SocioPeriodoJustificacionDocumentoService,
-    private documentoService: DocumentoService
+    private proyectoSocioPeriodoJustificacionDocumentoService: ProyectoSocioPeriodoJustificacionDocumentoService
   ) {
     super(key);
     this.setComplete(true);
@@ -116,7 +114,7 @@ export class ProyectoSocioPeriodoJustificacionDocumentosFragment extends Fragmen
     if (this.getKey()) {
       const id = this.getKey() as number;
       this.subscriptions.push(
-        this.proyectoSocioPeriodoJustificacionService.findAllSocioPeriodoJustificacionDocumento(id).pipe(
+        this.proyectoSocioPeriodoJustificacionService.findAllProyectoSocioPeriodoJustificacionDocumento(id).pipe(
           map((result) => result.items),
           map((documentosRequeridos) => this.buildTree(documentosRequeridos))
         ).subscribe(
@@ -139,16 +137,16 @@ export class ProyectoSocioPeriodoJustificacionDocumentosFragment extends Fragmen
     return tipoDocNode;
   }
 
-  private buildTree(documentos: ISocioPeriodoJustificacionDocumento[]): NodeDocumentoProyecto[] {
+  private buildTree(documentos: IProyectoSocioPeriodoJustificacionDocumento[]): NodeDocumentoProyecto[] {
     const nodes: NodeDocumentoProyecto[] = [];
-    documentos.forEach((documento: ISocioPeriodoJustificacionDocumento) => {
+    documentos.forEach((documento: IProyectoSocioPeriodoJustificacionDocumento) => {
       const keyTipoDocumento = `${documento.tipoDocumento ? documento.tipoDocumento?.id : 0}`;
       let tipoDocNode = this.nodeLookup.get(keyTipoDocumento);
       if (!tipoDocNode) {
         tipoDocNode = this.createNode(documento.tipoDocumento, nodes);
       }
       const docNode = new NodeDocumentoProyecto('', documento.nombre, 1,
-        new StatusWrapper<ISocioPeriodoJustificacionDocumento>(documento));
+        new StatusWrapper<IProyectoSocioPeriodoJustificacionDocumento>(documento));
       tipoDocNode.addChild(docNode);
     });
     return nodes;
@@ -221,8 +219,8 @@ export class ProyectoSocioPeriodoJustificacionDocumentosFragment extends Fragmen
     this.setChanges(true);
   }
 
-  private getDocumentos(nodes: NodeDocumentoProyecto[]): ISocioPeriodoJustificacionDocumento[] {
-    const documentos: ISocioPeriodoJustificacionDocumento[] = [];
+  private getDocumentos(nodes: NodeDocumentoProyecto[]): IProyectoSocioPeriodoJustificacionDocumento[] {
+    const documentos: IProyectoSocioPeriodoJustificacionDocumento[] = [];
     nodes.forEach((node) => {
       if (node.documento) {
         documentos.push(node.documento.value);
@@ -236,8 +234,13 @@ export class ProyectoSocioPeriodoJustificacionDocumentosFragment extends Fragmen
 
   saveOrUpdate(): Observable<void> {
     const documentos = this.getDocumentos(this.documentos$.value);
+    documentos.forEach(documento => {
+      if (!documento.proyectoSocioPeriodoJustificacionId) {
+        documento.proyectoSocioPeriodoJustificacionId = this.getKey() as number;
+      }
+    });
     const id = this.getKey() as number;
-    return this.socioPeriodoJustificacionDocumentoService.updateList(id, documentos).pipe(
+    return this.proyectoSocioPeriodoJustificacionDocumentoService.updateList(id, documentos).pipe(
       takeLast(1),
       map((results) => {
         this.documentos$.next(this.buildTree(results));

@@ -1,11 +1,16 @@
 import { Component, OnInit } from '@angular/core';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IConvocatoriaRequisitoEquipo } from '@core/models/csp/convocatoria-requisito-equipo';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { TranslateService } from '@ngx-translate/core';
 import { ConvocatoriaActionService } from '../../convocatoria.action.service';
 import { ConvocatoriaRequisitosEquipoFragment } from './convocatoria-requisitos-equipo.fragment';
+
+const CONVOCATORIA_REQUISITOS_EQUIPO_MODALIDAD_CONTRATO_KEY = marker('csp.convocatoria-requisito-equipo.modalidad-contrato');
+const CONVOCATORIA_REQUISITOS_EQUIPO_NIVEL_ACADEMICO_KEY = marker('csp.convocatoria-requisito-equipo.nivel-academico');
 
 @Component({
   selector: 'sgi-convocatoria-requisitos-equipo',
@@ -19,6 +24,9 @@ export class ConvocatoriaRequisitosEquipoComponent extends FormFragmentComponent
   fxLayoutProperties: FxLayoutProperties;
   fxFlexPropertiesInline: FxFlexProperties;
   fxFlexPropertiesEntidad: FxFlexProperties;
+
+  msgParamModalidadContratoEntity = {};
+  msgParamNivelAcademicoEntity = {};
 
   constructor(
     protected actionService: ConvocatoriaActionService,
@@ -47,5 +55,18 @@ export class ConvocatoriaRequisitosEquipoComponent extends FormFragmentComponent
 
   ngOnInit() {
     super.ngOnInit();
+    this.setupI18N();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      CONVOCATORIA_REQUISITOS_EQUIPO_MODALIDAD_CONTRATO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamModalidadContratoEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR });
+
+    this.translate.get(
+      CONVOCATORIA_REQUISITOS_EQUIPO_NIVEL_ACADEMICO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamNivelAcademicoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR });
   }
 }

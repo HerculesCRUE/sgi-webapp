@@ -5,20 +5,21 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IComentario } from '@core/models/eti/comentario';
 import { TipoComentario } from '@core/models/eti/tipo-comentario';
 import { DialogService } from '@core/services/dialog.service';
 import { TipoComentarioService } from '@core/services/eti/tipo-comentario.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { Subscription, Observable } from 'rxjs';
-
+import { TranslateService } from '@ngx-translate/core';
+import { Observable, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ComentarioModalComponent, ComentarioModalData } from '../../comentario/comentario-modal/comentario-modal.component';
 import { Gestion, SeguimientoFormularioActionService } from '../seguimiento-formulario.action.service';
 import { SeguimientoComentarioFragment } from './seguimiento-comentarios.fragment';
 
-
-const MSG_DELETE = marker('eti.comentario.listado.borrar.titulo');
+const MSG_DELETE = marker('msg.delete.entity');
+const COMENTARIO_KEY = marker('eti.comentario');
 
 @Component({
   selector: 'sgi-seguimiento-comentarios',
@@ -33,15 +34,24 @@ export class SeguimientoComentariosComponent extends FragmentComponent implement
   columnas: string[];
   elementosPagina: number[];
 
+  msgParamEntity: {};
+
   dataSource: MatTableDataSource<StatusWrapper<IComentario>>;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
+
+  textoDelete: string;
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
 
   constructor(
     private readonly dialogService: DialogService,
     private tipoComentarioService: TipoComentarioService,
     private matDialog: MatDialog,
-    private actionService: SeguimientoFormularioActionService
+    private actionService: SeguimientoFormularioActionService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.COMENTARIOS, actionService);
     this.dataSource = new MatTableDataSource<StatusWrapper<IComentario>>();
@@ -53,6 +63,7 @@ export class SeguimientoComentariosComponent extends FragmentComponent implement
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     this.subscriptions.push(this.formPart.comentarios$.subscribe(elements => {
@@ -73,6 +84,25 @@ export class SeguimientoComentariosComponent extends FragmentComponent implement
         }
       };
 
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      COMENTARIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+
+    this.translate.get(
+      COMENTARIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
   }
 
   ngOnDestroy(): void {
@@ -100,16 +130,14 @@ export class SeguimientoComentariosComponent extends FragmentComponent implement
     };
 
     const config = {
-      width: GLOBAL_CONSTANTS.maxWidthModal,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-      data: evaluacionData,
-      autoFocus: false
+      panelClass: 'sgi-dialog-container',
+      data: evaluacionData
     };
     const dialogRef = this.matDialog.open(ComentarioModalComponent, config);
     dialogRef.afterClosed().subscribe(
-      (comentario: IComentario) => {
-        if (comentario) {
-          this.formPart.addComentario(comentario);
+      (modalData: ComentarioModalData) => {
+        if (modalData && modalData.comentario) {
+          this.formPart.addComentario(modalData.comentario);
         }
       }
     );
@@ -129,19 +157,17 @@ export class SeguimientoComentariosComponent extends FragmentComponent implement
     };
 
     const config = {
-      width: GLOBAL_CONSTANTS.maxWidthModal,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-      data: evaluacionData,
-      autoFocus: false
+      panelClass: 'sgi-dialog-container',
+      data: evaluacionData
     };
 
     const dialogRef = this.matDialog.open(ComentarioModalComponent, config);
     dialogRef.afterClosed().subscribe(
-      (resultado: IComentario) => {
-        if (resultado) {
+      (modalData: ComentarioModalData) => {
+        if (modalData && modalData.comentario) {
           this.subscriptions.push(this.getTipoComentario().subscribe(
             (tipoComentario) => {
-              resultado.tipoComentario = tipoComentario;
+              modalData.comentario.tipoComentario = tipoComentario;
             }
           ));
           if (!wrapperRef.created) {
@@ -160,7 +186,7 @@ export class SeguimientoComentariosComponent extends FragmentComponent implement
    */
   deleteComentario(comentario: StatusWrapper<IComentario>) {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado: boolean) => {
           if (aceptado) {
             this.formPart.deleteComentario(comentario);

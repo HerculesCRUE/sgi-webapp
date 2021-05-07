@@ -5,16 +5,22 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatTree, MatTreeNestedDataSource } from '@angular/material/tree';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IPrograma } from '@core/models/csp/programa';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { DialogService } from '@core/services/dialog.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { PlanInvestigacionActionService } from '../../plan-investigacion.action.service';
 import { NodePrograma, PlanInvestigacionProgramaFragment } from './plan-investigacion-programas.fragment';
 
-const MSG_DELETE = marker('csp.plan.investigacion.programa.listado.borrar');
+const MSG_DELETE = marker('msg.delete.entity');
+const PLAN_INVESTIGACION_PROGRAMA_KEY = marker('csp.plan-investigacion-programa');
+const PLAN_INVESTIGACION_PROGRAMA_NOMBRE_KEY = marker('csp.plan-investigacion-programa.nombre');
+const PLAN_INVESTIGACION_PROGRAMA_DESCRIPCION_KEY = marker('csp.plan-investigacion-programa.descripcion');
 
 enum VIEW_MODE {
   NONE = '',
@@ -45,11 +51,17 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
 
   formGroup: FormGroup;
 
+  msgParamEntity = {};
+  msgParamDescripcionEntity = {};
+  msgParamNombreEntity = {};
+  textoDelete: string;
+
   hasChild = (_: number, node: NodePrograma) => node.childs.length > 0;
 
   constructor(
     private readonly dialogService: DialogService,
-    public actionService: PlanInvestigacionActionService
+    public actionService: PlanInvestigacionActionService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.PROGRAMAS, actionService);
     this.fxFlexProperties = new FxFlexProperties();
@@ -68,6 +80,7 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
 
   ngOnInit() {
     super.ngOnInit();
+    this.setupI18N();
     this.formPart.programas$.subscribe((programas) => {
       this.dataSource.data = programas;
     });
@@ -76,6 +89,37 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
       descripcion: new FormControl('', [Validators.maxLength(250)]),
     });
     this.switchToNone();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      PLAN_INVESTIGACION_PROGRAMA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+
+    this.translate.get(
+      PLAN_INVESTIGACION_PROGRAMA_DESCRIPCION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamDescripcionEntity = { entity: value, ...MSG_PARAMS.CARDINALIRY.SINGULAR });
+
+    this.translate.get(
+      PLAN_INVESTIGACION_PROGRAMA_NOMBRE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamNombreEntity = { entity: value, ...MSG_PARAMS.CARDINALIRY.SINGULAR });
+
+    this.translate.get(
+      PLAN_INVESTIGACION_PROGRAMA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+
   }
 
   ngOnDestroy() {
@@ -209,7 +253,7 @@ export class PlanInvestigacionProgramasComponent extends FragmentComponent imple
 
   deleteDetail() {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado: boolean) => {
           if (aceptado) {
             if (this.viewingNode.parent) {

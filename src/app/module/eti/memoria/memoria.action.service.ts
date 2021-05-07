@@ -1,31 +1,32 @@
 import { Injectable } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { ActionService } from '@core/services/action-service';
-import { MemoriaDatosGeneralesFragment } from './memoria-formulario/memoria-datos-generales/memoria-datos-generales.fragment';
-import { MemoriaService } from '@core/services/eti/memoria.service';
-import { IMemoria } from '@core/models/eti/memoria';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { MSG_PARAMS } from '@core/i18n';
+import { IComite } from '@core/models/eti/comite';
+import { IMemoria } from '@core/models/eti/memoria';
+import { IRetrospectiva } from '@core/models/eti/retrospectiva';
+import { TipoEstadoMemoria } from '@core/models/eti/tipo-estado-memoria';
+import { ActionService } from '@core/services/action-service';
+import { ApartadoService } from '@core/services/eti/apartado.service';
+import { BloqueService } from '@core/services/eti/bloque.service';
+import { EvaluacionService } from '@core/services/eti/evaluacion.service';
+import { FormularioService } from '@core/services/eti/formulario.service';
+import { MemoriaService } from '@core/services/eti/memoria.service';
 import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
-import { map, switchMap } from 'rxjs/operators';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
-import { PETICION_EVALUACION_ROUTE } from '../peticion-evaluacion/peticion-evaluacion-route-names';
-import { MemoriaDocumentacionFragment } from './memoria-formulario/memoria-documentacion/memoria-documentacion.fragment';
+import { RespuestaService } from '@core/services/eti/respuesta.service';
+import { DocumentoService } from '@core/services/sgdoc/documento.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { NGXLogger } from 'ngx-logger';
+import { map } from 'rxjs/operators';
+import { PETICION_EVALUACION_ROUTE } from '../peticion-evaluacion/peticion-evaluacion-route-names';
+import { MemoriaDatosGeneralesFragment } from './memoria-formulario/memoria-datos-generales/memoria-datos-generales.fragment';
+import { MemoriaDocumentacionFragment } from './memoria-formulario/memoria-documentacion/memoria-documentacion.fragment';
 import { MemoriaEvaluacionesFragment } from './memoria-formulario/memoria-evaluaciones/memoria-evaluaciones.fragment';
 import { MemoriaFormularioFragment } from './memoria-formulario/memoria-formulario/memoria-formulario.fragment';
 import { MemoriaInformesFragment } from './memoria-formulario/memoria-informes/memoria-informes.fragment';
-import { FormularioService } from '@core/services/eti/formulario.service';
-import { BloqueService } from '@core/services/eti/bloque.service';
-import { RespuestaService } from '@core/services/eti/respuesta.service';
-import { IComite } from '@core/models/eti/comite';
-import { ApartadoService } from '@core/services/eti/apartado.service';
-import { TipoEstadoMemoria } from '@core/models/eti/tipo-estado-memoria';
-import { IRetrospectiva } from '@core/models/eti/retrospectiva';
-import { DocumentoService } from '@core/services/sgdoc/documento.service';
-import { EvaluacionService } from '@core/services/eti/evaluacion.service';
 
-const MSG_PETICIONES_EVALUACION = marker('eti.memoria.link.peticionEvaluacion');
+const MSG_PETICIONES_EVALUACION = marker('eti.peticion-evaluacion');
 
 @Injectable()
 export class MemoriaActionService extends ActionService {
@@ -53,7 +54,7 @@ export class MemoriaActionService extends ActionService {
     route: ActivatedRoute,
     service: MemoriaService,
     private peticionEvaluacionService: PeticionEvaluacionService,
-    personaFisicaService: PersonaFisicaService,
+    personaService: PersonaService,
     documentoService: DocumentoService,
     formularioService: FormularioService,
     bloqueService: BloqueService,
@@ -72,11 +73,11 @@ export class MemoriaActionService extends ActionService {
     else {
       this.loadPeticionEvaluacion(history.state.idPeticionEvaluacion);
     }
-    this.datosGenerales = new MemoriaDatosGeneralesFragment(fb, this.readonly, this.memoria?.id, service, personaFisicaService,
+    this.datosGenerales = new MemoriaDatosGeneralesFragment(fb, this.readonly, this.memoria?.id, service, personaService,
       peticionEvaluacionService);
-    this.formularios = new MemoriaFormularioFragment(logger, this.memoria?.id, this.memoria?.comite, formularioService,
+    this.formularios = new MemoriaFormularioFragment(logger, this.readonly, this.memoria?.id, this.memoria?.comite, formularioService,
       bloqueService, apartadoService, respuestaService, service, evaluacionService);
-    this.documentacion = new MemoriaDocumentacionFragment(this.memoria?.id, service, documentoService);
+    this.documentacion = new MemoriaDocumentacionFragment(this.memoria?.id, this.readonly, service, documentoService);
     this.evaluaciones = new MemoriaEvaluacionesFragment(this.memoria?.id, service);
     this.versiones = new MemoriaInformesFragment(this.memoria?.id, service);
 
@@ -94,6 +95,7 @@ export class MemoriaActionService extends ActionService {
   private addPeticionEvaluacionLink(idPeticionEvaluacion: number): void {
     this.addActionLink({
       title: MSG_PETICIONES_EVALUACION,
+      titleParams: MSG_PARAMS.CARDINALIRY.SINGULAR,
       routerLink: ['../..', PETICION_EVALUACION_ROUTE, idPeticionEvaluacion.toString()]
     });
   }

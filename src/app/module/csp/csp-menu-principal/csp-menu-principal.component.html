@@ -2,29 +2,29 @@
   <a class="item" mat-list-item *sgiHasAuthorityForAnyUO="'CSP-CONV-C'" [routerLink]="[CSP_ROUTE_NAMES.CONVOCATORIA]"
     [routerLinkActive]="['is-active']">
     <mat-icon color="primary" mat-list-icon>assignment_ind</mat-icon>
-    <p matLine *ngIf="opened">{{'menu.principal.csp.convocatoria' | translate}}</p>
+    <p matLine *ngIf="opened">{{'csp.convocatoria' | translate:MSG_PARAMS.CARDINALIRY.PLURAL}}</p>
   </a>
   <a class="item" mat-list-item *sgiHasAuthorityForAnyUO="'CSP-SOL-C'" [routerLink]="[CSP_ROUTE_NAMES.SOLICITUD]"
     [routerLinkActive]="['is-active']">
     <mat-icon color="primary" mat-list-icon>description</mat-icon>
-    <p matLine *ngIf="opened">{{'menu.principal.csp.solicitudes' | translate}}</p>
+    <p matLine *ngIf="opened">{{'csp.solicitud' | translate:MSG_PARAMS.CARDINALIRY.PLURAL}}</p>
   </a>
   <a class="item" mat-list-item *sgiHasAuthorityForAnyUO="'CSP-PRO-C'" [routerLink]="[CSP_ROUTE_NAMES.PROYECTO]"
     [routerLinkActive]="['is-active']">
     <mat-icon color="primary" mat-list-icon>work</mat-icon>
-    <p matLine *ngIf="opened">{{'menu.principal.csp.proyectos' | translate}}</p>
+    <p matLine *ngIf="opened">{{'csp.proyecto' | translate:MSG_PARAMS.CARDINALIRY.PLURAL}}</p>
   </a>
   <a class="item" mat-list-item *sgiHasAuthorityForAnyUO="'CSP-EE-V'" [routerLinkActive]="['is-active']">
     <mat-icon color="primary" mat-list-icon>attach_money</mat-icon>
-    <p matLine *ngIf="opened">{{'menu.principal.csp.ejecucionEconomica' | translate}}</p>
+    <p matLine *ngIf="opened">{{'menu.csp.ejecucion-economica' | translate}}</p>
   </a>
   <a class="item" mat-list-item *sgiHasAuthorityForAnyUO="'CSP-TIME-E'" [routerLinkActive]="['is-active']">
     <mat-icon color="primary" mat-list-icon>insert_invitation</mat-icon>
-    <p matLine *ngIf="opened">{{'menu.principal.csp.timesheet' | translate}}</p>
+    <p matLine *ngIf="opened">{{'menu.csp.timesheet' | translate}}</p>
   </a>
   <a class="item" mat-list-item *sgiHasAuthorityForAnyUO="'CSP-CONT-C'" [routerLinkActive]="['is-active']">
     <mat-icon color="primary" mat-list-icon>local_library</mat-icon>
-    <p matLine *ngIf="opened">{{'menu.principal.csp.contratosRRHH' | translate}}</p>
+    <p matLine *ngIf="opened">{{'menu.csp.contratos' | translate}}</p>
   </a>
 
   <mat-accordion #accordion="matAccordion" class="acordeon-sidenav">
@@ -33,32 +33,32 @@
       <mat-expansion-panel-header class="header item" (click)="activarAcordeon($event)">
         <mat-panel-title class="titulo">
           <mat-icon color="primary" mat-list-icon>list_alt</mat-icon>
-          <span *ngIf="opened">{{'menu.principal.csp.configracion' | translate}}</span>
+          <span *ngIf="opened">{{'menu.csp.configuraciones' | translate}}</span>
         </mat-panel-title>
       </mat-expansion-panel-header>
       <div class="opciones-accordion" *ngIf="opened">
         <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-TFAS-C'" [routerLink]="[CSP_ROUTE_NAMES.TIPO_FASE]"
-          [routerLinkActive]="['is-active']">{{'menu.principal.csp.tipo.fase' | translate}}</a>
+          [routerLinkActive]="['is-active']">{{'csp.tipo-fase' | translate:MSG_PARAMS.CARDINALIRY.PLURAL}}</a>
         <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-TFINAL-C'" [routerLink]="[CSP_ROUTE_NAMES.TIPO_FINALIDAD]"
-          [routerLinkActive]="['is-active']">{{'menu.principal.csp.tipo.finalidad' | translate}}</a>
+          [routerLinkActive]="['is-active']">{{'csp.tipo-finalidad' | translate:MSG_PARAMS.CARDINALIRY.PLURAL}}</a>
         <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-TDOC-C'" [routerLink]="[CSP_ROUTE_NAMES.TIPO_DOCUMENTO]"
-          [routerLinkActive]="['is-active']">{{'menu.principal.csp.tipo.documento' | translate}}</a>
+          [routerLinkActive]="['is-active']">{{'csp.tipo-documento' | translate:MSG_PARAMS.CARDINALIRY.PLURAL}}</a>
         <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-TENL-C'" [routerLink]="[CSP_ROUTE_NAMES.TIPO_ENLACE]"
-          [routerLinkActive]="['is-active']">{{'menu.principal.csp.tipos.enlace' | translate}}</a>
+          [routerLinkActive]="['is-active']">{{'csp.tipo-enlace' | translate:MSG_PARAMS.CARDINALIRY.PLURAL}}</a>
         <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-THIT-C'" [routerLink]="[CSP_ROUTE_NAMES.TIPO_HITO]"
-          [routerLinkActive]="['is-active']">{{'menu.principal.csp.tipo.hito' | translate}}</a>
+          [routerLinkActive]="['is-active']">{{'csp.tipo-hito' | translate:MSG_PARAMS.CARDINALIRY.PLURAL}}</a>
         <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-ME-C'" [routerLink]="[CSP_ROUTE_NAMES.MODELO_EJECUCION]"
-          [routerLinkActive]="['is-active']">{{'menu.principal.csp.modelo.ejecucion' | translate}}</a>
+          [routerLinkActive]="['is-active']">{{'menu.csp.configuraciones.modelos-ejecucion' | translate}}</a>
         <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-PI-C'" [routerLink]="[CSP_ROUTE_NAMES.PLANES_INVESTIGACION]"
-          [routerLinkActive]="['is-active']">{{'menu.principal.csp.planes.investigacion' | translate}}</a>
+          [routerLinkActive]="['is-active']">{{'menu.csp.configuraciones.planes-investigacion' | translate}}</a>
         <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-AT-C'" [routerLink]="[CSP_ROUTE_NAMES.AREA_TEMATICA]"
-          [routerLinkActive]="['is-active']">{{'menu.principal.csp.area.tematica' | translate}}</a>
+          [routerLinkActive]="['is-active']">{{'csp.area-tematica' | translate:MSG_PARAMS.CARDINALIRY.PLURAL}}</a>
         <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-FF-C'" [routerLink]="[CSP_ROUTE_NAMES.FUENTE_FINANCIACION]"
-          [routerLinkActive]="['is-active']">{{'menu.principal.csp.fuenteFinanciacion' | translate}}</a>
+          [routerLinkActive]="['is-active']">{{'menu.csp.configuraciones.fuentes-financiacion' | translate}}</a>
         <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-TFINAN-C'" [routerLink]="[CSP_ROUTE_NAMES.TIPO_FINANCIACION]"
-          [routerLinkActive]="['is-active']">{{'menu.principal.csp.tipo.financiacion' | translate}}</a>
+          [routerLinkActive]="['is-active']">{{'menu.csp.configuraciones.tipos-financiacion' | translate}}</a>
         <a mat-list-item *sgiHasAuthorityForAnyUO="'CSP-CG-C'" [routerLink]="[CSP_ROUTE_NAMES.CONCEPTO_GASTO]"
-          [routerLinkActive]="['is-active']">{{'menu.principal.csp.concepto.gasto' | translate}}</a>
+          [routerLinkActive]="['is-active']">{{'menu.csp.configuraciones.conceptos-gasto' | translate}}</a>
       </div>
     </mat-expansion-panel>
 

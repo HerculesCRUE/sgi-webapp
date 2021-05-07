@@ -1,9 +1,9 @@
 import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { IConvocatoria } from '@core/models/csp/convocatoria';
-import { IConvocatoriaSeguimientoCientifico } from '@core/models/csp/convocatoria-seguimiento-cientifico';
+import { IConvocatoriaPeriodoSeguimientoCientifico } from '@core/models/csp/convocatoria-periodo-seguimiento-cientifico';
 import { Estado } from '@core/models/csp/estado-proyecto';
 import { IProyecto } from '@core/models/csp/proyecto';
-import { ISolicitudProyectoDatos } from '@core/models/csp/solicitud-proyecto-datos';
+import { ISolicitudProyecto } from '@core/models/csp/solicitud-proyecto';
 import { IUnidadGestion } from '@core/models/usr/unidad-gestion';
 import { FormFragment } from '@core/services/action-service';
 import { ConvocatoriaService } from '@core/services/csp/convocatoria.service';
@@ -15,28 +15,30 @@ import { TipoFinalidadService } from '@core/services/csp/tipo-finalidad.service'
 import { UnidadGestionService } from '@core/services/csp/unidad-gestion.service';
 import { DateValidator } from '@core/validators/date-validator';
 import { IsEntityValidator } from '@core/validators/is-entity-validador';
-import { RSQLSgiRestFilter, RSQLSgiRestSort, SgiRestFilterOperator, SgiRestFindOptions, SgiRestListResult, SgiRestSortDirection } from '@sgi/framework/http';
-import moment from 'moment';
+import { RSQLSgiRestSort, SgiRestFindOptions, SgiRestSortDirection } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
-import { EMPTY, Observable, of, Subject } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
-import { ProyectoActionService } from '../../proyecto.action.service';
+import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
+
+interface IProyectoDatosGenerales extends IProyecto {
+  convocatoria: IConvocatoria;
+  solicitudProyecto: ISolicitudProyecto;
+}
 
 export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
 
   private proyecto: IProyecto;
 
   selectedConvocatoria: IConvocatoria;
-  seguimientoCientificos: IConvocatoriaSeguimientoCientifico[] = [];
+  seguimientoCientificos: IConvocatoriaPeriodoSeguimientoCientifico[] = [];
 
   abiertoRequired: boolean;
   comentarioEstadoCancelado: boolean;
   mostrarSolicitud = false;
-  solicitudProyectoDatos: ISolicitudProyectoDatos;
+  solicitudProyecto: ISolicitudProyecto;
 
-  paquetesTrabajo$: Subject<boolean> = new Subject<boolean>();
-  coordinadorExterno$: Subject<boolean> = new Subject<boolean>();
-  proyectoConvocatoria$: Subject<IProyecto> = new Subject<IProyecto>();
+  readonly permitePaquetesTrabajo$: Subject<boolean> = new BehaviorSubject<boolean>(null);
+  readonly colaborativo$: Subject<boolean> = new BehaviorSubject<boolean>(null);
 
   constructor(
     private logger: NGXLogger,
@@ -48,34 +50,51 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
     private tipoFinalidadService: TipoFinalidadService,
     private tipoAmbitoGeograficoService: TipoAmbitoGeograficoService,
     private convocatoriaService: ConvocatoriaService,
-    private solicitudService: SolicitudService,
-    private actionService: ProyectoActionService
+    private solicitudService: SolicitudService
   ) {
     super(key);
+    // TODO: Eliminar la declaración de activo, ya que no debería ser necesaria
     this.proyecto = { activo: true } as IProyecto;
   }
 
-  protected initializer(key: number): Observable<IProyecto> {
+  protected initializer(key: number): Observable<IProyectoDatosGenerales> {
     return this.service.findById(key).pipe(
-      tap(proyecto => {
+      map(proyecto => {
         this.proyecto = proyecto;
+        return proyecto as IProyectoDatosGenerales;
       }),
-      switchMap(() => {
-        return this.loadUnidadGestion(this.proyecto.unidadGestion.acronimo);
+      switchMap((proyecto) => {
+        return this.getUnidadGestion(proyecto.unidadGestion.acronimo).pipe(
+          map(unidadGestion => {
+            proyecto.unidadGestion = unidadGestion;
+            return proyecto;
+          })
+        );
       }),
-      switchMap(() => {
-        return this.proyecto.convocatoria ? this.loadConvocatoria(this.proyecto.convocatoria.id) : of(EMPTY);
-      }),
-      switchMap(() => {
-        if (this.proyecto?.solicitud?.id) {
-          return this.loadProyectoDatos(this.proyecto?.solicitud?.id);
+      switchMap((proyecto) => {
+        if (proyecto.convocatoriaId) {
+          return this.convocatoriaService.findById(proyecto.convocatoriaId).pipe(
+            map(convocatoria => {
+              proyecto.convocatoria = convocatoria;
+              return proyecto;
+            })
+          );
         } else {
-          return of(EMPTY);
+          return of(proyecto);
         }
       }),
-      map(() => {
-        this.proyectoConvocatoria$.next(this.proyecto);
-        return this.proyecto;
+      switchMap((proyecto) => {
+        if (proyecto.solicitudId) {
+          return this.solicitudService.findSolicitudProyecto(proyecto.solicitudId).pipe(
+            map(solicitudProyecto => {
+              proyecto.solicitudProyecto = solicitudProyecto;
+              this.mostrarSolicitud = Boolean(solicitudProyecto);
+              return proyecto;
+            })
+          );
+        } else {
+          return of(proyecto);
+        }
       }),
       catchError((error) => {
         this.logger.error(error);
@@ -94,9 +113,9 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
         Validators.required, Validators.maxLength(200)]),
       acronimo: new FormControl('', [Validators.maxLength(50)]),
       codigoExterno: new FormControl(null, [Validators.maxLength(50)]),
-      fechaInicio: new FormControl('', [
+      fechaInicio: new FormControl(null, [
         Validators.required]),
-      fechaFin: new FormControl('', [
+      fechaFin: new FormControl(null, [
         Validators.required]),
       convocatoria: new FormControl({
         value: '',
@@ -113,9 +132,8 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
       clasificacionCVN: new FormControl(null),
       colaborativo: new FormControl(null),
       coordinadorExterno: new FormControl(null),
-      uniSubcontratada: new FormControl(null),
       timesheet: new FormControl(null),
-      paquetesTrabajo: new FormControl(null),
+      permitePaquetesTrabajo: new FormControl(null),
       costeHora: new FormControl(null),
       contratacion: new FormControl(null),
       facturacion: new FormControl(null),
@@ -138,10 +156,20 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
         (convocatoria) => this.onConvocatoriaChange(convocatoria)
       )
     );
+    this.subscriptions.push(
+      form.controls.permitePaquetesTrabajo.valueChanges.subscribe((value) => {
+        this.permitePaquetesTrabajo$.next(value);
+      })
+    );
+    this.subscriptions.push(
+      form.controls.colaborativo.valueChanges.subscribe((value) => {
+        this.colaborativo$.next(value);
+      })
+    );
     return form;
   }
 
-  buildPatch(proyecto: IProyecto): { [key: string]: any } {
+  buildPatch(proyecto: IProyectoDatosGenerales): { [key: string]: any } {
     const result = {
       estado: proyecto.estado?.estado,
       titulo: proyecto.titulo,
@@ -151,7 +179,6 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
       fechaFin: proyecto.fechaFin,
       convocatoria: proyecto.convocatoria,
       convocatoriaExterna: proyecto.convocatoriaExterna,
-      solicitud: proyecto.solicitud,
       unidadGestion: proyecto.unidadGestion,
       modeloEjecucion: proyecto.modeloEjecucion,
       finalidad: proyecto.finalidad,
@@ -160,35 +187,24 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
       clasificacionCVN: proyecto.clasificacionCVN,
       colaborativo: proyecto.colaborativo,
       coordinadorExterno: proyecto.coordinadorExterno,
-      uniSubcontratada: proyecto.uniSubcontratada,
       timesheet: proyecto.timesheet,
-      paquetesTrabajo: proyecto.paquetesTrabajo,
+      permitePaquetesTrabajo: proyecto.permitePaquetesTrabajo,
       costeHora: proyecto.costeHora,
       contratacion: proyecto.contratos,
       facturacion: proyecto.facturacion,
       iva: proyecto.iva,
       tipoHorasAnuales: proyecto.tipoHorasAnuales,
       observaciones: proyecto.observaciones,
-      comentario: proyecto.estado?.comentario
+      comentario: proyecto.estado?.comentario,
+      solicitudProyecto: proyecto.solicitudProyecto?.titulo
     };
 
-    this.actionService.isProyectoColaborativo = proyecto.colaborativo;
     this.checkEstado(this.getFormGroup(), proyecto);
 
     if (proyecto.convocatoria && this.isEdit()) {
       this.getFormGroup().controls.convocatoriaExterna.disable();
     }
 
-    this.subscriptions.push(
-      this.getFormGroup().get('paquetesTrabajo').valueChanges.subscribe((value) => {
-        this.paquetesTrabajo$.next(value);
-      })
-    );
-    this.subscriptions.push(
-      this.getFormGroup().get('coordinadorExterno').valueChanges.subscribe((value) => {
-        this.coordinadorExterno$.next(value);
-      })
-    );
     return result;
   }
 
@@ -196,16 +212,15 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
     const form = this.getFormGroup().controls;
     this.proyecto.titulo = form.titulo.value;
     this.proyecto.acronimo = form.acronimo.value;
-    this.proyecto.codigoExterno = form.acronimo.value;
+    this.proyecto.codigoExterno = form.codigoExterno.value;
     this.proyecto.fechaInicio = form.fechaInicio.value;
     this.proyecto.fechaFin = form.fechaFin.value;
-    this.proyecto.convocatoria = form.convocatoria.value;
+    this.proyecto.convocatoriaId = form.convocatoria.value?.id;
     if (form.convocatoria.value) {
-      this.proyecto.convocatoriaExterna = undefined;
+      this.proyecto.convocatoriaExterna = form.convocatoria.value?.codigo;
     } else {
       this.proyecto.convocatoriaExterna = form.convocatoriaExterna.value;
     }
-    this.proyecto.solicitud = null;
     this.proyecto.unidadGestion = form.unidadGestion.value;
     this.proyecto.modeloEjecucion = form.modeloEjecucion.value;
 
@@ -223,9 +238,8 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
     this.proyecto.confidencial = form.confidencial.value;
     this.proyecto.clasificacionCVN = form.clasificacionCVN.value;
     this.proyecto.colaborativo = form.colaborativo.value;
-    this.proyecto.uniSubcontratada = form.uniSubcontratada.value;
     this.proyecto.timesheet = form.timesheet.value;
-    this.proyecto.paquetesTrabajo = form.paquetesTrabajo.value;
+    this.proyecto.permitePaquetesTrabajo = form.permitePaquetesTrabajo.value;
     this.proyecto.costeHora = form.costeHora.value;
     this.proyecto.contratos = form.contratacion.value;
     this.proyecto.facturacion = form.facturacion.value;
@@ -244,26 +258,6 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
   }
 
   /**
-  * Recupera los datos proyecto de una solicitud
-  * @param idSolicitud id
-  */
-  private loadProyectoDatos(idSolicitud: number): Observable<ISolicitudProyectoDatos> {
-    if (idSolicitud) {
-      return this.solicitudService.findSolicitudProyectoDatos(idSolicitud).pipe(
-        map(solicitudProyectoDatos => {
-          if (solicitudProyectoDatos.titulo) {
-            this.getFormGroup().controls.solicitudProyecto.setValue(solicitudProyectoDatos.titulo);
-            this.mostrarSolicitud = true;
-          } else {
-            this.mostrarSolicitud = false;
-          }
-          return solicitudProyectoDatos;
-        })
-      );
-    }
-  }
-
-  /**
    * Setea la convocatoria seleccionada en el formulario y los campos que dependende de esta
    *
    * @param convocatoria una convocatoria
@@ -272,17 +266,23 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
     this.seguimientoCientificos = [];
 
     if (convocatoria) {
-      this.getFormGroup().controls.convocatoriaExterna.setValue('', { emitEvent: false });
+      if (convocatoria.codigo) {
+        this.getFormGroup().controls.convocatoriaExterna.setValue(convocatoria.codigo);
+      }
+
+      if (convocatoria.duracion && this.getFormGroup().controls.fechaInicio.value
+        && !this.getFormGroup().controls.fechaFin.value) {
+        const fechaFin = this.getFormGroup().controls.fechaInicio.value.plus({ months: convocatoria.duracion });
+        this.getFormGroup().controls.fechaFin.setValue(fechaFin);
+      }
 
       if (!this.proyecto.unidadGestion || !this.isEdit()) {
         this.subscriptions.push(
-          this.unidadGestionService.findByAcronimo(convocatoria.unidadGestionRef).subscribe(unidadGestion => {
+          this.unidadGestionService.findByAcronimo(convocatoria.unidadGestion.acronimo).subscribe(unidadGestion => {
             this.getFormGroup().controls.unidadGestion.setValue(unidadGestion);
           })
         );
       }
-
-
 
       if (convocatoria.modeloEjecucion && (!this.proyecto.modeloEjecucion || !this.isEdit())) {
         this.subscriptions.push(
@@ -291,7 +291,6 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
           })
         );
       }
-
 
       if (convocatoria.finalidad && (!this.proyecto.finalidad || !this.isEdit())) {
         this.subscriptions.push(
@@ -308,6 +307,9 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
           })
         );
       }
+
+      this.getFormGroup().controls.clasificacionCVN.setValue(convocatoria.clasificacionCVN);
+      this.getFormGroup().controls.colaborativo.setValue(convocatoria.colaborativos);
 
       const options: SgiRestFindOptions = {
         sort: new RSQLSgiRestSort('numPeriodo', SgiRestSortDirection.ASC)
@@ -347,7 +349,7 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
         Validators.required]);
       formgroup.get('timesheet').setValidators([
         Validators.required]);
-      formgroup.get('paquetesTrabajo').setValidators([
+      formgroup.get('permitePaquetesTrabajo').setValidators([
         Validators.required]);
       formgroup.get('costeHora').setValidators([
         Validators.required]);
@@ -390,15 +392,11 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
   }
 
   private create(proyecto: IProyecto): Observable<IProyecto> {
-    return this.service.create(proyecto).pipe(
-      tap(result => this.proyecto = result)
-    );
+    return this.service.create(proyecto);
   }
 
   private update(proyecto: IProyecto): Observable<IProyecto> {
-    return this.service.update(Number(this.getKey()), proyecto).pipe(
-      tap(result => this.proyecto = result)
-    );
+    return this.service.update(Number(this.getKey()), proyecto);
   }
 
   /**
@@ -407,35 +405,8 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
    * @param acronimo Identificador de la unidad de gestion
    * @returns observable para recuperar los datos
    */
-  private loadUnidadGestion(acronimo: string): Observable<SgiRestListResult<IUnidadGestion>> {
-    const options: SgiRestFindOptions = {
-      filter: new RSQLSgiRestFilter('acronimo', SgiRestFilterOperator.EQUALS, acronimo)
-    };
-
-    return this.unidadGestionService.findAll(options).pipe(
-      tap(result => {
-        if (result.items.length > 0) {
-          this.proyecto.unidadGestion = result.items[0];
-          this.getFormGroup().controls.unidadGestion.setValue(this.proyecto.unidadGestion);
-        }
-      })
-    );
-
-  }
-
-  /**
-   * Carga los datos de la convocatoria en la solicitud
-   *
-   * @param solicitanteRef Identificador del solicitante
-   * @returns observable para recuperar los datos
-   */
-  private loadConvocatoria(convocatoriaId: number): Observable<IConvocatoria> {
-    return this.convocatoriaService.findById(convocatoriaId).pipe(
-      tap(convocatoria => {
-        this.proyecto.convocatoria = convocatoria;
-        this.selectedConvocatoria = this.proyecto.convocatoria;
-      })
-    );
+  private getUnidadGestion(acronimo: string): Observable<IUnidadGestion> {
+    return this.unidadGestionService.findByAcronimo(acronimo);
   }
 
   checkFechas(): void {
@@ -443,20 +414,12 @@ export class ProyectoFichaGeneralFragment extends FormFragment<IProyecto> {
     const finForm = this.getFormGroup().get('fechaFin');
     this.deleteErrorRange(finForm);
     if (this.seguimientoCientificos.length > 0) {
-      const fechaInicio = inicioForm.value ? new Date(inicioForm.value) : undefined;
-      const fechaFin = finForm.value ? new Date(finForm.value) : undefined;
-      if (fechaInicio && fechaFin) {
-        fechaInicio.setHours(0);
-        fechaInicio.setMinutes(0);
-        fechaInicio.setSeconds(0);
-        fechaFin.setHours(0);
-        fechaFin.setMinutes(0);
-        fechaFin.setSeconds(0);
+      if (inicioForm.value && finForm.value) {
         const mesInicial = this.seguimientoCientificos[0].mesInicial;
         const mesFinal = this.seguimientoCientificos[this.seguimientoCientificos.length - 1].mesFinal;
-        const inicioProyecto = moment(fechaInicio).add((mesInicial - 1), 'M').toDate();
-        const finProyecto = moment(fechaInicio).add((mesFinal - 1), 'M').toDate();
-        if (inicioProyecto >= fechaInicio && finProyecto <= fechaFin) {
+        const inicioProyecto = inicioForm.value.plus({ months: mesInicial - 1 });
+        const finProyecto = inicioForm.value.plus({ months: mesFinal - 1 });
+        if (inicioProyecto >= inicioForm.value && finProyecto <= finForm.value) {
           return;
         }
         this.addErrorRange(finForm);

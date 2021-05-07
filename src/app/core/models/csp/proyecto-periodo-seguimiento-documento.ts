@@ -1,9 +1,8 @@
-import { IProyectoPeriodoSeguimiento } from './proyecto-periodo-seguimiento';
 import { ITipoDocumento } from './tipos-configuracion';
 
 export interface IProyectoPeriodoSeguimientoDocumento {
   id: number;
-  proyectoPeriodoSeguimiento: IProyectoPeriodoSeguimiento;
+  proyectoPeriodoSeguimientoId: number;
   nombre: string;
   documentoRef: string;
   tipoDocumento: ITipoDocumento;

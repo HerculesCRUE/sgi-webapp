@@ -2,15 +2,15 @@
   <mat-drawer mode="side" class="tabs" opened>
     <mat-list class="opciones-menu">
       <sgi-action-fragment-menu-item [route]="[ACTA_ROUTE_NAMES.DATOS_GENERALES]"
-        [title]="'eti.acta.datosGenerales.title' | translate"
+        [title]="'label.datos-generales' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[ACTA_ROUTE_NAMES.MEMORIAS]"
-        [title]="'eti.acta.memorias.title' | translate"
+        [title]="'eti.memoria' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.MEMORIAS)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[ACTA_ROUTE_NAMES.ASISTENTES]"
-        [title]="'eti.acta.asistentes.title' | translate"
+        [title]="'eti.acta.asistente' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.ASISTENTES)">
       </sgi-action-fragment-menu-item>
     </mat-list>

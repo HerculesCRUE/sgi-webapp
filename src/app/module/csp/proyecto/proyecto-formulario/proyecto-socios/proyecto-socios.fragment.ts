@@ -2,7 +2,7 @@ import { IProyectoSocio } from '@core/models/csp/proyecto-socio';
 import { Fragment } from '@core/services/action-service';
 import { ProyectoSocioService } from '@core/services/csp/proyecto-socio.service';
 import { ProyectoService } from '@core/services/csp/proyecto.service';
-import { EmpresaEconomicaService } from '@core/services/sgp/empresa-economica.service';
+import { EmpresaService } from '@core/services/sgemp/empresa.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
 import { catchError, map, mergeMap, switchMap, takeLast, tap } from 'rxjs/operators';
@@ -13,7 +13,7 @@ export class ProyectoSociosFragment extends Fragment {
 
   constructor(
     key: number,
-    private empresaEconomicaService: EmpresaEconomicaService,
+    private empresaService: EmpresaService,
     private proyectoService: ProyectoService,
     private proyectoSocioService: ProyectoSocioService
   ) {
@@ -27,17 +27,17 @@ export class ProyectoSociosFragment extends Fragment {
       const subscription = this.proyectoService.findAllProyectoSocioProyecto(id)
         .pipe(
           switchMap((proyectoSocios) =>
-            from(proyectoSocios).pipe(
+            from(proyectoSocios.items).pipe(
               mergeMap((proyectoSocio) =>
-                this.empresaEconomicaService.findById(proyectoSocio.empresa.personaRef).pipe(
-                  tap(empresaEconomica => proyectoSocio.empresa = empresaEconomica),
+                this.empresaService.findById(proyectoSocio.empresa.id).pipe(
+                  tap(empresa => proyectoSocio.empresa = empresa),
                   catchError(() => of([]))
                 )
               ),
               map(() => proyectoSocios)
             )
           ),
-          map(results => results.map(proyectoSocio => new StatusWrapper<IProyectoSocio>(proyectoSocio))),
+          map(results => results.items.map(proyectoSocio => new StatusWrapper<IProyectoSocio>(proyectoSocio))),
         ).subscribe(
           (result) => {
             this.proyectoSocios$.next(result);

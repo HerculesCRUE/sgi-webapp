@@ -1,4 +1,4 @@
-import { IEmpresaEconomica } from '../sgp/empresa-economica';
+import { IEmpresa } from '../sgemp/empresa';
 import { IFuenteFinanciacion } from './fuente-financiacion';
 import { ITipoFinanciacion } from './tipos-configuracion';
 
@@ -8,9 +8,9 @@ export interface IEntidadFinanciadora {
    */
   id: number;
   /**
-   * Empresa economica
+   * Empresa
    */
-  empresa: IEmpresaEconomica;
+  empresa: IEmpresa;
   /**
    * Fuente de financiación
    */

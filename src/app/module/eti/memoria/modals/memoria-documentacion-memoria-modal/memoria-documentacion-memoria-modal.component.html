@@ -1,55 +1,46 @@
-<div class="modal-documentacion-memoria">
-
-  <main>
-
-    <form [formGroup]="formGroup">
-      <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
-        [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
-
-        <div [fxFlex.sm]="fxFlexProperties2.sm" [fxFlex.md]="fxFlexProperties2.md"
-          [fxFlex.gt-md]="fxFlexProperties2.gtMd" [fxFlexOrder]="fxFlexProperties2.order">
-          <mat-form-field>
-            <mat-label>{{'eti.memoria.documentacion.tipo.documento' | translate}}</mat-label>
-            <input matInput formControlName="tipoDocumento" type="text" id="tipoDocumento"
-              placeholder="{{'eti.memoria.documentacion.tipo.documento' | translate}}" required
-              [matAutocomplete]="auto">
-            <mat-autocomplete #auto="matAutocomplete" [displayWith]="getTipoDocumento">
-              <mat-option *ngFor="let tipoDcoumentacion of tiposDcoumentacion | async" [value]="tipoDcoumentacion">
-                {{tipoDcoumentacion.nombre}}
-              </mat-option>
-            </mat-autocomplete>
-            <mat-error *ngIf="formGroup.controls.tipoDocumento.errors?.required">
-              {{'eti.memoria.documentacion.tipo.documento.error.vacio' | translate}}
-            </mat-error>
-
-          </mat-form-field>
-        </div>
-
-        <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
-          [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
-
-          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
-            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
-
-            <div class=" mat-form-field-wrapper">
-              <button class="icon-foto" mat-icon-button color="primary" title=" {{'botones.examinar' | translate}}">
-
-              </button>
-              <input type="file" #file #fileUpload id="fileUpload" name="fileUpload" accept="image/*"
-                (change)="onDocumentoSelect($event)" />
-            </div>
-          </div>
-          <div fxFlex="100%" fxFlex.md="100" fxFlex.sm="100" fxFlex.xs="100" fxFlexOrder="1"></div>
+<div class="sgi-dialog-header" fxLayout="row" fxLayoutGap="20px">
+  <span fxFlexAlign="center" mat-mat-dialog-title role="heading" aria-level="3" fxFlex>{{title | translate}}</span>
+  <button fxFlex="nogrow" mat-icon-button mat-dialog-close>
+    <mat-icon class="close-icon">close</mat-icon>
+  </button>
+</div>
+<mat-dialog-content>
+  <form [formGroup]="formGroup">
+    <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+      [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+      <!-- Tipo de documento -->
+      <div>
+        <mat-form-field>
+          <mat-label>{{'eti.memoria.documento.tipo' | translate}}</mat-label>
+          <input matInput formControlName="tipoDocumento" type="text" id="tipoDocumento"
+            placeholder="{{'eti.memoria.documento.tipo' | translate}}" required [matAutocomplete]="auto">
+          <mat-autocomplete #auto="matAutocomplete" [displayWith]="getTipoDocumento">
+            <mat-option *ngFor="let tipoDcoumentacion of tiposDcoumentacion | async" [value]="tipoDcoumentacion">
+              {{tipoDcoumentacion.nombre}}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="formGroup.controls.tipoDocumento.errors?.required">
+            {{'error.required.entity' | translate:msgParamTipoEntity}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+      <!-- File -->
+      <div>
+        <div>
+          <button class="icon-foto" mat-icon-button title=" {{'btn.explore' | translate}}">
+          </button>
+          <input type="file" #file #fileUpload name="fileUpload" accept="image/*"
+            (change)="onDocumentoSelect($event)" />
         </div>
       </div>
-
-    </form>
-  </main>
-
-  <div id="modals-buttons" class="float-right" mat-dialog-actions>
-    <button color="accent" md-button mat-raised-button type="submit"
-      (click)="save()">{{'botones.aniadir' | translate}}</button>
-    <button class="link-cancelar" mat-button (click)="closeModal()"
-      type="button">{{'botones.cancelar' | translate}}</button>
-  </div>
-</div>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button color="accent" (click)="saveOrUpdate()" mat-raised-button type="submit">
+    <mat-icon class="save-icon">save</mat-icon>{{'btn.add' |
+    translate}}
+  </button>
+  <button class="link-cancelar" mat-button type="button" mat-dialog-close>{{'btn.cancel' |
+    translate}}</button>
+</mat-dialog-actions>

@@ -4,6 +4,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoPeriodoSeguimientoDocumento } from '@core/models/csp/proyecto-periodo-seguimiento-documento';
 import { ITipoDocumento, ITipoFase } from '@core/models/csp/tipos-configuracion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
@@ -15,17 +16,23 @@ import { DocumentoService, triggerDownloadToUser } from '@core/services/sgdoc/do
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { IsEntityValidator } from '@core/validators/is-entity-validador';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestFilter, SgiRestFilterOperator, SgiRestFindOptions } from '@sgi/framework/http';
 import { SgiFileUploadComponent, UploadEvent } from '@shared/file-upload/file-upload.component';
 import { Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ProyectoPeriodoSeguimientoActionService } from '../../proyecto-periodo-seguimiento.action.service';
 import { NodeDocumento, ProyectoPeriodoSeguimientoDocumentosFragment } from './proyecto-periodo-seguimiento-documentos.fragment';
 
-const MSG_DELETE = marker('csp.proyecto-periodo-seguimiento-documento.documento.eliminar.msg');
-const MSG_UPLOAD_SUCCES = marker('file.upload.success');
-const MSG_UPLOAD_ERROR = marker('file.upload.error');
-const MSG_DOWNLOAD_ERROR = marker('file.download.error');
-const MSG_FILE_NOT_FOUND_ERROR = marker('file.info.error');
+const MSG_DELETE = marker('msg.delete.entity');
+const MSG_UPLOAD_SUCCES = marker('msg.file.upload.success');
+const MSG_UPLOAD_ERROR = marker('error.file.upload');
+const MSG_DOWNLOAD_ERROR = marker('error.file.download');
+const MSG_FILE_NOT_FOUND_ERROR = marker('error.file.info');
+const PERIODO_SEGUIMIENTO_CIENTIFICO_DOCUMENTO_KEY = marker('csp.documento');
+const PERIODO_SEGUIMIENTO_CIENTIFICO_DOCUMENTO_NOMBRE_KEY = marker('csp.documento.nombre');
+const PERIODO_SEGUIMIENTO_CIENTIFICO_DOCUMENTO_FICHERO_KEY = marker('csp.proyecto-periodo-seguimiento.documento.fichero');
+const PERIODO_SEGUIMIENTO_CIENTIFICO_DOCUMENTO_VISIBLE_KEY = marker('csp.proyecto-periodo-seguimiento.documento.visible');
 
 enum VIEW_MODE {
   NONE = '',
@@ -54,6 +61,12 @@ export class ProyectoPeriodoSeguimientoDocumentosComponent extends FragmentCompo
   viewingNode: NodeDocumento;
   viewMode = VIEW_MODE.NONE;
 
+  msgParamEntity = {};
+  msgParamFicheroEntity = {};
+  msgParamNombreEntity = {};
+  msgParamVisibleEntity = {};
+  textoDelete: string;
+
   group = new Group();
   get formGroup(): FormGroup {
     return this.group.form;
@@ -78,7 +91,8 @@ export class ProyectoPeriodoSeguimientoDocumentosComponent extends FragmentCompo
     public actionService: ProyectoPeriodoSeguimientoActionService,
     private modeloEjecucionService: ModeloEjecucionService,
     private documentoService: DocumentoService,
-    private snackBar: SnackBarService
+    private snackBar: SnackBarService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.DOCUMENTOS, actionService);
     this.fxFlexProperties = new FxFlexProperties();
@@ -101,6 +115,7 @@ export class ProyectoPeriodoSeguimientoDocumentosComponent extends FragmentCompo
 
   ngOnInit() {
     super.ngOnInit();
+    this.setupI18N();
     this.subscriptions.push(this.formPart.documentos$.subscribe((documentos) => {
       this.dataSource.data = documentos;
     }));
@@ -112,7 +127,7 @@ export class ProyectoPeriodoSeguimientoDocumentosComponent extends FragmentCompo
       comentario: new FormControl('')
     }));
     this.group.initialize();
-    const id = this.formPart.proyecto?.modeloEjecucion?.id;
+    const id = this.actionService.proyectoModeloEjecucionId;
     const options: SgiRestFindOptions = {
       filter: new RSQLSgiRestFilter('tipoDocumento.activo', SgiRestFilterOperator.EQUALS, 'true')
     };
@@ -125,6 +140,41 @@ export class ProyectoPeriodoSeguimientoDocumentosComponent extends FragmentCompo
     );
 
     this.switchToNone();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      PERIODO_SEGUIMIENTO_CIENTIFICO_DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      PERIODO_SEGUIMIENTO_CIENTIFICO_DOCUMENTO_FICHERO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFicheroEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PERIODO_SEGUIMIENTO_CIENTIFICO_DOCUMENTO_NOMBRE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamNombreEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PERIODO_SEGUIMIENTO_CIENTIFICO_DOCUMENTO_VISIBLE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamVisibleEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PERIODO_SEGUIMIENTO_CIENTIFICO_DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+
   }
 
   ngOnDestroy() {
@@ -261,7 +311,7 @@ export class ProyectoPeriodoSeguimientoDocumentosComponent extends FragmentCompo
 
   deleteDetail() {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado: boolean) => {
           if (aceptado) {
             this.formPart.deleteNode(this.viewingNode);

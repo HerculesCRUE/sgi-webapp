@@ -59,6 +59,11 @@ export class ProyectoSocioPeriodoPagoFragment extends Fragment {
 
   saveOrUpdate(): Observable<void> {
     const values = this.periodoPagos$.value.map(wrapper => wrapper.value);
+    values.forEach(value => {
+      if (!value.proyectoSocioId) {
+        value.proyectoSocioId = this.getKey() as number;
+      }
+    });
     const id = this.getKey() as number;
     return this.proyectoSocioPeriodoPagoService.updateList(id, values).pipe(
       takeLast(1),
@@ -82,8 +87,8 @@ export class ProyectoSocioPeriodoPagoFragment extends Fragment {
   private recalcularNumPeriodos(current: StatusWrapper<IProyectoSocioPeriodoPago>[]): void {
     let numPeriodo = 1;
     current.sort((a, b) => {
-      const dateA = new Date(a.value.fechaPrevistaPago);
-      const dateB = new Date(b.value.fechaPrevistaPago);
+      const dateA = a.value.fechaPrevistaPago;
+      const dateB = b.value.fechaPrevistaPago;
       return (dateA > dateB) ? 1 : ((dateB > dateA) ? -1 : 0);
     });
     current.forEach(element => element.value.numPeriodo = numPeriodo++);

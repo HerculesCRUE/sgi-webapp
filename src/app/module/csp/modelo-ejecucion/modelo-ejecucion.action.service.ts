@@ -46,7 +46,7 @@ export class ModeloEjecucionActionService extends ActionService {
   private tipoUnidadGestion: ModeloEjecucionTipoUnidadGestionFragment;
 
   constructor(
-    private readonly logger: NGXLogger,
+    readonly logger: NGXLogger,
     route: ActivatedRoute,
     modeloEjecucionService: ModeloEjecucionService,
     modeloTipoEnlaceService: ModeloTipoEnlaceService,
@@ -64,17 +64,17 @@ export class ModeloEjecucionActionService extends ActionService {
     }
     this.datosGenerales = new ModeloEjecucionDatosGeneralesFragment(logger, this.modeloEjecucion?.id, modeloEjecucionService);
     this.tipoEnlaces = new ModeloEjecucionTipoEnlaceFragment(this.modeloEjecucion?.id,
-      modeloEjecucionService, modeloTipoEnlaceService, this);
+      modeloEjecucionService, modeloTipoEnlaceService);
     this.tipoFinalidades = new ModeloEjecucionTipoFinalidadFragment(this.modeloEjecucion?.id,
-      modeloEjecucionService, modeloTipoFinalidadService, this);
+      modeloEjecucionService, modeloTipoFinalidadService);
     this.tipoFases = new ModeloEjecucionTipoFaseFragment(this.modeloEjecucion?.id, modeloEjecucionService,
       modeloTipoFaseService);
     this.tipoDocumentos = new ModeloEjecucionTipoDocumentoFragment(this.modeloEjecucion?.id, modeloEjecucionService,
-      modeloTipoDocumentoService, this);
+      modeloTipoDocumentoService);
     this.tipoHitos = new ModeloEjecucionTipoHitoFragment(this.modeloEjecucion?.id, modeloEjecucionService,
-      modeloTipoHitoService, this);
+      modeloTipoHitoService);
     this.tipoUnidadGestion = new ModeloEjecucionTipoUnidadGestionFragment(this.modeloEjecucion?.id, modeloEjecucionService,
-      modeloUnidadService, unidadGestionService, this);
+      modeloUnidadService, unidadGestionService);
 
     this.addFragment(this.FRAGMENT.DATOS_GENERALES, this.datosGenerales);
     this.addFragment(this.FRAGMENT.TIPO_FASES, this.tipoFases);
@@ -83,16 +83,17 @@ export class ModeloEjecucionActionService extends ActionService {
     this.addFragment(this.FRAGMENT.TIPO_DOCUMENTOS, this.tipoDocumentos);
     this.addFragment(this.FRAGMENT.TIPO_HITOS, this.tipoHitos);
     this.addFragment(this.FRAGMENT.UNIDAD_GESTION, this.tipoUnidadGestion);
-  }
 
-  getTipoFases(): ITipoFase[] {
-    const result = this.tipoFases.modeloTipoFase$.value.map(x => x.value.tipoFase);
-    return result;
-  }
-
-  getModeloTipoFases(): IModeloTipoFase[] {
-    const result = this.tipoFases.modeloTipoFase$.value.map(x => x.value);
-    return result;
+    this.subscriptions.push(this.tipoDocumentos.initialized$.subscribe(
+      (value) => {
+        if (value) {
+          this.tipoFases.initialize();
+        }
+      })
+    );
+    this.subscriptions.push(this.tipoFases.modeloTipoFase$.subscribe(
+      (modelos) => this.tipoDocumentos.modeloTipoFases = modelos.map(modelo => modelo.value)
+    ));
   }
 
   saveOrUpdate(): Observable<void> {

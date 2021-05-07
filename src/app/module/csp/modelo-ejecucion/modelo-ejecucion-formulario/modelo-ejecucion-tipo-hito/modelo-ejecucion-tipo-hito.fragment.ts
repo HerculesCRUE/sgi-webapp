@@ -7,7 +7,6 @@ import { StatusWrapper } from '@core/utils/status-wrapper';
 import { SgiRestListResult } from '@sgi/framework/http';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
 import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
-import { ModeloEjecucionActionService } from '../../modelo-ejecucion.action.service';
 
 export class ModeloEjecucionTipoHitoFragment extends Fragment {
 
@@ -17,8 +16,7 @@ export class ModeloEjecucionTipoHitoFragment extends Fragment {
   constructor(
     key: number,
     private modeloEjecucionService: ModeloEjecucionService,
-    private modeloTipoHitoService: ModeloTipoHitoService,
-    actionService: ModeloEjecucionActionService
+    private modeloTipoHitoService: ModeloTipoHitoService
   ) {
     super(key);
     this.setComplete(true);

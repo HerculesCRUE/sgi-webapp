@@ -1,0 +1,111 @@
+<div class="sgi-dialog-header" fxLayout="row" fxLayoutGap="20px">
+  <span fxFlexAlign="center" mat-mat-dialog-title role="heading" aria-level="3" fxFlex>{{title | translate}}</span>
+  <button fxFlex="nogrow" mat-icon-button mat-dialog-close>
+    <mat-icon class="close-icon">close</mat-icon>
+  </button>
+</div>
+<mat-dialog-content>
+  <form [formGroup]="formGroup">
+    <!-- Concepto gasto -->
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field>
+        <mat-label>{{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.concepto-gasto' | translate}}
+        </mat-label>
+        <sgi-select-entity formControlName="conceptoGasto" required [options]="conceptosGasto$ | async">
+        </sgi-select-entity>
+        <mat-error *ngIf="formGroup.controls.conceptoGasto.errors?.required">
+          {{'error.required.entity' | translate:msgParaConceptoGastoEntity}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+    <div *ngIf="showCodigosEconomicosInfo">
+      <div>
+        <mat-label>
+          {{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.codigos-economicos-permitidos' | translate}}
+        </mat-label>
+        <ul *ngFor="let conceptoGasto of conceptosGastosPermitidos">
+          <li>
+            {{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.concepto-gasto-info' |
+            translate:conceptoGasto}}
+            <ul *ngFor="let codigoEconomico of conceptoGasto.codigosEconomicos">
+              <li>
+                {{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.codigo-economico-info' |
+                translate:codigoEconomico}}
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <mat-label>
+          {{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.codigos-economicos-no-permitidos' | translate}}
+        </mat-label>
+        <ul *ngFor="let conceptoGasto of conceptosGastosNoPermitidos">
+          <li>
+            {{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.concepto-gasto-info-sin-importe' |
+            translate:conceptoGasto}}
+            <ul *ngFor="let codigoEconomico of conceptoGasto.codigosEconomicos">
+              <li>
+                {{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.codigo-economico-info' |
+                translate:codigoEconomico}}
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <!-- Anualidad -->
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field>
+        <mat-label>{{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.anualidad' | translate}}
+        </mat-label>
+        <input matInput formControlName="anualidad" type="number" min="0" step="1"
+          placeholder="{{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.anualidad' | translate}}">
+        <mat-error *ngIf="formGroup.controls.anualidad.errors?.min">
+          {{'error.csp.solicitud-proyecto-presupuesto-global-partida-gasto.anualidad.min' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.anualidad.errors?.max">
+          {{'error.csp.solicitud-proyecto-presupuesto-global-partida-gasto.anualidad.max' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+    <!-- Importe solicitado -->
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field>
+        <mat-label>{{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.importe-solicitado' | translate}}
+        </mat-label>
+        <input matInput formControlName="importeSolicitado" type="number" min="0" step="1"
+          placeholder="{{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.importe-solicitado' | translate}}"
+          required>
+        <mat-error *ngIf="formGroup.controls.importeSolicitado.errors?.required">
+          {{'error.required.entity' | translate:msgParamImporteEntity}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.importeSolicitado.errors?.min">
+          {{'error.csp.solicitud-proyecto-presupuesto-global-partida-gasto.importe-solicitado.min' | translate}}
+        </mat-error>
+        <mat-error *ngIf="formGroup.controls.importeSolicitado.errors?.max">
+          {{'error.csp.solicitud-proyecto-presupuesto-global-partida-gasto.importe-solicitado.max' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+    <!-- Observaciones -->
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field>
+        <mat-label>{{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.observaciones' | translate}}</mat-label>
+        <textarea matInput formControlName="observaciones" type="text"
+          placeholder="{{'csp.solicitud-proyecto-presupuesto-global-partida-gasto.observaciones' | translate}}">
+              </textarea>
+        <mat-error *ngIf="formGroup.controls.observaciones.errors?.maxlength">
+          {{'error.maxlength.entity' | translate:msgParamObservacionesEntity}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button color="accent" (click)="saveOrUpdate()" mat-raised-button type="submit" *ngIf="!data.readonly">
+    <mat-icon class="save-icon">save</mat-icon>{{textSaveOrUpdate | translate}}
+  </button>
+  <button class="link-cancelar" mat-button type="button" mat-dialog-close>{{'btn.cancel' |
+    translate}}</button>
+</mat-dialog-actions>

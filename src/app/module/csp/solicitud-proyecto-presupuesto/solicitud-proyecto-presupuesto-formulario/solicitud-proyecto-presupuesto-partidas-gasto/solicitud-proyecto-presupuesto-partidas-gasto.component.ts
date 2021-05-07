@@ -5,18 +5,22 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { ISolicitudProyectoPresupuesto } from '@core/models/csp/solicitud-proyecto-presupuesto';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { DialogService } from '@core/services/dialog.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
 import { Subscription } from 'rxjs';
-import { PartidaGastoDataModal, PartidaGastoModalComponent } from '../../../modals/partida-gasto-modal/partida-gasto-modal.component';
+import { switchMap } from 'rxjs/operators';
+import { PartidaGastoDataModal, PartidaGastoModalComponent } from '../../../shared/partida-gasto-modal/partida-gasto-modal.component';
 import { SolicitudProyectoPresupuestoActionService } from '../../solicitud-proyecto-presupuesto.action.service';
 import { SolicitudProyectoPresupuestoListado, SolicitudProyectoPresupuestoPartidasGastoFragment } from './solicitud-proyecto-presupuesto-partidas-gasto.fragment';
 
-const MSG_DELETE = marker('csp.solicitud-proyecto-presupuesto.partidas-gasto.borrar');
+const MSG_DELETE = marker('msg.delete.entity');
+const SOLICITUD_PROYECTO_PRESUPUESTP_PARTIDA_GASTO_KEY = marker('csp.solicitud-proyecto-presupuesto.partida-gasto');
 
 @Component({
   selector: 'sgi-solicitud-proyecto-presupuesto-partidas-gasto',
@@ -40,6 +44,8 @@ export class SolicitudProyectoPresupuestoPartidasGastoComponent extends Fragment
   ];
   elementsPage = [5, 10, 25, 100];
 
+  textoDelete: string;
+
   dataSource = new MatTableDataSource<SolicitudProyectoPresupuestoListado>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
@@ -48,7 +54,8 @@ export class SolicitudProyectoPresupuestoPartidasGastoComponent extends Fragment
     protected logger: NGXLogger,
     protected actionService: SolicitudProyectoPresupuestoActionService,
     private matDialog: MatDialog,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.PARTIDAS_GASTO, actionService);
     this.formPart = this.fragment as SolicitudProyectoPresupuestoPartidasGastoFragment;
@@ -66,6 +73,8 @@ export class SolicitudProyectoPresupuestoPartidasGastoComponent extends Fragment
 
   ngOnInit(): void {
     super.ngOnInit();
+
+    this.setupI18N();
 
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
@@ -94,13 +103,27 @@ export class SolicitudProyectoPresupuestoPartidasGastoComponent extends Fragment
     this.subscriptions.push(subcription);
   }
 
+  private setupI18N(): void {
+    this.translate.get(
+      SOLICITUD_PROYECTO_PRESUPUESTP_PARTIDA_GASTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
   deletePartidaGasto(partidaGasto: SolicitudProyectoPresupuestoListado) {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado) => {
           if (aceptado) {
             this.formPart.deletePartidaGasto(partidaGasto);
@@ -118,16 +141,13 @@ export class SolicitudProyectoPresupuestoPartidasGastoComponent extends Fragment
     };
 
     const config = {
+      panelClass: 'sgi-dialog-container',
       data
     };
 
     const dialogRef = this.matDialog.open(PartidaGastoModalComponent, config);
     dialogRef.afterClosed().subscribe((partidaGasto: ISolicitudProyectoPresupuesto) => {
-
       if (partidaGasto) {
-        partidaGasto.empresa = this.formPart.entidadFinanciadora.empresa;
-        partidaGasto.financiacionAjena = !this.formPart.isEntidadFinanciadoraConvocatoria;
-
         if (!wrapper) {
           this.formPart.addPartidaGasto(partidaGasto);
         } else {

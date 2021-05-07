@@ -4,6 +4,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IEvaluacion } from '@core/models/eti/evaluacion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
@@ -14,7 +15,6 @@ import { StatusWrapper } from '@core/utils/status-wrapper';
 import { Subscription } from 'rxjs';
 import { MemoriaActionService } from '../../memoria.action.service';
 import { MemoriaEvaluacionesFragment } from './memoria-evaluaciones.fragment';
-
 
 @Component({
   selector: 'sgi-memoria-evaluaciones',
@@ -34,6 +34,10 @@ export class MemoriaEvaluacionesComponent extends FragmentComponent implements O
   dataSource: MatTableDataSource<StatusWrapper<IEvaluacion>> = new MatTableDataSource<StatusWrapper<IEvaluacion>>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
 
   constructor(
     protected readonly dialogService: DialogService,

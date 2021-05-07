@@ -1,94 +1,121 @@
-<div class="modal-tareas">
-  <header class="modal-header-material">
-    <h3 mat-dialog-title>{{'eti.peticionEvaluacion.tareas.modal.titulo' | translate}}</h3>
-  </header>
-  <main>
-    <form [formGroup]="formGroup">
-      <!-- Persona equipo trabajo -->
-      <div [fxLayout]="fxLayoutProperties.layout">
-        <mat-form-field fxFill>
-          <mat-label>{{'eti.peticionEvaluacion.tareas.editar.modal.persona' | translate}}</mat-label>
-          <input type="text" [placeholder]="'eti.peticionEvaluacion.tareas.editar.modal.persona' | translate"
-            arial-label="Number" matInput formControlName="equipoTrabajo" [matAutocomplete]="autocompleteEquipoTrabajo"
-            (click)="onClickEquipoTrabajo()">
-          <mat-autocomplete #autocompleteEquipoTrabajo="matAutocomplete" [displayWith]="getEquipoTrabajo">
-            <mat-option *ngFor="let eqt of filteredEquiposTrabajo | async" [value]="eqt">
-              {{eqt?.nombre}} {{eqt?.primerApellido}} {{eqt?.segundoApellido}}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
-      </div>
-      <!-- Memoria -->
-      <div [fxLayout]="fxLayoutProperties.layout">
-        <mat-form-field fxFill>
-          <mat-label>{{'eti.peticionEvaluacion.tareas.editar.modal.memoria' | translate}}</mat-label>
-          <input type="text" [placeholder]="'eti.peticionEvaluacion.tareas.editar.modal.memoria' | translate"
-            arial-label="Number" matInput formControlName="memoria" [matAutocomplete]="autocompleteMemoria">
-          <mat-autocomplete #autocompleteMemoria="matAutocomplete" [displayWith]="getMemoria">
-            <mat-option *ngFor="let m of filteredMemorias | async" [value]="m" (click)="onClickMemoria(m)">
-              {{m.numReferencia}}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
-      </div>
-      <!-- Tarea -->
-      <div [fxLayout]="fxLayoutProperties.layout">
-        <mat-form-field fxFill [ngClass]="!tareaYformacionTexto ? '' : 'ocultarCampo'">
-          <mat-label>{{'eti.peticionEvaluacion.tareas.editar.modal.tarea' | translate}}</mat-label>
-          <input type="text" [placeholder]="'eti.peticionEvaluacion.tareas.editar.modal.tarea' | translate"
-            arial-label="Number" matInput formControlName="tipoTarea" [matAutocomplete]="autocompleteTarea" />
-          <mat-autocomplete #autocompleteTarea="matAutocomplete" [displayWith]="getTipoTarea">
-            <mat-option *ngFor="let t of filteredTipoTareas | async" [value]="t">
-              {{t.nombre}}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
-        <mat-form-field fxFill [ngClass]="tareaYformacionTexto ? '' : 'ocultarCampo'">
-          <mat-label>{{'eti.peticionEvaluacion.tareas.editar.modal.tarea' | translate}}</mat-label>
-          <input matInput formControlName="tarea" type="text"
-            [placeholder]="'eti.peticionEvaluacion.tareas.editar.modal.tarea' | translate" id="tarea" />
-        </mat-form-field>
-      </div>
-      <!-- Formación específica -->
-      <div [fxLayout]="fxLayoutProperties.layout">
-        <mat-form-field fxFill [ngClass]="!tareaYformacionTexto ? '' : 'ocultarCampo'">
-          <mat-label>{{'eti.peticionEvaluacion.tareas.editar.modal.formacionEspecifica' | translate}}</mat-label>
-          <input type="text"
-            [placeholder]="'eti.peticionEvaluacion.tareas.editar.modal.formacionEspecifica' | translate"
-            arial-label="Number" matInput formControlName="formacionEspecifica"
-            [matAutocomplete]="autocompleteFormacion" />
-          <mat-autocomplete #autocompleteFormacion="matAutocomplete" [displayWith]="getFormacion">
-            <mat-option *ngFor="let f of filteredFormaciones | async" [value]="f">
-              {{f.nombre}}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
-        <mat-form-field fxFill [ngClass]="tareaYformacionTexto ? '' : 'ocultarCampo'">
-          <mat-label>{{'eti.peticionEvaluacion.tareas.editar.modal.formacionEspecifica' | translate}}</mat-label>
-          <input matInput formControlName="formacion" type="text"
-            [placeholder]="'eti.peticionEvaluacion.tareas.editar.modal.formacionEspecifica' | translate"
-            id="formacion" />
-        </mat-form-field>
-      </div>
-      <div [fxLayout]="fxLayoutProperties.layout">
-        <mat-form-field fxFill [ngClass]="mostrarOrganismoYanio ? '' : 'ocultarCampo'">
-          <mat-label>{{'eti.peticionEvaluacion.tareas.editar.modal.anio' | translate}}</mat-label>
-          <input matInput formControlName="anio" type="number"
-            [placeholder]="'eti.peticionEvaluacion.tareas.editar.modal.anio' | translate" id="anio" />
-        </mat-form-field>
-      </div>
-      <div [fxLayout]="fxLayoutProperties.layout">
-        <mat-form-field fxFill [ngClass]="mostrarOrganismoYanio ? '' : 'ocultarCampo'">
-          <mat-label>{{'eti.peticionEvaluacion.tareas.editar.modal.organismo' | translate}}</mat-label>
-          <input matInput formControlName="organismo" type="text"
-            [placeholder]="'eti.peticionEvaluacion.tareas.editar.modal.organismo' | translate" id="organismo" />
-        </mat-form-field>
-      </div>
-    </form>
-  </main>
-  <mat-dialog-actions align="center">
-    <button color="accent" (click)="addTarea()" md-button mat-raised-button
-      tabindex="-1">{{'botones.aniadir' | translate}}</button>
-    <button class="link-cancelar" mat-button mat-dialog-close tabindex="-1">{{'botones.cancelar' | translate}}</button>
-  </mat-dialog-actions>
+<div class="sgi-dialog-header" fxLayout="row" fxLayoutGap="20px">
+  <span fxFlexAlign="center" mat-mat-dialog-title role="heading" aria-level="3" fxFlex>{{title}}</span>
+  <button fxFlex="nogrow" mat-icon-button mat-dialog-close>
+    <mat-icon class="close-icon">close</mat-icon>
+  </button>
 </div>
+<mat-dialog-content>
+  <form [formGroup]="formGroup">
+    <!-- Persona equipo trabajo -->
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field>
+        <mat-label>{{'eti.peticion-evaluacion.tarea.persona' | translate}}</mat-label>
+        <input type="text" [placeholder]="'eti.peticion-evaluacion.tarea.persona' | translate" arial-label="Number"
+          matInput formControlName="equipoTrabajo" [matAutocomplete]="autocompleteEquipoTrabajo"
+          (click)="onClickEquipoTrabajo()" required>
+        <mat-autocomplete #autocompleteEquipoTrabajo="matAutocomplete" [displayWith]="getEquipoTrabajo">
+          <mat-option *ngFor="let eqt of filteredEquiposTrabajo | async" [value]="eqt">
+            {{eqt?.persona?.nombre}} {{eqt?.persona?.apellidos}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="formGroup.controls.equipoTrabajo.errors?.required">
+          {{'error.required.entity' | translate:msgParamEquipoTrabajoEntity}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+    <!-- Memoria -->
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field>
+        <mat-label>{{'eti.memoria' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR}}</mat-label>
+        <input type="text" [placeholder]="'eti.memoria' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR"
+          arial-label="Number" matInput formControlName="memoria" [matAutocomplete]="autocompleteMemoria" required>
+        <mat-autocomplete #autocompleteMemoria="matAutocomplete" [displayWith]="getMemoria">
+          <mat-option *ngFor="let m of filteredMemorias | async" [value]="m" (click)="onClickMemoria(m)">
+            {{m.numReferencia}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="formGroup.controls.memoria.errors?.required">
+          {{'error.required.entity' | translate:msgParamMemoriaEntity}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+    <!-- Tarea -->
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field [ngClass]="!tareaYformacionTexto ? '' : 'ocultarCampo'">
+        <mat-label>{{'eti.peticion-evaluacion.tarea'| translate:MSG_PARAMS.CARDINALIRY.SINGULAR}}</mat-label>
+        <input type="text" [placeholder]="'eti.peticion-evaluacion.tarea' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR"
+          arial-label="Number" matInput formControlName="tipoTarea" [matAutocomplete]="autocompleteTarea" required />
+        <mat-autocomplete #autocompleteTarea="matAutocomplete" [displayWith]="getTipoTarea">
+          <mat-option *ngFor="let t of filteredTipoTareas | async" [value]="t">
+            {{t.nombre}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="formGroup.controls.tipoTarea.errors?.required">
+          {{'error.required.entity' | translate:msgParamTareaEntity}}
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field [ngClass]="tareaYformacionTexto ? '' : 'ocultarCampo'">
+        <mat-label>{{'eti.peticion-evaluacion.tarea' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR}}</mat-label>
+        <input matInput formControlName="tarea" type="text"
+          [placeholder]="'eti.peticion-evaluacion.tarea' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR" required />
+        <mat-error *ngIf="formGroup.controls.tarea.errors?.required">
+          {{'error.required.entity' | translate:msgParamTareaEntity}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+    <!-- Formación específica -->
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field [ngClass]="!tareaYformacionTexto ? '' : 'ocultarCampo'">
+        <mat-label>{{'eti.peticion-evaluacion.tarea.formacion-especifica' | translate}}</mat-label>
+        <input type="text" [placeholder]="'eti.peticion-evaluacion.tarea.formacion-especifica' | translate"
+          arial-label="Number" matInput formControlName="formacionEspecifica" [matAutocomplete]="autocompleteFormacion"
+          required />
+        <mat-autocomplete #autocompleteFormacion="matAutocomplete" [displayWith]="getFormacion">
+          <mat-option *ngFor="let f of filteredFormaciones | async" [value]="f">
+            {{f.nombre}}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="formGroup.controls.formacionEspecifica.errors?.required">
+          {{'error.required.entity' | translate:msgParamFormacionEntity}}
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field [ngClass]="tareaYformacionTexto ? '' : 'ocultarCampo'">
+        <mat-label>{{'eti.peticion-evaluacion.tarea.formacion-especifica' | translate}}</mat-label>
+        <input matInput formControlName="formacion" type="text"
+          [placeholder]="'eti.peticion-evaluacion.tarea.formacion-especifica' | translate" required />
+        <mat-error *ngIf="formGroup.controls.formacion.errors?.required">
+          {{'error.required.entity' | translate:msgParamFormacionEntity}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+    <!-- Año -->
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field [ngClass]="mostrarOrganismoYanio ? '' : 'ocultarCampo'">
+        <mat-label>{{'eti.peticion-evaluacion.tarea.anio' | translate}}</mat-label>
+        <input matInput formControlName="anio" type="number"
+          [placeholder]="'eti.peticion-evaluacion.tarea.anio' | translate" required />
+        <mat-error *ngIf="formGroup.controls.anio.errors?.required">
+          {{'error.required.entity' | translate:msgParamAnioEntity}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+    <!-- Organismo -->
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field [ngClass]="mostrarOrganismoYanio ? '' : 'ocultarCampo'">
+        <mat-label>{{'eti.peticion-evaluacion.tarea.organismo' | translate}}</mat-label>
+        <input matInput formControlName="organismo" type="text"
+          [placeholder]="'eti.peticion-evaluacion.tarea.organismo' | translate" required />
+        <mat-error *ngIf="formGroup.controls.organismo.errors?.required">
+          {{'error.required.entity' | translate:msgParamOrganismoEntity}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button color="accent" (click)="saveOrUpdate()" mat-raised-button type="submit">
+    <mat-icon class="save-icon">save</mat-icon>{{textoAceptar}}
+  </button>
+  <button class="link-cancelar" mat-button type="button" mat-dialog-close>{{'btn.cancel' |
+    translate}}</button>
+</mat-dialog-actions>

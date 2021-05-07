@@ -1,19 +1,20 @@
 <section class="proyecto-socio-periodo-justificacion.datos-generales">
+  <h2>{{'label.datos-generales' | translate}}</h2>
   <form [formGroup]="formGroup">
     <!-- numPeriodo -->
-    <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+    <div *ngIf="this.fragment.isEdit()" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
       [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field fxFill>
-          <mat-label>{{'csp.proyecto-socio-periodo-justificacion.numPeriodo' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto-socio-periodo-justificacion.numero-periodo' | translate}}</mat-label>
           <input matInput formControlName="numPeriodo" type="number" id="numPeriodo" required
-            placeholder="{{'csp.proyecto-socio-periodo-justificacion.numPeriodo' | translate}}">
+            placeholder="{{'csp.proyecto-socio-periodo-justificacion.numero-periodo' | translate}}">
         </mat-form-field>
       </div>
     </div>
     <div class="fieldset-form">
-      {{'csp.proyecto-socio-periodo-justificacion.periodo-justificar' | translate}}
+      {{'title.csp.proyecto-socio-periodo-justificacion.periodo-justificar' | translate}}
     </div>
     <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
       [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
@@ -22,21 +23,22 @@
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field fxFill>
           <mat-label>{{'csp.proyecto-socio-periodo-justificacion.fecha-inicio' | translate}}</mat-label>
-          <input matInput [matDatepicker]="fechaInicioPicker" formControlName="fechaInicio" id="fechaInicio" required
-            placeholder="{{'csp.proyecto-socio-periodo-justificacion.fecha-inicio' | translate}}">
+          <input matInput [ngxMatDatetimePicker]="fechaInicioPicker" formControlName="fechaInicio" id="fechaInicio"
+            placeholder="{{'csp.proyecto-socio-periodo-justificacion.fecha-inicio' | translate}}" required>
           <mat-datepicker-toggle matSuffix [for]="fechaInicioPicker"></mat-datepicker-toggle>
-          <mat-datepicker #fechaInicioPicker></mat-datepicker>
+          <ngx-mat-datetime-picker #fechaInicioPicker showSeconds="true" [defaultTime]="[0,0,0]">
+          </ngx-mat-datetime-picker>
           <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.overlapped">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-inicio.overlapped' | translate}}
+            {{'error.overlapping.record.entity' | translate:msgParamFechaInicio}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.required">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-inicio.required' | translate}}
+            {{'error.required.entity' | translate:msgParamFechaInicio}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.minDate">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-inicio.minDate' | translate}}
+            {{'error.csp.proyecto-socio.periodo-justificacion.fecha-inicio.min' | translate}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.maxDate">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-inicio.maxDate' | translate}}
+            {{'error.csp.proyecto-socio.periodo-justificacion.fecha-inicio.max' | translate}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -46,30 +48,31 @@
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field fxFill>
           <mat-label>{{'csp.proyecto-socio-periodo-justificacion.fecha-fin' | translate}}</mat-label>
-          <input matInput [matDatepicker]="fechaFinPicker" formControlName="fechaFin" id="fechaFin" required
+          <input matInput [ngxMatDatetimePicker]="fechaFinPicker" formControlName="fechaFin" id="fechaFin" required
             placeholder="{{'csp.proyecto-socio-periodo-justificacion.fecha-fin' | translate}}">
           <mat-datepicker-toggle matSuffix [for]="fechaFinPicker"></mat-datepicker-toggle>
-          <mat-datepicker #fechaFinPicker></mat-datepicker>
+          <ngx-mat-datetime-picker #fechaFinPicker showSeconds="true" [defaultTime]="[23,59,59]">
+          </ngx-mat-datetime-picker>
           <mat-error *ngIf="formGroup.controls.fechaFin.errors?.overlapped">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-fin.overlapped' | translate}}
+            {{'error.overlapping.record.entity' | translate:msgParamFechaFin}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.fechaFin.errors?.required">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-fin.required' | translate}}
+            {{'error.required.entity' | translate:msgParamFechaFin}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.fechaFin.errors?.after">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-fin.after' | translate}}
+            {{'error.after.fecha-fin' | translate}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.fechaFin.errors?.minDate">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-fin.minDate' | translate}}
+            {{'error.csp.proyecto-socio.periodo-justificacion.fecha-fin.min' | translate}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.fechaFin.errors?.maxDate">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-fin.maxDate' | translate}}
+            {{'error.csp.proyecto-socio.periodo-justificacion.fecha-fin.max' | translate}}
           </mat-error>
         </mat-form-field>
       </div>
     </div>
     <div class="fieldset-form">
-      {{'csp.proyecto-socio-periodo-justificacion.periodo-justificacion-socio' | translate}}
+      {{'title.csp.proyecto-socio-periodo-justificacion.periodo-presentacion-justificacion' | translate}}
     </div>
     <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
       [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
@@ -82,14 +85,13 @@
             placeholder="{{'csp.proyecto-socio-periodo-justificacion.fecha-inicio-presentacion' | translate}}"
             [required]="formPart.isAbierto">
           <mat-datepicker-toggle matSuffix [for]="pickerFechaInicioPresentacion"></mat-datepicker-toggle>
-          <ngx-mat-datetime-picker #pickerFechaInicioPresentacion [showSeconds]="showSeconds"
-            [defaultTime]="defaultFechaInicioPresentacion">
+          <ngx-mat-datetime-picker #pickerFechaInicioPresentacion showSeconds="true" [defaultTime]="[0,0,0]">
           </ngx-mat-datetime-picker>
           <mat-error *ngIf="formGroup.controls.fechaInicioPresentacion.errors?.rangeWithTime">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-inicio-presentacion.range-with-time' | translate}}
+            {{'error.csp.proyecto-socio.periodo-justificacion.fecha-inicio.range' | translate}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.fechaInicioPresentacion.errors?.required">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-inicio-presentacion.required' | translate}}
+            {{'error.required.entity' | translate:msgParamFechaInicioPresentacion}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -102,17 +104,16 @@
             placeholder="{{'csp.proyecto-socio-periodo-justificacion.fecha-fin-presentacion' | translate}}"
             [required]="formPart.isAbierto">
           <mat-datepicker-toggle matSuffix [for]="pickerFechaFinPresentacion"></mat-datepicker-toggle>
-          <ngx-mat-datetime-picker #pickerFechaFinPresentacion [showSeconds]="showSeconds"
-            [defaultTime]="defaultFechaFinPresentacion">
+          <ngx-mat-datetime-picker #pickerFechaFinPresentacion showSeconds="true" [defaultTime]="[23,59,59]">
           </ngx-mat-datetime-picker>
           <mat-error *ngIf="formGroup.controls.fechaFinPresentacion.errors?.after">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-fin-presentacion.after' | translate}}
+            {{'error.after.fecha-fin' | translate}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.fechaFinPresentacion.errors?.rangeWithTime">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-fin-presentacion.range-with-time' | translate}}
+            {{'error.csp.proyecto-socio.periodo-justificacion.fecha-fin.range' | translate}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.fechaFinPresentacion.errors?.required">
-            {{'csp.proyecto-socio-periodo-justificacion.fecha-fin-presentacion.required' | translate}}
+            {{'error.required.entity' | translate:msgParamFechaFinPresentacion}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -128,7 +129,7 @@
             placeholder="{{'csp.proyecto-socio-periodo-justificacion.observaciones' | translate}}">
                 </textarea>
           <mat-error *ngIf="formGroup.controls.observaciones.errors?.maxlength">
-            {{'csp.proyecto-socio-periodo-justificacion.observaciones.maxlength' | translate}}
+            {{'error.maxlength.entity' | translate:msgParamObservacionesEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -139,18 +140,21 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-checkbox formControlName="documentacionRecibida" id="documentacionRecibida">
-          {{'csp.proyecto-socio-periodo-justificacion.doc-recibida' | translate}} </mat-checkbox>
+          {{'csp.proyecto-socio-periodo-justificacion.documentacion-recibida' | translate}} </mat-checkbox>
       </div>
 
       <!-- fechaRecepcion -->
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order" *ngIf="formGroup.controls.documentacionRecibida.value === true">
         <mat-form-field fxFill>
-          <mat-label>{{'csp.proyecto-socio-periodo-justificacion.fecha-recepcion' | translate}}</mat-label>
-          <input matInput [matDatepicker]="fechaRecepcionPicker" formControlName="fechaRecepcion" id="fechaRecepcion"
-            placeholder="{{'csp.proyecto-socio-periodo-justificacion.fecha-recepcion' | translate}}">
+          <mat-label>{{'csp.proyecto-socio-periodo-justificacion.documentacion-recibida.fecha' | translate}}
+          </mat-label>
+          <input matInput [ngxMatDatetimePicker]="fechaRecepcionPicker" formControlName="fechaRecepcion"
+            id="fechaRecepcion"
+            placeholder="{{'csp.proyecto-socio-periodo-justificacion.documentacion-recibida.fecha' | translate}}">
           <mat-datepicker-toggle matSuffix [for]="fechaRecepcionPicker"></mat-datepicker-toggle>
-          <mat-datepicker #fechaRecepcionPicker></mat-datepicker>
+          <ngx-mat-datetime-picker #fechaRecepcionPicker showSeconds="true" [defaultTime]="[0,0,0]">
+          </ngx-mat-datetime-picker>
         </mat-form-field>
       </div>
     </div>

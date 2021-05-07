@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit, Pipe, PipeTransform } from '@angular/core';
 import { FieldArrayType } from '@ngx-formly/core';
+import { DateTime } from 'luxon';
 import { Subject } from 'rxjs';
 
 @Component({
@@ -177,7 +178,7 @@ import { Subject } from 'rxjs';
   `]
 })
 export class TableType extends FieldArrayType implements OnInit, OnDestroy {
-  trigger = new Date().getTime();
+  trigger = DateTime.now().toMillis();
 
   private _unsubscribeAll$: Subject<any>;
 
@@ -348,7 +349,6 @@ export class TableType extends FieldArrayType implements OnInit, OnDestroy {
 
 
 
-import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({ name: 'hideColumnsBody' })
 export class HideColumnsBodyPipe implements PipeTransform {

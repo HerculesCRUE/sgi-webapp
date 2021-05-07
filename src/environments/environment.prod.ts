@@ -10,7 +10,8 @@ export const environment = {
     csp: '/api/csp',
     usr: '/api/usr',
     sgdoc: '/api/sgdoc',
-    sge: '/api/sge'
+    sge: '/api/sge',
+    sgemp: '/api/sgemp'
   },
   loggerConfig: {
     enableSourceMaps: true, // <-- THIS IS REQUIRED, to make "line-numbers" work in SourceMap Object defition (without evalSourceMap)
@@ -30,7 +31,9 @@ export const environment = {
     protectedResources: [
       /\/api\/eti.*/i,
       /\/api\/csp.*/i,
-      /\/api\/usr.*/i
+      /\/api\/usr.*/i,
+      /\/api\/sgp.*/i,
+      /\/api\/sgemp.*/i
     ]
   } as SgiAuthConfig,
   version

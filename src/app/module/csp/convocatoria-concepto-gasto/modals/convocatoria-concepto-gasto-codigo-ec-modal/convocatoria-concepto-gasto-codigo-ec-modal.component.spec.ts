@@ -1,18 +1,18 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
+import { IConvocatoriaConceptoGasto } from '@core/models/csp/convocatoria-concepto-gasto';
 import { IConvocatoriaConceptoGastoCodigoEc } from '@core/models/csp/convocatoria-concepto-gasto-codigo-ec';
+import { IConceptoGasto } from '@core/models/csp/tipos-configuracion';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
+import { SharedModule } from '@shared/shared.module';
 import { LoggerTestingModule } from 'ngx-logger/testing';
-
 import { ConvocatoriaConceptoGastoCodigoEcModalComponent, IConvocatoriaConceptoGastoCodigoEcModalComponent } from './convocatoria-concepto-gasto-codigo-ec-modal.component';
-import { IConvocatoriaConceptoGasto } from '@core/models/csp/convocatoria-concepto-gasto';
-import { IConceptoGasto } from '@core/models/csp/tipos-configuracion';
 
 describe('ConvocatoriaConceptoGastoCodigoEcModalComponent', () => {
   let component: ConvocatoriaConceptoGastoCodigoEcModalComponent;
@@ -20,38 +20,17 @@ describe('ConvocatoriaConceptoGastoCodigoEcModalComponent', () => {
 
   const data = {
     convocatoriaConceptoGastoCodigoEc: {
-      convocatoriaConceptoGasto: {
-        conceptoGasto: {
-          id: 1,
-          nombre: 'conceptoGasto1'
-        } as IConceptoGasto,
-        id: 1,
-        permitido: true
-      } as IConvocatoriaConceptoGasto,
-      id: 1
+      id: 1,
+      convocatoriaConceptoGastoId: 1
     } as IConvocatoriaConceptoGastoCodigoEc,
     convocatoriaConceptoGastoCodigoEcsTabla:
       [{
         id: 1,
-        convocatoriaConceptoGasto: {
-          conceptoGasto: {
-            id: 1,
-            nombre: 'conceptoGasto1'
-          } as IConceptoGasto,
-          id: 1,
-          permitido: true
-        } as IConvocatoriaConceptoGasto
+        convocatoriaConceptoGastoId: 1
       },
       {
         id: 2,
-        convocatoriaConceptoGasto: {
-          conceptoGasto: {
-            id: 1,
-            nombre: 'conceptoGasto1'
-          } as IConceptoGasto,
-          id: 2,
-          permitido: true
-        } as IConvocatoriaConceptoGasto
+        convocatoriaConceptoGastoId: 1
       },
       ] as IConvocatoriaConceptoGastoCodigoEc[],
     convocatoriaConceptoGastos: [
@@ -72,10 +51,12 @@ describe('ConvocatoriaConceptoGastoCodigoEcModalComponent', () => {
         permitido: true
       }
     ] as IConvocatoriaConceptoGasto[],
-    editModal: true
+    editModal: true,
+    permitido: true,
+    readonly: false
   } as IConvocatoriaConceptoGastoCodigoEcModalComponent;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
         ConvocatoriaConceptoGastoCodigoEcModalComponent
@@ -88,7 +69,8 @@ describe('ConvocatoriaConceptoGastoCodigoEcModalComponent', () => {
         TestUtils.getIdiomas(),
         RouterTestingModule,
         FormsModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        SharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },

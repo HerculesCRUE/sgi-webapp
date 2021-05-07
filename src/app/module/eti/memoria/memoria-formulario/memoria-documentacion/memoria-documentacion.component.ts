@@ -5,6 +5,7 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IComite } from '@core/models/eti/comite';
 import { IDocumentacionMemoria } from '@core/models/eti/documentacion-memoria';
 import { IEstadoRetrospectiva } from '@core/models/eti/estado-retrospectiva';
@@ -14,8 +15,8 @@ import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-propert
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { DialogService } from '@core/services/dialog.service';
 import { DocumentoService, triggerDownloadToUser } from '@core/services/sgdoc/documento.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, of, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { MemoriaActionService } from '../../memoria.action.service';
@@ -23,7 +24,9 @@ import { MemoriaDocumentacionMemoriaModalComponent } from '../../modals/memoria-
 import { MemoriaDocumentacionSeguimientosModalComponent } from '../../modals/memoria-documentacion-seguimientos-modal/memoria-documentacion-seguimientos-modal.component';
 import { MemoriaDocumentacionFragment, TIPO_DOCUMENTACION } from './memoria-documentacion.fragment';
 
-const MSG_CONFIRM_DELETE = marker('eti.memoria.documentacion.listado.eliminar');
+const MSG_DELETE = marker('msg.delete.entity');
+const DOCUMENTACION_KEY = marker('eti.documentacion');
+const DOCUMENTO_KEY = marker('eti.memoria.documento');
 
 @Component({
   selector: 'sgi-memoria-documentacion',
@@ -51,7 +54,6 @@ export class MemoriaDocumentacionComponent extends FragmentComponent implements 
   @ViewChild('sortSeguimientoFinal', { static: true }) sortSeguimientoFinal: MatSort;
   @ViewChild('sortRetrospectiva', { static: true }) sortRetrospectiva: MatSort;
 
-
   fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
 
@@ -72,6 +74,9 @@ export class MemoriaDocumentacionComponent extends FragmentComponent implements 
   documentacionesSeguimientoFinal$: BehaviorSubject<StatusWrapper<IDocumentacionMemoria>[]>;
   documentacionesRetrospectiva$: BehaviorSubject<StatusWrapper<IDocumentacionMemoria>[]>;
 
+  msgParamDocumentoEntity = {};
+  textoDelete: string;
+
   get comite(): IComite {
     return this.actionService.getComite();
   }
@@ -88,7 +93,8 @@ export class MemoriaDocumentacionComponent extends FragmentComponent implements 
     protected readonly dialogService: DialogService,
     protected matDialog: MatDialog,
     private actionService: MemoriaActionService,
-    protected readonly documentoService: DocumentoService) {
+    protected readonly documentoService: DocumentoService,
+    private readonly translate: TranslateService) {
 
     super(actionService.FRAGMENT.DOCUMENTACION, actionService);
 
@@ -102,6 +108,7 @@ export class MemoriaDocumentacionComponent extends FragmentComponent implements 
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
 
     this.dataSourceDocumentoMemoria = new MatTableDataSource<StatusWrapper<IDocumentacionMemoria>>();
     this.dataSourceDocumentoMemoria.paginator = this.paginatorDocumentacionMemoria;
@@ -166,12 +173,29 @@ export class MemoriaDocumentacionComponent extends FragmentComponent implements 
       };
   }
 
+  private setupI18N(): void {
+    this.translate.get(
+      DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamDocumentoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      DOCUMENTACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+  }
+
   openModalDocumentacionMemoria(): void {
     const config = {
-      width: GLOBAL_CONSTANTS.widthModalCSP,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-      data: this.dataSourceDocumentoMemoria.data,
-      autoFocus: false
+      panelClass: 'sgi-dialog-container',
+      data: this.dataSourceDocumentoMemoria.data
     };
 
     const dialogRef = this.matDialog.open(MemoriaDocumentacionMemoriaModalComponent, config);
@@ -190,10 +214,8 @@ export class MemoriaDocumentacionComponent extends FragmentComponent implements 
 
   openModalDocumentacionSeguimiento(tipoSeguimiento: number, documentacion?: StatusWrapper<IDocumentacionMemoria>): void {
     const config = {
-      width: GLOBAL_CONSTANTS.widthModalCSP,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-      data: documentacion ? documentacion.value : {} as IDocumentacionMemoria,
-      autoFocus: false
+      panelClass: 'sgi-dialog-container',
+      data: documentacion ? documentacion.value : {} as IDocumentacionMemoria
     };
 
     const dialogRef = this.matDialog.open(MemoriaDocumentacionSeguimientosModalComponent, config);
@@ -218,7 +240,7 @@ export class MemoriaDocumentacionComponent extends FragmentComponent implements 
    */
   deleteDocumentacionSeguimiento(tipoSeguimiento: number, wrappedDocumentacion: StatusWrapper<IDocumentacionMemoria>): void {
     const dialogSubscription = this.dialogService.showConfirmation(
-      MSG_CONFIRM_DELETE
+      this.textoDelete
     ).pipe(switchMap((accept) => {
       if (accept) {
         return of(this.formPart.deletedDocumentacionSeguimiento(tipoSeguimiento, wrappedDocumentacion));
@@ -245,9 +267,13 @@ export class MemoriaDocumentacionComponent extends FragmentComponent implements 
    *
    */
   hasPermisoUpdateDocumentacionInicial(): boolean {
-    return this.estadoMemoria.id === 1 || this.estadoMemoria.id === 2
-      || this.estadoMemoria.id === 6 || this.estadoMemoria.id === 7
-      || this.estadoMemoria.id === 8;
+    if (this.actionService.readonly) {
+      return false;
+    } else {
+      return this.estadoMemoria.id === 1 || this.estadoMemoria.id === 2
+        || this.estadoMemoria.id === 6 || this.estadoMemoria.id === 7
+        || this.estadoMemoria.id === 8;
+    }
   }
 
   /**
@@ -256,7 +282,11 @@ export class MemoriaDocumentacionComponent extends FragmentComponent implements 
    *
    */
   hasPermisoUpdateDocumentacionSeguimientoAnual(): boolean {
-    return this.estadoMemoria.id === 9 || this.estadoMemoria.id === 11;
+    if (this.actionService.readonly) {
+      return false;
+    } else {
+      return this.estadoMemoria.id === 9 || this.estadoMemoria.id === 11;
+    }
   }
 
   /**
@@ -265,7 +295,11 @@ export class MemoriaDocumentacionComponent extends FragmentComponent implements 
    *
    */
   hasPermisoUpdateDocumentacionSeguimientoFinal(): boolean {
-    return this.estadoMemoria.id === 14 || this.estadoMemoria.id === 16 || this.estadoMemoria.id === 21;
+    if (this.actionService.readonly) {
+      return false;
+    } else {
+      return this.estadoMemoria.id === 14 || this.estadoMemoria.id === 16 || this.estadoMemoria.id === 21;
+    }
   }
 
   /**
@@ -273,7 +307,11 @@ export class MemoriaDocumentacionComponent extends FragmentComponent implements 
    * PENDIENTE, COMPLETADA
    */
   hasPermisoUpdateDocumentacionRetrospectiva(): boolean {
-    return this.estadoRetrospectiva?.id === 1 || this.estadoRetrospectiva?.id === 2;
+    if (this.actionService.readonly) {
+      return false;
+    } else {
+      return this.estadoRetrospectiva?.id === 1 || this.estadoRetrospectiva?.id === 2;
+    }
   }
 
   /**

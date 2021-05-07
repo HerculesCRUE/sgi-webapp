@@ -1,8 +1,7 @@
-import { IPrograma } from '@core/models/csp/programa';
 import { IProyectoEntidadConvocante } from '@core/models/csp/proyecto-entidad-convocante';
 import { Fragment } from '@core/services/action-service';
 import { ProyectoService } from '@core/services/csp/proyecto.service';
-import { EmpresaEconomicaService } from '@core/services/sgp/empresa-economica.service';
+import { EmpresaService } from '@core/services/sgemp/empresa.service';
 import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
 import { catchError, map, mergeMap, takeLast, tap } from 'rxjs/operators';
@@ -16,7 +15,7 @@ export class ProyectoEntidadesConvocantesFragment extends Fragment {
     private readonly logger: NGXLogger,
     key: number,
     private proyectoService: ProyectoService,
-    private empresaEconomicaService: EmpresaEconomicaService,
+    private empresaService: EmpresaService,
   ) {
     super(key);
     this.setComplete(true);
@@ -29,7 +28,7 @@ export class ProyectoEntidadesConvocantesFragment extends Fragment {
         mergeMap(proyectoEntidadConvocanteData => {
           return from(proyectoEntidadConvocanteData).pipe(
             mergeMap((data) => {
-              return this.loadEmpresaEconomica(data);
+              return this.loadEmpresa(data);
             })
           );
         }),
@@ -42,11 +41,10 @@ export class ProyectoEntidadesConvocantesFragment extends Fragment {
     }
   }
 
-  private loadEmpresaEconomica(data: IProyectoEntidadConvocante): Observable<IProyectoEntidadConvocante> {
-    const entidadRef = data.entidad.personaRef;
-    return this.empresaEconomicaService.findById(entidadRef).pipe(
-      map(empresaEconomica => {
-        data.entidad = empresaEconomica;
+  private loadEmpresa(data: IProyectoEntidadConvocante): Observable<IProyectoEntidadConvocante> {
+    return this.empresaService.findById(data.entidad.id).pipe(
+      map(empresa => {
+        data.entidad = empresa;
         return data;
       }),
       catchError((error) => {
@@ -54,13 +52,6 @@ export class ProyectoEntidadesConvocantesFragment extends Fragment {
         return of(data);
       })
     );
-  }
-
-  private getSecondLevelPrograma(programa: IPrograma): IPrograma {
-    if (programa?.padre?.padre) {
-      return this.getSecondLevelPrograma(programa.padre);
-    }
-    return programa;
   }
 
   public deleteProyectoEntidadConvocante(proyectoEntidadConvocante: IProyectoEntidadConvocante) {

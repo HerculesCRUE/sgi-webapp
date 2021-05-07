@@ -1,5 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { MEMORIA_CONVERTER } from '@core/converters/eti/memoria.converter';
+import { IMemoriaBackend } from '@core/models/eti/backend/memoria-backend';
 import { IComite } from '@core/models/eti/comite';
 import { IMemoria } from '@core/models/eti/memoria';
 import { TipoMemoria } from '@core/models/eti/tipo-memoria';
@@ -11,7 +13,6 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class ComiteService extends SgiReadOnlyRestService<number, IComite> {
-
   private static readonly MAPPING = '/comites';
 
   constructor(protected http: HttpClient) {
@@ -38,6 +39,10 @@ export class ComiteService extends SgiReadOnlyRestService<number, IComite> {
    * @param options Opciones de búsqueda.
    */
   findMemorias(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IMemoria>> {
-    return this.find<IMemoria, IMemoria>(`${this.endpointUrl}/${id}/memorias`, options);
+    return this.find<IMemoriaBackend, IMemoria>(
+      `${this.endpointUrl}/${id}/memorias`,
+      options,
+      MEMORIA_CONVERTER
+    );
   }
 }

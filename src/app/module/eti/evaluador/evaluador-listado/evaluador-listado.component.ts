@@ -4,6 +4,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IComite } from '@core/models/eti/comite';
 import { IEvaluador } from '@core/models/eti/evaluador';
 import { IPersona } from '@core/models/sgp/persona';
@@ -13,33 +14,29 @@ import { ROUTE_NAMES } from '@core/route.names';
 import { DialogService } from '@core/services/dialog.service';
 import { ComiteService } from '@core/services/eti/comite.service';
 import { EvaluadorService } from '@core/services/eti/evaluador.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { DateUtils } from '@core/utils/date-utils';
+import { LuxonUtils } from '@core/utils/luxon-utils';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
-import { BuscarPersonaComponent } from '@shared/buscar-persona/buscar-persona.component';
+import { TipoColectivo } from '@shared/select-persona/select-persona.component';
+import { DateTime } from 'luxon';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
-import { catchError, map, startWith } from 'rxjs/operators';
+import { catchError, map, startWith, switchMap } from 'rxjs/operators';
 
-
-
-
-
-
-
-const MSG_BUTTON_SAVE = marker('footer.eti.evaluador.crear');
-const MSG_ERROR = marker('eti.evaluador.listado.error');
-const TEXT_USER_TITLE = marker('eti.buscarUsuario.titulo');
-const TEXT_USER_BUTTON = marker('eti.buscarUsuario.boton.buscar');
-const MSG_DELETE = marker('eti.evaluador.listado.eliminar');
-const MSG_SUCCESS = marker('eti.evaluador.listado.eliminarConfirmado');
+const MSG_BUTTON_SAVE = marker('btn.add.entity');
+const MSG_ERROR = marker('error.load');
+const MSG_DELETE = marker('msg.delete.entity');
+const MSG_SUCCESS = marker('msg.delete.entity.success');
+const EVALUADOR_KEY = marker('eti.evaluador');
 
 @Component({
   selector: 'sgi-evaluador-listado',
   templateUrl: './evaluador-listado.component.html',
   styleUrls: ['./evaluador-listado.component.scss']
 })
+
 export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<IEvaluador> implements OnInit {
 
   ROUTE_NAMES = ROUTE_NAMES;
@@ -51,29 +48,32 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
 
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   @ViewChild(MatPaginator, { static: false }) paginator: MatPaginator;
-  @ViewChild(BuscarPersonaComponent, { static: false }) private buscarPersona: BuscarPersonaComponent;
 
   evaluadores$: Observable<IEvaluador[]> = of();
 
   comiteListado: IComite[];
   filteredComites: Observable<IComite[]>;
 
-  textoCrear = MSG_BUTTON_SAVE;
-  textoUsuarioLabel = TEXT_USER_TITLE;
-  textoUsuarioInput = TEXT_USER_TITLE;
-  textoUsuarioButton = TEXT_USER_BUTTON;
+  textoCrear: string;
+  textoDelete: string;
+  textoDeleteSuccess: string;
 
   personasRef: string[];
 
   personas$: Observable<IPersona[]> = of();
+
+  get tipoColectivoEvaluador() {
+    return TipoColectivo.EVALUADOR_ETICA;
+  }
 
   constructor(
     private readonly logger: NGXLogger,
     private readonly evaluadoresService: EvaluadorService,
     protected readonly snackBarService: SnackBarService,
     private readonly comiteService: ComiteService,
-    private readonly personaFisicaService: PersonaFisicaService,
-    private readonly dialogService: DialogService
+    private readonly personaService: PersonaService,
+    private readonly dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
@@ -91,6 +91,7 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.formGroup = new FormGroup({
       comite: new FormControl('', []),
       estado: new FormControl('', []),
@@ -100,6 +101,44 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
     this.getComites();
   }
 
+  private setupI18N(): void {
+    this.translate.get(
+      EVALUADOR_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+
+    this.translate.get(
+      EVALUADOR_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDeleteSuccess = value);
+
+    this.translate.get(
+      EVALUADOR_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_BUTTON_SAVE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoCrear = value);
+
+  }
 
   protected createObservable(): Observable<SgiRestListResult<IEvaluador>> {
     const observable$ = this.evaluadoresService.findAll(this.getFindOptions());
@@ -107,23 +146,22 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
   }
 
   protected initColumns(): void {
-    this.displayedColumns = ['nombre', 'identificadorNumero', 'comite', 'cargoComite', 'fechaAlta', 'fechaBaja', 'estado', 'acciones'];
+    this.displayedColumns = ['nombre', 'numeroDocumento', 'comite', 'cargoComite', 'fechaAlta', 'fechaBaja', 'estado', 'acciones'];
   }
 
   protected createFilter(): SgiRestFilter {
     const controls = this.formGroup.controls;
     const filter = new RSQLSgiRestFilter('comite.id', SgiRestFilterOperator.EQUALS, controls.comite.value?.id?.toString());
     if (controls.estado.value) {
+      // TODO: Revisar lógica
       filter
-        .and('fechaBaja', SgiRestFilterOperator.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODate(new Date()))
-        .and('fechaAlta', SgiRestFilterOperator.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODate(new Date()));
+        .and('fechaBaja', SgiRestFilterOperator.GREATHER_OR_EQUAL, LuxonUtils.toBackend(DateTime.now()))
+        .and('fechaAlta', SgiRestFilterOperator.LOWER_OR_EQUAL, LuxonUtils.toBackend(DateTime.now().plus({ days: 1 })));
     }
-    filter.and('personaRef', SgiRestFilterOperator.EQUALS, controls.solicitante.value);
+    filter.and('personaRef', SgiRestFilterOperator.EQUALS, controls.solicitante.value.id);
 
     return filter;
   }
-
-
 
   protected loadTable(reset?: boolean) {
     // Do the request with paginator/sort/filter values
@@ -167,15 +205,15 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
     this.personasRef = [];
     evaluadores.forEach((evaluador) => {
 
-      if ((evaluador.fechaAlta != null && new Date(evaluador.fechaAlta) <= new Date()) &&
-        ((evaluador.fechaBaja != null && new Date(evaluador.fechaBaja) >= new Date()) || (evaluador.fechaBaja == null))) {
+      if ((evaluador.fechaAlta != null && evaluador.fechaAlta <= DateTime.now()) &&
+        ((evaluador.fechaBaja != null && evaluador.fechaBaja >= DateTime.now()) || (evaluador.fechaBaja == null))) {
         evaluador.activo = true;
       } else {
         evaluador.activo = false;
       }
 
-      if (evaluador.personaRef && evaluador.personaRef !== '') {
-        this.personasRef.push(evaluador.personaRef);
+      if (evaluador.persona.id && evaluador.persona.id !== '') {
+        this.personasRef.push(evaluador.persona.id);
       }
 
       // cambiar en futuro pasando las referencias de las personas
@@ -190,14 +228,10 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
    * returns el evaluador con los datos de persona
    */
   loadDatosUsuario(evaluador: IEvaluador): IEvaluador {
-    const personaServiceOneSubscription = this.personaFisicaService.getInformacionBasica(evaluador.personaRef)
+    const personaServiceOneSubscription = this.personaService.findById(evaluador.persona.id)
       .subscribe(
         (persona: IPersona) => {
-          evaluador.nombre = persona.nombre;
-          evaluador.primerApellido = persona.primerApellido;
-          evaluador.segundoApellido = persona.segundoApellido;
-          evaluador.identificadorNumero = persona.identificadorNumero;
-          evaluador.identificadorLetra = persona.identificadorLetra;
+          evaluador.persona = persona;
         },
         (error) => {
           this.logger.error(error);
@@ -234,7 +268,6 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
     this.suscripciones.push(comitesSubscription);
   }
 
-
   /**
    * Filtro de campo autocompletable comité.
    * @param value value a filtrar (string o nombre comité).
@@ -252,7 +285,6 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
       (comite => comite.comite.toLowerCase().includes(filterValue));
   }
 
-
   /**
    * Elimina el evaluador con el id recibido por parametro.
    * @param evaluadorId id evaluador
@@ -262,7 +294,7 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
     $event.stopPropagation();
     $event.preventDefault();
 
-    const dialogServiceSubscriptionGetSubscription = this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+    const dialogServiceSubscriptionGetSubscription = this.dialogService.showConfirmation(this.textoDelete).subscribe(
       (aceptado: boolean) => {
         if (aceptado) {
           const evaluadorServiceDeleteSubscription = this.evaluadoresService
@@ -272,7 +304,7 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
                 return this.loadTable();
               })
             ).subscribe(() => {
-              this.snackBarService.showSuccess(MSG_SUCCESS);
+              this.snackBarService.showSuccess(this.textoDeleteSuccess);
             });
           this.suscripciones.push(evaluadorServiceDeleteSubscription);
         }
@@ -280,21 +312,4 @@ export class EvaluadorListadoComponent extends AbstractTablePaginationComponent<
       });
     this.suscripciones.push(dialogServiceSubscriptionGetSubscription);
   }
-
-  /**
-   * Setea el persona seleccionado a través del componente
-   * @param persona persona seleccionado
-   */
-  public setUsuario(persona: IPersona) {
-    this.formGroup.controls.solicitante.setValue(persona?.personaRef);
-  }
-
-  /**
-   * Clean filters an reload the table
-   */
-  onClearFilters(): void {
-    super.onClearFilters();
-    this.buscarPersona.clear();
-  }
-
 }

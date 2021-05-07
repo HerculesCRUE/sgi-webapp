@@ -1,5 +1,5 @@
 <section class="memoria-documentacion">
-  <h2>{{'eti.memoria.documentacion.title' | translate}}</h2>
+  <h2>{{'eti.documentacion' | translate}}</h2>
   <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSourceDocumentoMemoria" matSort
     matSortActive="id" matSortDirection="asc" matSortDisableClear #sortDocumentacionMemoria="matSort">
 
@@ -12,7 +12,7 @@
 
     <!-- Tipo documento Column -->
     <ng-container matColumnDef="tipoDocumento">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.memoria.documentacion.tipo.documento' | translate}}
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.memoria.documento.tipo' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.tipoDocumento.nombre}} </td>
     </ng-container>
@@ -29,17 +29,17 @@
 
     <!-- Acciones Column -->
     <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef> {{'botones.acciones' | translate}} </th>
+      <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper;let i=index;">
 
         <ng-container *ngIf="wrapper.value.aportado === true">
-          <button mat-button matTooltip="{{'botones.visualizar' | translate}}"
+          <button mat-button matTooltip="{{'btn.show.file' | translate}}"
             (click)="visualizarDocumento(wrapper.value.documentoRef)">
             <mat-icon color="primary">picture_as_pdf</mat-icon>
           </button>
         </ng-container>
         <ng-container *ngIf="wrapper.value.aportado === true && hasPermisoUpdateDocumentacionInicial()">
-          <button mat-button matTooltip="{{'botones.borrar' | translate}}"
+          <button mat-button matTooltip="{{'btn.delete' | translate}}"
             (click)="deleteDocumentacionSeguimiento(0, wrapper)">
             <mat-icon color="warn">highlight_off</mat-icon>
           </button>
@@ -60,24 +60,24 @@
   <!-- Botón añadir documentación -->
   <div class="separation-button">
     <ng-container *ngIf="hasPermisoUpdateDocumentacionInicial()">
-      <button color="three" md-button mat-raised-button (click)="openModalDocumentacionMemoria()">
+      <button color="three" mat-raised-button (click)="openModalDocumentacionMemoria()">
         <mat-icon color="accent">add_circle</mat-icon>
-        {{'eti.memoria.documentacion.aniadir' | translate}}
+        {{'btn.add.entity' | translate:msgParamDocumentoEntity}}
       </button>
     </ng-container>
   </div>
 
 
   <div class="separation-button">
-    <h2>{{'eti.memoria.documentacion.seguimiento.anual.title' | translate}}</h2>
+    <h2>{{'title.eti.memoria.documentacion.seguimiento-anual' | translate}}</h2>
     <ng-container *ngIf="comite?.formulario.id === 1">
-      <span>{{'eti.memoria.documentacion.seguimiento.anual.formulario.M10' | translate}}</span>
+      <span>{{'eti.memoria.documentacion.seguimiento-anual.formulario.M10' | translate}}</span>
     </ng-container>
     <ng-container *ngIf="comite?.formulario.id === 2">
-      <span>{{'eti.memoria.documentacion.seguimiento.anual.formulario.M20' | translate}}</span>
+      <span>{{'eti.memoria.documentacion.seguimiento-anual.formulario.M20' | translate}}</span>
     </ng-container>
     <ng-container *ngIf="comite?.formulario.id === 3">
-      <span>{{'eti.memoria.documentacion.seguimiento.anual.formulario.M30' | translate}}</span>
+      <span>{{'eti.memoria.documentacion.seguimiento-anual.formulario.M30' | translate}}</span>
     </ng-container>
     <div class="separation-button">
       <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSourceSeguimientoAnual" matSort
@@ -93,7 +93,7 @@
         <!-- Tipo documento Column -->
         <ng-container matColumnDef="tipoDocumento.nombre">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>
-            {{'eti.memoria.documentacion.tipo.documento' | translate}}
+            {{'eti.memoria.documento.tipo' | translate}}
           </th>
           <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.tipoDocumento.nombre}} </td>
         </ng-container>
@@ -110,17 +110,17 @@
 
         <!-- Acciones Column -->
         <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef> {{'botones.acciones' | translate}} </th>
+          <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
           <td mat-cell *matCellDef="let wrapper;let i=index;">
 
             <ng-container *ngIf="wrapper.value.aportado === true">
-              <button mat-button matTooltip="{{'botones.visualizar' | translate}}"
+              <button mat-button matTooltip="{{'btn.show.file' | translate}}"
                 (click)="visualizarDocumento(wrapper.value.documentoRef)">
                 <mat-icon color="primary">picture_as_pdf</mat-icon>
               </button>
             </ng-container>
             <ng-container *ngIf="wrapper.value.aportado === true && hasPermisoUpdateDocumentacionSeguimientoAnual()">
-              <button mat-button matTooltip="{{'botones.borrar' | translate}}"
+              <button mat-button matTooltip="{{'btn.delete' | translate}}"
                 (click)="deleteDocumentacionSeguimiento(documentacionTipo.SEGUIMIENTO_ANUAL, wrapper)">
                 <mat-icon color="warn">highlight_off</mat-icon>
               </button>
@@ -140,10 +140,10 @@
     <!-- Botón añadir documentación -->
     <div class="separation-button">
       <ng-container *ngIf="hasPermisoUpdateDocumentacionSeguimientoAnual()">
-        <button color="three" md-button mat-raised-button
+        <button color="three" mat-raised-button
           (click)="openModalDocumentacionSeguimiento(documentacionTipo.SEGUIMIENTO_ANUAL)">
           <mat-icon color="accent">add_circle</mat-icon>
-          {{'eti.memoria.documentacion.aniadir' | translate}}
+          {{'btn.add.entity' | translate:msgParamDocumentoEntity}}
         </button>
       </ng-container>
     </div>
@@ -152,7 +152,7 @@
   </div>
 
   <div class="separation-button">
-    <h2>{{'eti.memoria.documentacion.seguimiento.final.title' | translate}}</h2>
+    <h2>{{'title.eti.memoria.documentacion.seguimiento-final' | translate}}</h2>
     <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSourceSeguimientoFinal" matSort
       matSortActive="id" matSortDirection="asc" matSortDisableClear #sortSeguimientoFinal="matSort">
 
@@ -166,7 +166,7 @@
       <!-- Tipo documento Column -->
       <ng-container matColumnDef="tipoDocumento.nombre">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          {{'eti.memoria.documentacion.tipo.documento' | translate}}
+          {{'eti.memoria.documento.tipo' | translate}}
         </th>
         <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.tipoDocumento.nombre}} </td>
       </ng-container>
@@ -183,17 +183,17 @@
 
       <!-- Acciones Column -->
       <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef> {{'botones.acciones' | translate}} </th>
+        <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
         <td mat-cell *matCellDef="let wrapper;let i=index;">
 
           <ng-container *ngIf="wrapper.value.aportado === true">
-            <button mat-button matTooltip="{{'botones.visualizar' | translate}}"
+            <button mat-button matTooltip="{{'btn.show.file' | translate}}"
               (click)="visualizarDocumento(wrapper.value.documentoRef)">
               <mat-icon color="primary">picture_as_pdf</mat-icon>
             </button>
           </ng-container>
           <ng-container *ngIf="wrapper.value.aportado === true && hasPermisoUpdateDocumentacionSeguimientoFinal()">
-            <button mat-button matTooltip="{{'botones.borrar' | translate}}"
+            <button mat-button matTooltip="{{'btn.delete' | translate}}"
               (click)="deleteDocumentacionSeguimiento(documentacionTipo.SEGUIMIENTO_FINAL, wrapper)">
               <mat-icon color="warn">highlight_off</mat-icon>
             </button>
@@ -212,10 +212,10 @@
     <div class="separation-button">
       <!-- Botón añadir documentación -->
       <ng-container *ngIf="hasPermisoUpdateDocumentacionSeguimientoFinal()">
-        <button color="three" md-button mat-raised-button
+        <button color="three" mat-raised-button
           (click)="openModalDocumentacionSeguimiento(documentacionTipo.SEGUIMIENTO_FINAL)">
           <mat-icon color="accent">add_circle</mat-icon>
-          {{'eti.memoria.documentacion.aniadir' | translate}}
+          {{'btn.add.entity' | translate:msgParamDocumentoEntity}}
         </button>
       </ng-container>
     </div>
@@ -225,7 +225,7 @@
 
 
   <div class="separation-button">
-    <h2>{{'eti.memoria.documentacion.retrospectiva.title' | translate}}</h2>
+    <h2>{{'title.eti.memoria.documentacion.retrospectiva' | translate}}</h2>
     <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSourceRetrospectiva" matSort
       matSortActive="id" matSortDirection="asc" matSortDisableClear #sortRetrospectiva="matSort">
 
@@ -239,7 +239,7 @@
       <!-- Tipo documento Column -->
       <ng-container matColumnDef="tipoDocumento.nombre">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          {{'eti.memoria.documentacion.tipo.documento' | translate}}
+          {{'eti.memoria.documento.tipo' | translate}}
         </th>
         <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.tipoDocumento.nombre}} </td>
       </ng-container>
@@ -256,17 +256,17 @@
 
       <!-- Acciones Column -->
       <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef> {{'botones.acciones' | translate}} </th>
+        <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
         <td mat-cell *matCellDef="let wrapper;let i=index;">
 
           <ng-container *ngIf="wrapper.value.aportado === true">
-            <button mat-button matTooltip="{{'botones.visualizar' | translate}}"
+            <button mat-button matTooltip="{{'btn.show.file' | translate}}"
               (click)="visualizarDocumento(wrapper.value.documentoRef)">
               <mat-icon color="primary">picture_as_pdf</mat-icon>
             </button>
           </ng-container>
           <ng-container *ngIf="wrapper.value.aportado === true && hasPermisoUpdateDocumentacionRetrospectiva()">
-            <button mat-button matTooltip="{{'botones.borrar' | translate}}"
+            <button mat-button matTooltip="{{'btn.delete' | translate}}"
               (click)="deleteDocumentacionSeguimiento(documentacionTipo.RETROSPECTIVA, wrapper)">
               <mat-icon color="warn">highlight_off</mat-icon>
             </button>
@@ -285,10 +285,10 @@
     <div class="separation-button">
       <!-- Botón añadir documentación -->
       <ng-container *ngIf="hasPermisoUpdateDocumentacionRetrospectiva()">
-        <button color="three" md-button mat-raised-button
+        <button color="three" mat-raised-button
           (click)="openModalDocumentacionSeguimiento(documentacionTipo.RETROSPECTIVA)">
           <mat-icon color="accent">add_circle</mat-icon>
-          {{'eti.memoria.documentacion.aniadir' | translate}}
+          {{'btn.add.entity' | translate:msgParamDocumentoEntity}}
         </button>
       </ng-container>
     </div>

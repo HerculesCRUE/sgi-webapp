@@ -32,13 +32,9 @@ export class EvaluadorConflictosInteresFragment extends Fragment {
       map((response) => {
         if (response.items) {
           response.items.forEach((conflictoInteres) => {
-            this.personaService.findById(conflictoInteres.personaConflictoRef).pipe(
+            this.personaService.findById(conflictoInteres.personaConflicto.id).pipe(
               map((usuarioInfo) => {
-                conflictoInteres.identificadorNumero = usuarioInfo.identificadorNumero;
-                conflictoInteres.identificadorLetra = usuarioInfo.identificadorLetra;
-                conflictoInteres.nombre = usuarioInfo.nombre;
-                conflictoInteres.primerApellido = usuarioInfo.primerApellido;
-                conflictoInteres.segundoApellido = usuarioInfo.segundoApellido;
+                conflictoInteres.personaConflicto = usuarioInfo;
               })
             ).subscribe();
           });

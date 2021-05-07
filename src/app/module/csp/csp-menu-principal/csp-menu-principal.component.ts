@@ -1,8 +1,8 @@
 import { Component, OnDestroy } from '@angular/core';
+import { MSG_PARAMS } from '@core/i18n';
 import { LayoutService } from '@core/services/layout.service';
 import { Subscription } from 'rxjs';
 import { CSP_ROUTE_NAMES } from '../csp-route-names';
-
 @Component({
   selector: 'sgi-csp-menu-principal',
   templateUrl: './csp-menu-principal.component.html',
@@ -37,6 +37,10 @@ export class CspMenuPrincipalComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.subcription.unsubscribe();
+  }
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
   }
 
 }

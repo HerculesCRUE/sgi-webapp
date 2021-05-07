@@ -1,18 +1,14 @@
-import { ISolicitudProyectoDatos } from '@core/models/csp/solicitud-proyecto-datos';
 import { ISolicitudProyectoEquipo } from '@core/models/csp/solicitud-proyecto-equipo';
 import { Fragment } from '@core/services/action-service';
 import { SolicitudProyectoEquipoService } from '@core/services/csp/solicitud-proyecto-equipo.service';
 import { SolicitudService } from '@core/services/csp/solicitud.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
-import { map, mergeMap, switchMap, takeLast, tap } from 'rxjs/operators';
+import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
 
 export class SolicitudEquipoProyectoFragment extends Fragment {
   proyectoEquipos$ = new BehaviorSubject<StatusWrapper<ISolicitudProyectoEquipo>[]>([]);
   private proyectosEquipoEliminados: StatusWrapper<ISolicitudProyectoEquipo>[] = [];
-
-  existsDatosProyecto = false;
-  solicitantePersonaRef: string;
 
   constructor(
     key: number,
@@ -62,6 +58,19 @@ export class SolicitudEquipoProyectoFragment extends Fragment {
     current.push(wrapped);
     this.proyectoEquipos$.next(current);
     this.setChanges(true);
+  }
+
+  updateProyectoEquipo(wrapper: StatusWrapper<ISolicitudProyectoEquipo>): void {
+    const current = this.proyectoEquipos$.value;
+    const index = current.findIndex(value => value.value.id === wrapper.value.id);
+    if (index >= 0) {
+      if (!wrapper.created) {
+        wrapper.setEdited();
+        this.setChanges(true);
+      }
+      this.proyectoEquipos$.value[index] = wrapper;
+      this.proyectoEquipos$.next(this.proyectoEquipos$.value);
+    }
   }
 
   saveOrUpdate(): Observable<void> {
@@ -119,31 +128,16 @@ export class SolicitudEquipoProyectoFragment extends Fragment {
     if (createdEquipos.length === 0) {
       return of(void 0);
     }
-    const id = this.getKey() as number;
-    return this.solicitudService.findSolicitudProyectoDatos(id).pipe(
-      switchMap(solicitudProyectoDatos => {
-        const index = this.getIndexSolicitante(createdEquipos);
-        if (index >= 0) {
-          const solicitante = createdEquipos[index].value;
-          solicitante.solicitudProyectoDatos = solicitudProyectoDatos;
-          createdEquipos.splice(index, 1);
-          return this.solicitudProyectoEquipoService.create(solicitante).pipe(
-            switchMap(() => this.createEquipos(solicitudProyectoDatos, createdEquipos))
-          );
-        }
-        return this.createEquipos(solicitudProyectoDatos, createdEquipos);
-      })
-    );
+    return this.createEquipos(createdEquipos);
   }
 
   private createEquipos(
-    solicitudProyectoDatos: ISolicitudProyectoDatos,
     createdEquipos: StatusWrapper<ISolicitudProyectoEquipo>[]
   ): Observable<void> {
     return from(createdEquipos).pipe(
       mergeMap((wrapped) => {
         const value = wrapped.value;
-        value.solicitudProyectoDatos = solicitudProyectoDatos;
+        value.solicitudProyectoId = this.getKey() as number;
         return this.solicitudProyectoEquipoService.create(value).pipe(
           map((solicitudProyectoEquipo) => {
             const index = this.proyectoEquipos$.value.findIndex((currenthitos) => currenthitos === wrapped);
@@ -158,11 +152,5 @@ export class SolicitudEquipoProyectoFragment extends Fragment {
   private isSaveOrUpdateComplete(): boolean {
     const touched: boolean = this.proyectoEquipos$.value.some((wrapper) => wrapper.touched);
     return (this.proyectosEquipoEliminados.length > 0 || touched);
-  }
-
-  getIndexSolicitante(proyectoEquipos: StatusWrapper<ISolicitudProyectoEquipo>[]): number {
-    return proyectoEquipos.findIndex(
-      (element) => element.value.persona.personaRef === this.solicitantePersonaRef
-    );
   }
 }

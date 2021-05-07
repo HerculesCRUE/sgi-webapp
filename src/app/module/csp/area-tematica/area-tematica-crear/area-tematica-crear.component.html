@@ -6,7 +6,7 @@
         [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[AREA_TEMATICA_ROUTE_NAMES.AREAS_ARBOL]"
-        [title]="'label.areas-arbol' | translate"
+        [title]="'tree.entity' | translate:msgParamEntity"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.AREAS_ARBOL)">
       </sgi-action-fragment-menu-item>
     </mat-list>

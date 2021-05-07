@@ -1,14 +1,19 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoPeriodoSeguimiento } from '@core/models/csp/proyecto-periodo-seguimiento';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { DateUtils } from '@core/utils/date-utils';
 import { FormGroupUtil } from '@core/utils/form-group-util';
+import { TranslateService } from '@ngx-translate/core';
 import { merge, Subscription } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { ProyectoPeriodoSeguimientoActionService } from '../../proyecto-periodo-seguimiento.action.service';
 import { ProyectoPeriodoSeguimientoDatosGeneralesFragment } from './proyecto-periodo-seguimiento-datos-generales.fragment';
+
+const PERIODO_SEGUIMIENTO_CIENTIFICO_OBSERVACIONES_KEY = marker('csp.proyecto-periodo-seguimiento-cientifico.observaciones');
+const PERIODO_SEGUIMIENTO_CIENTIFICO_KEY = marker('csp.proyecto-periodo-seguimiento-cientifico');
 
 @Component({
   selector: 'sgi-solicitud-proyecto-periodo-seguimiento-datos-generales',
@@ -22,17 +27,14 @@ export class ProyectoPeriodoSeguimientoDatosGeneralesComponent extends FormFragm
   fxFlexProperties: FxFlexProperties;
   fxFlexProperties3: FxFlexProperties;
   private subscriptions: Subscription[] = [];
-  periodoSeguimientosSelectedProyecto: IProyectoPeriodoSeguimiento[] = [];
   FormGroupUtil = FormGroupUtil;
 
-  /** ngx-mat-datetime-picker */
-  showSeconds = true;
-  defaultTimeStart = [0, 0, 0];
-  defaultTimeEnd = [23, 59, 59];
-  /** ngx-mat-datetime-picker */
+  msgParamEntity = {};
+  msgParamObservacionesEntity = {};
 
   constructor(
-    protected actionService: ProyectoPeriodoSeguimientoActionService
+    protected actionService: ProyectoPeriodoSeguimientoActionService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.DATOS_GENERALES, actionService);
     this.formPart = this.fragment as ProyectoPeriodoSeguimientoDatosGeneralesFragment;
@@ -56,7 +58,8 @@ export class ProyectoPeriodoSeguimientoDatosGeneralesComponent extends FormFragm
 
   ngOnInit(): void {
     super.ngOnInit();
-    this.loadPeriodoSeguimientosSelectedProyecto();
+
+    this.setupI18N();
 
     this.subscriptions.push(
       merge(
@@ -68,31 +71,36 @@ export class ProyectoPeriodoSeguimientoDatosGeneralesComponent extends FormFragm
     );
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
+  private setupI18N(): void {
+    this.translate.get(
+      PERIODO_SEGUIMIENTO_CIENTIFICO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PERIODO_SEGUIMIENTO_CIENTIFICO_OBSERVACIONES_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamObservacionesEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE, ...MSG_PARAMS.CARDINALIRY.PLURAL });
   }
 
-  private loadPeriodoSeguimientosSelectedProyecto(): void {
-    this.periodoSeguimientosSelectedProyecto = this.formPart.selectedProyectoPeriodoSeguimientos;
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
   private checkOverlapsPeriodosSeguimiento(): void {
     const fechaInicioForm = this.formGroup.get('fechaInicio');
     const fechaFinForm = this.formGroup.get('fechaFin');
 
-    const fechaInicio = fechaInicioForm.value ? DateUtils.fechaToDate(fechaInicioForm.value).getTime() : Number.MIN_VALUE;
-    const fechaFin = fechaFinForm.value ? DateUtils.fechaToDate(fechaFinForm.value).getTime() : Number.MAX_VALUE;
+    const fechaInicio = fechaInicioForm.value ? fechaInicioForm.value.toMillis() : Number.MIN_VALUE;
+    const fechaFin = fechaFinForm.value ? fechaFinForm.value.toMillis() : Number.MAX_VALUE;
 
-    const proyectoPeriodoSeguimientos = this.periodoSeguimientosSelectedProyecto.filter(
-      element => element.id !== this.formPart.proyectoPeriodoSeguimiento.id);
-
-    const ranges = proyectoPeriodoSeguimientos.map(proyectoPeriodoSeguimiento => {
-      return {
-        inicio: proyectoPeriodoSeguimiento.fechaInicio ?
-          DateUtils.fechaToDate(proyectoPeriodoSeguimiento.fechaInicio).getTime() : Number.MIN_VALUE,
-        fin: proyectoPeriodoSeguimiento.fechaFin ? DateUtils.fechaToDate(proyectoPeriodoSeguimiento.fechaFin).getTime() : Number.MAX_VALUE
-      };
-    });
+    const ranges = this.actionService.proyectoPeriodoSeguimiento
+      .map(periodo => {
+        return {
+          inicio: periodo.fechaInicio ? periodo.fechaInicio.toMillis() : Number.MIN_VALUE,
+          fin: periodo.fechaFin ? periodo.fechaFin.toMillis() : Number.MAX_VALUE
+        };
+      });
 
     if (ranges.some(r => fechaInicio <= r.fin && r.inicio <= fechaFin)) {
       if (fechaInicioForm.value) {

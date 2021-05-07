@@ -1,11 +1,11 @@
-import { IConvocatoria } from './convocatoria';
+import { DateTime } from 'luxon';
 import { ITipoFase } from './tipos-configuracion';
 
 export interface IConvocatoriaFase {
   id: number;
-  convocatoria: IConvocatoria;
+  convocatoriaId: number;
   tipoFase: ITipoFase;
-  fechaInicio: Date;
-  fechaFin: Date;
+  fechaInicio: DateTime;
+  fechaFin: DateTime;
   observaciones: string;
 }

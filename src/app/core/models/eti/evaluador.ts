@@ -1,31 +1,23 @@
+import { DateTime } from 'luxon';
 import { IPersona } from '../sgp/persona';
 import { CargoComite } from './cargo-comite';
 import { IComite } from './comite';
 
-export interface IEvaluador extends IPersona {
-
+export interface IEvaluador {
   /** Id */
   id: number;
-
   /** Comité */
   comite: IComite;
-
   /** Cargo comité */
   cargoComite: CargoComite;
-
   /** Resumen */
   resumen: string;
-
   /** Fecha Alta. */
-  fechaAlta: Date;
-
+  fechaAlta: DateTime;
   /** Fecha Baja. */
-  fechaBaja: Date;
-
-  /** Referencia persona */
-  personaRef: string;
-
+  fechaBaja: DateTime;
+  /** Persona */
+  persona: IPersona;
   /** Activo */
   activo: boolean;
-
 }

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IPrograma } from '@core/models/csp/programa';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
@@ -9,20 +10,22 @@ import { ROUTE_NAMES } from '@core/route.names';
 import { ProgramaService } from '@core/services/csp/programa.service';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
+import { TranslateService } from '@ngx-translate/core';
 import { SgiAuthService } from '@sgi/framework/auth';
 import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
-const MSG_ERROR = marker('csp.plan.investigacion.listado.error');
-const MSG_BUTTON_NEW = marker('footer.csp.plan.investigacion.crear');
-const MSG_DEACTIVATE = marker('csp.plan.investigacion.desactivar');
-const MSG_SUCCESS_DEACTIVATE = marker('csp.plan.investigacion.desactivar.correcto');
-const MSG_ERROR_DEACTIVATE = marker('csp.plan.investigacion.desactivar.error');
-const MSG_REACTIVE = marker('csp.plan.investigacion.reactivar');
-const MSG_SUCCESS_REACTIVE = marker('csp.plan.investigacion.reactivar.correcto');
-const MSG_ERROR_REACTIVE = marker('csp.plan.investigacion.reactivar.error');
+const MSG_BUTTON_ADD = marker('btn.add.entity');
+const MSG_ERROR = marker('error.load');
+const MSG_REACTIVE = marker('msg.csp.reactivate');
+const MSG_SUCCESS_REACTIVE = marker('msg.reactivate.entity.success');
+const MSG_ERROR_REACTIVE = marker('error.reactivate.entity');
+const MSG_DEACTIVATE = marker('msg.deactivate.entity');
+const MSG_ERROR_DEACTIVATE = marker('error.csp.deactivate.entity');
+const MSG_SUCCESS_DEACTIVATE = marker('msg.csp.deactivate.success');
+const PLAN_INVESTIGACION_KEY = marker('csp.plan-investigacion');
 
 @Component({
   selector: 'sgi-plan-investigacion-listado',
@@ -31,11 +34,19 @@ const MSG_ERROR_REACTIVE = marker('csp.plan.investigacion.reactivar.error');
 })
 export class PlanInvestigacionListadoComponent extends AbstractTablePaginationComponent<IPrograma> implements OnInit {
   ROUTE_NAMES = ROUTE_NAMES;
-  textoCrear = MSG_BUTTON_NEW;
+  textoCrear: string;
+  textoDesactivar: string;
+  textoReactivar: string;
+  textoErrorDesactivar: string;
+  textoSuccessDesactivar: string;
+  textoSuccessReactivar: string;
+  textoErrorReactivar: string;
 
   fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
   programas$: Observable<IPrograma[]>;
+
+  msgParamEntity = {};
 
   constructor(
     private readonly logger: NGXLogger,
@@ -43,6 +54,7 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
     private readonly programaService: ProgramaService,
     private readonly dialogService: DialogService,
     public authService: SgiAuthService,
+    private readonly translate: TranslateService
   ) {
     super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
@@ -59,11 +71,101 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.formGroup = new FormGroup({
       nombre: new FormControl(''),
       activo: new FormControl('true')
     });
     this.filter = this.createFilter();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      PLAN_INVESTIGACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_BUTTON_ADD,
+          { entity: value }
+        );
+      })
+    ).subscribe((value) => this.textoCrear = value);
+
+
+    this.translate.get(
+      PLAN_INVESTIGACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDesactivar = value);
+
+    this.translate.get(
+      PLAN_INVESTIGACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoErrorDesactivar = value);
+
+    this.translate.get(
+      PLAN_INVESTIGACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoSuccessDesactivar = value);
+
+
+    this.translate.get(
+      PLAN_INVESTIGACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoReactivar = value);
+
+    this.translate.get(
+      PLAN_INVESTIGACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoSuccessReactivar = value);
+
+
+    this.translate.get(
+      PLAN_INVESTIGACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoErrorReactivar = value);
   }
 
   onClearFilters() {
@@ -106,7 +208,7 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
    * @param plan plan
    */
   desactivePlan(plan: IPrograma): void {
-    const subcription = this.dialogService.showConfirmation(MSG_DEACTIVATE).pipe(
+    const subcription = this.dialogService.showConfirmation(this.textoDesactivar).pipe(
       switchMap((accept) => {
         if (accept) {
           return this.programaService.deactivate(plan.id);
@@ -114,12 +216,12 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
         return of();
       })).subscribe(
         () => {
-          this.snackBarService.showSuccess(MSG_SUCCESS_DEACTIVATE);
+          this.snackBarService.showSuccess(this.textoSuccessDesactivar);
           this.loadTable();
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_DEACTIVATE);
+          this.snackBarService.showError(this.textoErrorDesactivar);
         }
       );
     this.suscripciones.push(subcription);
@@ -130,7 +232,7 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
    * @param plan plan
    */
   activePlan(plan: IPrograma): void {
-    const suscription = this.dialogService.showConfirmation(MSG_REACTIVE).pipe(
+    const suscription = this.dialogService.showConfirmation(this.textoReactivar).pipe(
       switchMap((accept) => {
         if (accept) {
           plan.activo = true;
@@ -140,13 +242,13 @@ export class PlanInvestigacionListadoComponent extends AbstractTablePaginationCo
         }
       })).subscribe(
         () => {
-          this.snackBarService.showSuccess(MSG_SUCCESS_REACTIVE);
+          this.snackBarService.showSuccess(this.textoSuccessReactivar);
           this.loadTable();
         },
         (error) => {
           this.logger.error(error);
           plan.activo = false;
-          this.snackBarService.showError(MSG_ERROR_REACTIVE);
+          this.snackBarService.showError(this.textoErrorReactivar);
         }
       );
     this.suscripciones.push(suscription);

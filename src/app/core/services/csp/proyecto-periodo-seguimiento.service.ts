@@ -1,24 +1,29 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { PROYECTO_PERIODO_SEGUIMIENTO_DOCUMENTO_CONVERTER } from '@core/converters/csp/proyecto-periodo-seguimiento-documento.converter';
+import { PROYECTO_PERIODO_SEGUIMIENTO_CONVERTER } from '@core/converters/csp/proyecto-periodo-seguimiento.converter';
+import { IProyectoPeriodoSeguimientoBackend } from '@core/models/csp/backend/proyecto-periodo-seguimiento-backend';
+import { IProyectoPeriodoSeguimientoDocumentoBackend } from '@core/models/csp/backend/proyecto-periodo-seguimiento-documento-backend';
 import { IProyectoPeriodoSeguimiento } from '@core/models/csp/proyecto-periodo-seguimiento';
 import { IProyectoPeriodoSeguimientoDocumento } from '@core/models/csp/proyecto-periodo-seguimiento-documento';
 import { environment } from '@env';
-import { SgiRestFindOptions, SgiRestListResult, SgiRestService } from '@sgi/framework/http';
+import { SgiMutableRestService, SgiRestFindOptions, SgiRestListResult } from '@sgi/framework/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ProyectoPeriodoSeguimientoService extends SgiRestService<number, IProyectoPeriodoSeguimiento>  {
+export class ProyectoPeriodoSeguimientoService
+  extends SgiMutableRestService<number, IProyectoPeriodoSeguimientoBackend, IProyectoPeriodoSeguimiento>  {
   private static readonly MAPPING = '/proyectoperiodoseguimientos';
-
 
   constructor(protected http: HttpClient) {
     super(
       ProyectoPeriodoSeguimientoService.name,
       `${environment.serviceServers.csp}${ProyectoPeriodoSeguimientoService.MAPPING}`,
-      http
+      http,
+      PROYECTO_PERIODO_SEGUIMIENTO_CONVERTER
     );
   }
 
@@ -41,8 +46,11 @@ export class ProyectoPeriodoSeguimientoService extends SgiRestService<number, IP
    * @return la lista de ProyectoPeridoSeguimientoDocumento
    */
   findDocumentos(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IProyectoPeriodoSeguimientoDocumento>> {
-    return this.find<IProyectoPeriodoSeguimientoDocumento, IProyectoPeriodoSeguimientoDocumento>(
-      `${this.endpointUrl}/${id}/proyectoperiodoseguimientodocumentos`, options);
+    return this.find<IProyectoPeriodoSeguimientoDocumentoBackend, IProyectoPeriodoSeguimientoDocumento>(
+      `${this.endpointUrl}/${id}/proyectoperiodoseguimientodocumentos`,
+      options,
+      PROYECTO_PERIODO_SEGUIMIENTO_DOCUMENTO_CONVERTER
+    );
   }
 
   /**

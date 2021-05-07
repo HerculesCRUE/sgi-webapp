@@ -3,6 +3,8 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { MSG_PARAMS } from '@core/i18n';
+import { IConvocatoria } from '@core/models/csp/convocatoria';
 import { ESTADO_MAP } from '@core/models/csp/estado-solicitud';
 import { IFuenteFinanciacion } from '@core/models/csp/fuente-financiacion';
 import { IPrograma } from '@core/models/csp/programa';
@@ -11,48 +13,57 @@ import { ISolicitud } from '@core/models/csp/solicitud';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ROUTE_NAMES } from '@core/route.names';
+import { ConvocatoriaService } from '@core/services/csp/convocatoria.service';
 import { FuenteFinanciacionService } from '@core/services/csp/fuente-financiacion.service';
 import { ProgramaService } from '@core/services/csp/programa.service';
 import { ProyectoService } from '@core/services/csp/proyecto.service';
 import { SolicitudService } from '@core/services/csp/solicitud.service';
 import { DialogService } from '@core/services/dialog.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { DateUtils } from '@core/utils/date-utils';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
+import { LuxonUtils } from '@core/utils/luxon-utils';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
+import { TipoColectivo } from '@shared/select-persona/select-persona.component';
 import { NGXLogger } from 'ngx-logger';
-import { Observable, of } from 'rxjs';
-import { catchError, map, startWith, switchMap } from 'rxjs/operators';
+import { merge, Observable, of } from 'rxjs';
+import { catchError, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { ISolicitudCrearProyectoModalData, SolicitudCrearProyectoModalComponent } from '../modals/solicitud-crear-proyecto-modal/solicitud-crear-proyecto-modal.component';
 
-const MSG_BUTTON_NEW = marker('footer.csp.solicitud.crear');
-const MSG_ERROR = marker('csp.solicitud.listado.error');
-const MSG_DEACTIVATE = marker('csp.solicitud.listado.desactivar');
-const MSG_SUCCESS_DEACTIVATE = marker('csp.solicitud.listado.desactivar.correcto');
-const MSG_ERROR_DEACTIVATE = marker('csp.solicitud.listado.desactivar.error');
-const MSG_REACTIVATE = marker('csp.solicitud.listado.reactivar');
-const MSG_SUCCESS_REACTIVATE = marker('csp.solicitud.listado.reactivar.correcto');
-const MSG_ERROR_REACTIVATE = marker('csp.solicitud.listado.reactivar.error');
-const MSG_ERROR_FUENTE_FINANCIACION_INIT = marker('csp.solicitud.listado.fuente.financiacion.error');
-const MSG_ERROR_PLAN_INVESTIGACION_INIT = marker('csp.solicitud.listado.plan.investigacion.error');
-const MSG_SUCCESS_CREAR_PROYECTO = marker('csp.solicitud.listado.crear.proyecto.correcto');
-const MSG_ERROR_CREAR_PROYECTO = marker('csp.solicitud.listado.crear.proyecto.error');
+const MSG_BUTTON_NEW = marker('btn.add.entity');
+const MSG_ERROR = marker('error.load');
+const MSG_DEACTIVATE = marker('msg.deactivate.entity');
+const MSG_SUCCESS_DEACTIVATE = marker('msg.csp.deactivate.success');
+const MSG_ERROR_DEACTIVATE = marker('error.csp.deactivate.entity');
+const MSG_REACTIVE = marker('msg.csp.reactivate');
+const MSG_SUCCESS_REACTIVE = marker('msg.reactivate.entity.success');
+const MSG_ERROR_REACTIVE = marker('error.reactivate.entity');
+const MSG_SUCCESS_CREAR_PROYECTO = marker('msg.csp.solicitud.crear.proyecto');
+const MSG_ERROR_CREAR_PROYECTO = marker('error.csp.solicitud.crear.proyecto');
+const SOLICITUD_KEY = marker('csp.solicitud');
+
+interface SolicitudListado extends ISolicitud {
+  convocatoria: IConvocatoria;
+}
 
 @Component({
   selector: 'sgi-solicitud-listado',
   templateUrl: './solicitud-listado.component.html',
   styleUrls: ['./solicitud-listado.component.scss']
 })
-export class SolicitudListadoComponent extends AbstractTablePaginationComponent<ISolicitud> implements OnInit {
+export class SolicitudListadoComponent extends AbstractTablePaginationComponent<SolicitudListado> implements OnInit {
   ROUTE_NAMES = ROUTE_NAMES;
-
 
   fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
-  solicitudes$: Observable<ISolicitud[]>;
-  textoCrear = MSG_BUTTON_NEW;
-
+  solicitudes$: Observable<SolicitudListado[]>;
+  textoCrear: string;
+  textoDesactivar: string;
+  textoReactivar: string;
+  textoErrorDesactivar: string;
+  textoSuccessDesactivar: string;
+  textoSuccessReactivar: string;
+  textoErrorReactivar: string;
 
   busquedaAvanzada = false;
   private fuenteFinanciacionFiltered: IFuenteFinanciacion[] = [];
@@ -63,8 +74,21 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
   mapCrearProyecto: Map<number, boolean> = new Map();
   mapModificable: Map<number, boolean> = new Map();
 
+  msgParamConvocatoriaExternaEntity = {};
+  msgParamCodigoExternoEntity = {};
+  msgParamObservacionesEntity = {};
+  msgParamUnidadGestionEntity = {};
+
+  get tipoColectivoSolicitante() {
+    return TipoColectivo.SOLICITANTE_CSP;
+  }
+
   get ESTADO_MAP() {
     return ESTADO_MAP;
+  }
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
   }
 
   constructor(
@@ -72,11 +96,13 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
     private dialogService: DialogService,
     protected snackBarService: SnackBarService,
     private solicitudService: SolicitudService,
-    private personaFisicaService: PersonaFisicaService,
+    private personaService: PersonaService,
     private fuenteFinanciacionService: FuenteFinanciacionService,
     private programaService: ProgramaService,
     private proyectoService: ProyectoService,
     private matDialog: MatDialog,
+    private readonly translate: TranslateService,
+    private convocatoriaService: ConvocatoriaService
   ) {
     super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
@@ -93,19 +119,20 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
 
     this.formGroup = new FormGroup({
-      referenciaConvocatoria: new FormControl(''),
+      convocatoria: new FormControl(undefined),
       estadoSolicitud: new FormControl(''),
-
       plazoAbierto: new FormControl(false),
-      fechaInicioDesde: new FormControl(undefined),
-      fechaInicioHasta: new FormControl(undefined),
-      fechaFinDesde: new FormControl(undefined),
-      fechaFinHasta: new FormControl(undefined),
+      fechaInicioDesde: new FormControl(null),
+      fechaInicioHasta: new FormControl(null),
+      fechaFinDesde: new FormControl(null),
+      fechaFinHasta: new FormControl(null),
       solicitante: new FormControl(undefined),
       activo: new FormControl('true'),
-      añoConvocatoria: new FormControl(undefined),
+      fechaPublicacionConvocatoriaDesde: new FormControl(null),
+      fechaPublicacionConvocatoriaHasta: new FormControl(null),
       tituloConvocatoria: new FormControl(undefined),
       entidadConvocante: new FormControl(undefined),
       planInvestigacion: new FormControl(undefined),
@@ -117,16 +144,124 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
     this.getPlanesInvestigacion();
   }
 
-  protected createObservable(): Observable<SgiRestListResult<ISolicitud>> {
+  private setupI18N(): void {
+    this.translate.get(
+      SOLICITUD_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_BUTTON_NEW,
+          { entity: value }
+        );
+      })
+    ).subscribe((value) => this.textoCrear = value);
+
+    this.translate.get(
+      SOLICITUD_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DEACTIVATE,
+          { entity: value }
+        );
+      })
+    ).subscribe((value) => this.textoDesactivar = value);
+
+    this.translate.get(
+      SOLICITUD_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoErrorDesactivar = value);
+
+    this.translate.get(
+      SOLICITUD_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoSuccessDesactivar = value);
+
+    this.translate.get(
+      SOLICITUD_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoReactivar = value);
+
+    this.translate.get(
+      SOLICITUD_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoSuccessReactivar = value);
+
+    this.translate.get(
+      SOLICITUD_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoErrorReactivar = value);
+  }
+
+  protected createObservable(): Observable<SgiRestListResult<SolicitudListado>> {
     const observable$ = this.solicitudService.findAllTodos(this.getFindOptions()).pipe(
+      map(response => {
+        return response as SgiRestListResult<SolicitudListado>;
+      }),
+      switchMap(response => {
+        const requestsConvocatoria: Observable<SolicitudListado>[] = [];
+        response.items.forEach(solicitud => {
+          if (solicitud.convocatoriaId) {
+            requestsConvocatoria.push(this.convocatoriaService.findById(solicitud.convocatoriaId).pipe(
+              map(convocatoria => {
+                solicitud.convocatoria = convocatoria;
+                return solicitud;
+              })
+            ));
+          }
+          else {
+            requestsConvocatoria.push(of(solicitud));
+          }
+        });
+        return of(response).pipe(
+          tap(() => merge(...requestsConvocatoria).subscribe())
+        );
+      }),
       switchMap((response) => {
         if (response.total === 0) {
           return of(response);
         }
 
         const solicitudes = response.items;
-        const personaRefsSolicitantes = solicitudes.map((solicitud) => solicitud.solicitante.personaRef);
-        const solicitudesWithDatosSolicitante$ = this.personaFisicaService.findByPersonasRefs([...personaRefsSolicitantes]).pipe(
+        const personaIdsSolicitantes = new Set<string>(solicitudes.map((solicitud) => solicitud.solicitante.id));
+        const solicitudesWithDatosSolicitante$ = this.personaService.findAllByIdIn([...personaIdsSolicitantes]).pipe(
           map((result) => {
             const personas = result.items;
 
@@ -135,7 +270,7 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
                 this.mapCrearProyecto.set(solicitud.id, value);
               }));
               solicitud.solicitante = personas.find((persona) =>
-                solicitud.solicitante.personaRef === persona.personaRef);
+                solicitud.solicitante.id === persona.id);
 
               this.suscripciones.push(this.solicitudService.modificable(solicitud.id).subscribe((value) => {
                 this.mapModificable.set(solicitud.id, value);
@@ -156,9 +291,10 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
 
   protected initColumns(): void {
     this.columnas = [
-      'referencia',
-      'convocatoria.titulo',
       'codigoRegistroInterno',
+      'codigoExterno',
+      'convocatoria.titulo',
+      'referencia',
       'solicitante',
       'estado.estado',
       'estado.fechaEstado',
@@ -173,37 +309,31 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
 
   protected createFilter(): SgiRestFilter {
     const controls = this.formGroup.controls;
-    const filter = new RSQLSgiRestFilter('referenciaConvocatoria', SgiRestFilterOperator.LIKE_ICASE, controls.referenciaConvocatoria.value)
+    const filter = new RSQLSgiRestFilter('convocatoria.id', SgiRestFilterOperator.EQUALS, controls.convocatoria.value?.id?.toString())
       .and('estado.estado', SgiRestFilterOperator.EQUALS, controls.estadoSolicitud.value);
     if (this.busquedaAvanzada) {
       if (controls.plazoAbierto.value) {
-        // TODO: Fix when dateTime are right managed
-        if (controls.fechaInicioDesde.value) {
-          filter.and('convocatoria.configuracionSolicitud.fasePresentacionSolicitudes.fechaInicio',
-            SgiRestFilterOperator.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODate(controls.fechaInicioDesde.value) + 'T00:00:00');
-        }
-        if (controls.fechaInicioHasta.value) {
-          filter.and('convocatoria.configuracionSolicitud.fasePresentacionSolicitudes.fechaInicio',
-            SgiRestFilterOperator.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODate(controls.fechaInicioHasta.value) + 'T23:59:59');
-        }
-        if (controls.fechaFinDesde.value) {
-          filter.and('convocatoria.configuracionSolicitud.fasePresentacionSolicitudes.fechaFin',
-            SgiRestFilterOperator.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODate(controls.fechaFinDesde.value) + 'T00:00:00');
-        }
-        if (controls.fechaFinHasta.value) {
-          filter.and('convocatoria.configuracionSolicitud.fasePresentacionSolicitudes.fechaFin',
-            SgiRestFilterOperator.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODate(controls.fechaFinHasta.value) + 'T23:59:59');
-        }
+        filter.and('convocatoria.configuracionSolicitud.fasePresentacionSolicitudes.fechaInicio',
+          SgiRestFilterOperator.GREATHER_OR_EQUAL, LuxonUtils.toBackend(controls.fechaInicioDesde.value))
+          .and('convocatoria.configuracionSolicitud.fasePresentacionSolicitudes.fechaInicio',
+            SgiRestFilterOperator.LOWER_OR_EQUAL, LuxonUtils.toBackend(controls.fechaInicioHasta.value))
+          .and('convocatoria.configuracionSolicitud.fasePresentacionSolicitudes.fechaFin',
+            SgiRestFilterOperator.GREATHER_OR_EQUAL, LuxonUtils.toBackend(controls.fechaFinDesde.value))
+          .and('convocatoria.configuracionSolicitud.fasePresentacionSolicitudes.fechaFin',
+            SgiRestFilterOperator.LOWER_OR_EQUAL, LuxonUtils.toBackend(controls.fechaFinHasta.value));
       }
       filter
-        .and('solicitanteRef', SgiRestFilterOperator.EQUALS, controls.solicitante.value?.personaRef)
+        .and('solicitanteRef', SgiRestFilterOperator.EQUALS, controls.solicitante.value?.id)
         .and('activo', SgiRestFilterOperator.EQUALS, controls.activo.value)
-        .and('convocatoria.anio', SgiRestFilterOperator.EQUALS, controls.añoConvocatoria.value)
+        .and('convocatoria.fechaPublicacion', SgiRestFilterOperator.GREATHER_OR_EQUAL, LuxonUtils.toBackend(controls.fechaPublicacionConvocatoriaDesde.value))
+        .and('convocatoria.fechaPublicacion', SgiRestFilterOperator.LOWER_OR_EQUAL, LuxonUtils.toBackend(controls.fechaPublicacionConvocatoriaHasta.value))
         .and('convocatoria.titulo', SgiRestFilterOperator.LIKE_ICASE, controls.tituloConvocatoria.value)
-        .and('convocatoria.entidadesConvocantes.entidadRef', SgiRestFilterOperator.EQUALS, controls.entidadConvocante.value?.personaRef)
-        .and('convocatoria.entidadesConvocantes.programa.id', SgiRestFilterOperator.EQUALS, controls.planInvestigacion.value?.id?.toString())
-        .and('convocatoria.entidadesFinanciadoras.entidadRef', SgiRestFilterOperator.EQUALS, controls.entidadFinanciadora.value?.personaRef)
-        .and('convocatoria.entidadesFinanciadoras.fuenteFinanciacion.id', SgiRestFilterOperator.EQUALS, controls.fuenteFinanciacion.value?.id?.toString());
+        .and('convocatoria.entidadesConvocantes.entidadRef', SgiRestFilterOperator.EQUALS, controls.entidadConvocante.value?.id)
+        .and('convocatoria.entidadesConvocantes.programa.id',
+          SgiRestFilterOperator.EQUALS, controls.planInvestigacion.value?.id?.toString())
+        .and('convocatoria.entidadesFinanciadoras.entidadRef', SgiRestFilterOperator.EQUALS, controls.entidadFinanciadora.value?.id)
+        .and('convocatoria.entidadesFinanciadoras.fuenteFinanciacion.id',
+          SgiRestFilterOperator.EQUALS, controls.fuenteFinanciacion.value?.id?.toString());
     }
 
     return filter;
@@ -214,7 +344,7 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
    * @param solicitud una solicitud
    */
   activateSolicitud(solicitud: ISolicitud): void {
-    const subcription = this.dialogService.showConfirmation(MSG_REACTIVATE).pipe(
+    const subcription = this.dialogService.showConfirmation(this.textoReactivar).pipe(
       switchMap((accept) => {
         if (accept) {
           return this.solicitudService.reactivar(solicitud.id);
@@ -224,12 +354,12 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
       })
     ).subscribe(
       () => {
-        this.snackBarService.showSuccess(MSG_SUCCESS_REACTIVATE);
+        this.snackBarService.showSuccess(this.textoSuccessReactivar);
         this.loadTable();
       },
       (error) => {
         this.logger.error(error);
-        this.snackBarService.showError(MSG_ERROR_REACTIVATE);
+        this.snackBarService.showError(this.textoErrorReactivar);
       }
     );
     this.suscripciones.push(subcription);
@@ -240,7 +370,7 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
    * @param solicitud una solicitud
    */
   deactivateSolicitud(solicitud: ISolicitud): void {
-    const subcription = this.dialogService.showConfirmation(MSG_DEACTIVATE).pipe(
+    const subcription = this.dialogService.showConfirmation(this.textoDesactivar).pipe(
       switchMap((accept) => {
         if (accept) {
           return this.solicitudService.desactivar(solicitud.id);
@@ -250,12 +380,12 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
       })
     ).subscribe(
       () => {
-        this.snackBarService.showSuccess(MSG_SUCCESS_DEACTIVATE);
+        this.snackBarService.showSuccess(this.textoSuccessDesactivar);
         this.loadTable();
       },
       (error) => {
         this.logger.error(error);
-        this.snackBarService.showError(MSG_ERROR_DEACTIVATE);
+        this.snackBarService.showError(this.textoErrorDesactivar);
       }
     );
     this.suscripciones.push(subcription);
@@ -273,13 +403,14 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
 
   private cleanBusquedaAvanzado(): void {
     this.formGroup.controls.plazoAbierto.setValue(false);
-    this.formGroup.controls.fechaInicioDesde.setValue(undefined);
-    this.formGroup.controls.fechaInicioHasta.setValue(undefined);
-    this.formGroup.controls.fechaFinDesde.setValue(undefined);
-    this.formGroup.controls.fechaFinHasta.setValue(undefined);
+    this.formGroup.controls.fechaInicioDesde.setValue(null);
+    this.formGroup.controls.fechaInicioHasta.setValue(null);
+    this.formGroup.controls.fechaFinDesde.setValue(null);
+    this.formGroup.controls.fechaFinHasta.setValue(null);
     this.formGroup.controls.solicitante.setValue(undefined);
     this.formGroup.controls.activo.setValue('true');
-    this.formGroup.controls.añoConvocatoria.setValue(undefined);
+    this.formGroup.controls.fechaPublicacionConvocatoriaDesde.setValue(null);
+    this.formGroup.controls.fechaPublicacionConvocatoriaHasta.setValue(null);
     this.formGroup.controls.entidadConvocante.setValue(undefined);
     this.formGroup.controls.entidadFinanciadora.setValue(undefined);
   }
@@ -297,7 +428,7 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_FUENTE_FINANCIACION_INIT);
+          this.snackBarService.showError(MSG_ERROR);
         }
       )
     );
@@ -325,7 +456,7 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_PLAN_INVESTIGACION_INIT);
+          this.snackBarService.showError(MSG_ERROR);
         }
       )
     );
@@ -341,13 +472,11 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
   }
 
   crearProyectoModal(solicitud: ISolicitud): void {
-    const proyecto = { solicitud } as IProyecto;
-    this.suscripciones.push(this.solicitudService.findSolicitudProyectoDatos(solicitud.id).pipe(
+    this.suscripciones.push(this.solicitudService.findSolicitudProyecto(solicitud.id).pipe(
       map(solicitudProyectoDatos => {
         const config = {
-          width: GLOBAL_CONSTANTS.widthModalCSP,
-          maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-          data: { proyecto, solicitudProyectoDatos } as ISolicitudCrearProyectoModalData
+          panelClass: 'sgi-dialog-container',
+          data: { solicitud, solicitudProyecto: solicitudProyectoDatos } as ISolicitudCrearProyectoModalData
         };
         const dialogRef = this.matDialog.open(SolicitudCrearProyectoModalComponent, config);
         dialogRef.afterClosed().subscribe(
@@ -372,4 +501,5 @@ export class SolicitudListadoComponent extends AbstractTablePaginationComponent<
       })
     ).subscribe());
   }
+
 }

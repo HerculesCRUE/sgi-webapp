@@ -23,22 +23,22 @@
             <div class="checkbox">
               <mat-checkbox color="primary" formControlName="abiertoPlazoPresentacionSolicitud"
                 id="abiertoPlazoPresentacionSolicitud">
-                {{'csp.convocatoria.plazo.abierto' | translate}}</mat-checkbox>
+                {{'csp.convocatoria.plazo-abierto' | translate}}</mat-checkbox>
             </div>
           </div>
         </div>
 
         <div class="buttons-final" *ngIf="!busquedaAvanzada">
           <div class="col filter-button">
-            <button color="primary" aria-label="Center Align" md-button mat-raised-button (click)="onSearch()">
-              <mat-icon>search</mat-icon> {{'botones.buscar'| translate}}
+            <button color="primary" aria-label="Center Align" mat-raised-button (click)="onSearch()">
+              <mat-icon>search</mat-icon> {{'btn.search'| translate}}
             </button>
-            <button class="link-busqueda underline" aria-label="Center Align" md-button mat-button
+            <button class="link-busqueda underline" aria-label="Center Align" mat-button
               (click)="toggleBusquedaAvanzada()">
-              {{'botones.busqueda.avanzada'| translate}}
+              {{'btn.search.advanced'| translate}}
             </button>
-            <button color="warn" class="md-primary" aria-label="Center Align" md-button (click)="onClearFilters()"
-              mat-button>{{'botones.limpiar'| translate}}
+            <button color="warn" aria-label="Center Align" (click)="onClearFilters()" mat-button>{{'btn.clean'|
+              translate}}
             </button>
           </div>
         </div>
@@ -53,8 +53,8 @@
           <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
             [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
             <mat-form-field>
-              <mat-label>{{'csp.convocatoria.listado.convocatoria.titulo' | translate}}</mat-label>
-              <input matInput type="text" placeholder="{{'csp.convocatoria.listado.convocatoria.titulo' | translate}}"
+              <mat-label>{{'csp.convocatoria.titulo' | translate}}</mat-label>
+              <input matInput type="text" placeholder="{{'csp.convocatoria.titulo' | translate}}"
                 formControlName="titulo">
             </mat-form-field>
           </div>
@@ -63,8 +63,8 @@
           <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
             [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
             <mat-form-field>
-              <mat-label>{{'csp.convocatoria.listado.referencia' | translate}}</mat-label>
-              <input matInput type="text" placeholder="{{'csp.convocatoria.listado.referencia' | translate}}"
+              <mat-label>{{'csp.convocatoria.referencia' | translate}}</mat-label>
+              <input matInput type="text" placeholder="{{'csp.convocatoria.referencia' | translate}}"
                 formControlName="codigo">
             </mat-form-field>
           </div>
@@ -80,29 +80,41 @@
             [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
             <mat-form-field class="input-form">
               <mat-label>{{'csp.convocatoria.finalidad' | translate}}</mat-label>
-              <input matInput formControlName="finalidad" type="text" id="finalidad"
-                placeholder="{{'csp.convocatoria.finalidad' | translate}}" [matAutocomplete]="autoFinalidad">
-              <mat-autocomplete #autoFinalidad="matAutocomplete" [displayWith]="getFinalidad">
-                <mat-option *ngFor="let finalidad of finalidades$ | async" [value]="finalidad">
-                  {{finalidad.nombre}}
-                </mat-option>
-              </mat-autocomplete>
+              <sgi-select-tipo-finalidades formControlName="finalidad"></sgi-select-tipo-finalidades>
             </mat-form-field>
           </div>
-
         </div>
 
+        <div class="fieldset-form">
+          {{'csp.convocatoria.fecha-publicacion' | translate}}
+        </div>
 
         <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
           [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
 
-          <!-- Año -->
-          <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
-            [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
-            <mat-form-field class="input-form">
-              <mat-label>{{'csp.convocatoria.anio' | translate}}</mat-label>
-              <input matInput formControlName="anio" type="number" id="anio" min="1900"
-                placeholder="{{'csp.convocatoria.anio' | translate}}">
+          <!-- Fecha publicacion desde-->
+          <div class="col">
+            <mat-form-field>
+              <mat-label>{{'csp.convocatoria.fecha-publicacion-desde' | translate}}</mat-label>
+              <input matInput formControlName="fechaPublicacionDesde"
+                [ngxMatDatetimePicker]="pickerFechaPublicacionDesde"
+                [placeholder]="'csp.convocatoria.fecha-publicacion-desde' | translate">
+              <mat-datepicker-toggle matSuffix [for]="pickerFechaPublicacionDesde"></mat-datepicker-toggle>
+              <ngx-mat-datetime-picker #pickerFechaPublicacionDesde showSeconds="true" [defaultTime]="[0,0,0]">
+              </ngx-mat-datetime-picker>
+            </mat-form-field>
+          </div>
+
+          <!-- Fecha publicacion hasta-->
+          <div class="col">
+            <mat-form-field>
+              <mat-label>{{'csp.convocatoria.fecha-publicacion-hasta' | translate}}</mat-label>
+              <input matInput formControlName="fechaPublicacionHasta"
+                [ngxMatDatetimePicker]="pickerFechaPublicacionHasta"
+                [placeholder]="'csp.convocatoria.fecha-publicacion-hasta' | translate">
+              <mat-datepicker-toggle matSuffix [for]="pickerFechaPublicacionHasta"></mat-datepicker-toggle>
+              <ngx-mat-datetime-picker #pickerFechaPublicacionHasta showSeconds="true" [defaultTime]="[0,0,0]">
+              </ngx-mat-datetime-picker>
             </mat-form-field>
           </div>
 
@@ -115,9 +127,12 @@
           <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
             [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
             <mat-form-field class="input-form">
-              <mat-label>{{'csp.convocatoria.entidad.convocante' | translate}}</mat-label>
-              <sgi-select-empresa-economica placeholder="{{'csp.convocatoria.entidad.convocante' | translate}}"
-                formControlName="entidadConvocante"></sgi-select-empresa-economica>
+              <mat-label>{{'csp.convocatoria-entidad-convocante' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR}}
+              </mat-label>
+              <sgi-select-empresa
+                placeholder="{{'csp.convocatoria-entidad-convocante' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR}}"
+                formControlName="entidadConvocante">
+              </sgi-select-empresa>
             </mat-form-field>
           </div>
 
@@ -130,10 +145,12 @@
           <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
             [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
             <mat-form-field class="input-form">
-              <mat-label>{{'csp.convocatoria.listado.entidad.financiadora' | translate}}</mat-label>
-              <sgi-select-empresa-economica
-                placeholder="{{'csp.convocatoria.listado.entidad.financiadora' | translate}}"
-                formControlName="entidadFinanciadora"></sgi-select-empresa-economica>
+              <mat-label>{{'csp.convocatoria-entidad-financiadora' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR}}
+              </mat-label>
+              <sgi-select-empresa
+                placeholder="{{'csp.convocatoria-entidad-financiadora' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR}}"
+                formControlName="entidadFinanciadora">
+              </sgi-select-empresa>
             </mat-form-field>
           </div>
 
@@ -141,15 +158,8 @@
           <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
             [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
             <mat-form-field class="input-form">
-              <mat-label>{{'csp.convocatoria.listado.fuente.financiacion' | translate}}</mat-label>
-              <input matInput formControlName="fuenteFinanciacion" type="text" id="fuente"
-                placeholder="{{'csp.convocatoria.listado.fuente.financiacion' | translate}}" maxlength="100"
-                [matAutocomplete]="fuente">
-              <mat-autocomplete #fuente="matAutocomplete" [displayWith]="getFuenteFinanciacion">
-                <mat-option *ngFor="let fuente of fuenteFinanciacion$ | async" [value]="fuente">
-                  {{fuente.nombre}}
-                </mat-option>
-              </mat-autocomplete>
+              <mat-label>{{'csp.convocatoria.fuente-financiacion' | translate}}</mat-label>
+              <sgi-select-fuente-financiacion formControlName="fuenteFinanciacion"></sgi-select-fuente-financiacion>
             </mat-form-field>
           </div>
 
@@ -162,16 +172,8 @@
           <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
             [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
             <mat-form-field class="input-form">
-              <mat-label>{{'csp.convocatoria.tipo.ambito.geografico' | translate}}</mat-label>
-              <input matInput formControlName="ambitoGeografico" type="text" id="ambitoGeografico"
-                placeholder="{{'csp.convocatoria.tipo.ambito.geografico' | translate}}"
-                [matAutocomplete]="autoTipoAmbitoGeografico">
-              <mat-autocomplete #autoTipoAmbitoGeografico="matAutocomplete" [displayWith]="getTipoAmbitoGeografico">
-                <mat-option *ngFor="let tipoAmbitoGeografico of tipoAmbitosGeograficos$ | async"
-                  [value]="tipoAmbitoGeografico">
-                  {{tipoAmbitoGeografico.nombre}}
-                </mat-option>
-              </mat-autocomplete>
+              <mat-label>{{'csp.convocatoria.ambito-geografico' | translate}}</mat-label>
+              <sgi-select-tipo-ambito-geografico formControlName="ambitoGeografico"></sgi-select-tipo-ambito-geografico>
             </mat-form-field>
           </div>
 
@@ -184,15 +186,8 @@
           <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
             [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
             <mat-form-field class="input-form">
-              <mat-label>{{'csp.convocatoria.tipo.area.tematica' | translate}}</mat-label>
-              <input matInput formControlName="areaTematica" type="text" id="areaTematica"
-                placeholder="{{'csp.convocatoria.tipo.area.tematica' | translate}}"
-                [matAutocomplete]="autoAreaTematica">
-              <mat-autocomplete #autoAreaTematica="matAutocomplete" [displayWith]="getAreaTematica">
-                <mat-option *ngFor="let area of areaTematica$ | async" [value]="area">
-                  {{area.nombre}}
-                </mat-option>
-              </mat-autocomplete>
+              <mat-label>{{'list.entity' | translate:msgParamAreaTematicaEntity}}</mat-label>
+              <sgi-select-area-tematica formControlName="areaTematica"></sgi-select-area-tematica>
             </mat-form-field>
           </div>
 
@@ -200,15 +195,15 @@
 
         <div class="buttons-final">
           <div class="col filter-button">
-            <button color="primary" aria-label="Center Align" md-button mat-raised-button (click)="onSearch()">
-              <mat-icon>search</mat-icon> {{'botones.buscar'| translate}}
+            <button color="primary" aria-label="Center Align" mat-raised-button (click)="onSearch()">
+              <mat-icon>search</mat-icon> {{'btn.search'| translate}}
             </button>
-            <button class="link-busqueda underline" aria-label="Center Align" md-button mat-button
+            <button class="link-busqueda underline" aria-label="Center Align" mat-button
               (click)="toggleBusquedaAvanzada()">
-              {{'botones.busqueda.simple'| translate}}
+              {{'btn.search.simple'| translate}}
             </button>
-            <button color="warn" class="md-primary" aria-label="Center Align" md-button (click)="onClearFilters()"
-              mat-button>{{'botones.limpiar'| translate}}
+            <button color="warn" aria-label="Center Align" (click)="onClearFilters()" mat-button>{{'btn.clean'|
+              translate}}
             </button>
           </div>
         </div>
@@ -221,58 +216,60 @@
     <table class="mat-elevation-z8 table-convocatoria-inv" mat-table [dataSource]="convocatorias$ | async" matSort
       matSortActive="id" matSortDirection="asc" matSortDisableClear>
 
-      <!-- Referencia Column -->
-      <ng-container matColumnDef="codigo">
-        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.referencia' | translate}} </th>
-        <td mat-cell *matCellDef="let element"> {{element.convocatoria.codigo}}</td>
-      </ng-container>
-
       <!-- Titulo Column -->
       <ng-container matColumnDef="titulo">
-        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.convocatoria.titulo' | translate}} </th>
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.titulo' | translate}} </th>
         <td mat-cell *matCellDef="let element"> {{element.convocatoria.titulo}}</td>
+      </ng-container>
+
+      <!-- Referencia Column -->
+      <ng-container matColumnDef="codigo">
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.referencia' | translate}} </th>
+        <td mat-cell *matCellDef="let element"> {{element.convocatoria.codigo}}</td>
       </ng-container>
 
       <!-- Fecha inicio solicitud Column -->
       <ng-container matColumnDef="fechaInicioSolicitud">
-        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.fecha.inicio.solicitud' | translate}} </th>
-        <td mat-cell *matCellDef="let element">{{element.fase.fechaInicio | date:'dd/MM/yyyy'}}</td>
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.solicitud.fecha-inicio' | translate}} </th>
+        <td mat-cell *matCellDef="let element">{{element.fase.fechaInicio | luxon:'short'}}</td>
       </ng-container>
 
       <!-- Fecha fin solicitud Column -->
       <ng-container matColumnDef="fechaFinSolicitud">
-        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.fecha.fin.solicitud' | translate}} </th>
-        <td mat-cell *matCellDef="let element">{{element.fase.fechaFin | date:'dd/MM/yyyy'}}</td>
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.solicitud.fecha-fin' | translate}} </th>
+        <td mat-cell *matCellDef="let element">{{element.fase.fechaFin | luxon:'short'}}</td>
       </ng-container>
 
       <!-- Estado convocante Column -->
       <ng-container matColumnDef="entidadConvocante">
-        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.entidad.convocante' | translate}} </th>
-        <td mat-cell *matCellDef="let element">{{element.entidadConvocanteEmpresa.razonSocial}}</td>
+        <th mat-header-cell *matHeaderCellDef>
+          {{'csp.convocatoria-entidad-convocante' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR}} </th>
+        <td mat-cell *matCellDef="let element">{{element.entidadConvocanteEmpresa.nombre}}</td>
       </ng-container>
 
       <!-- Entidad Financiadora Column -->
       <ng-container matColumnDef="entidadFinanciadora">
-        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.entidad.financiadora' | translate}} </th>
-        <td mat-cell *matCellDef="let element">{{element.entidadFinanciadoraEmpresa.razonSocial}}</td>
+        <th mat-header-cell *matHeaderCellDef>
+          {{'csp.convocatoria-entidad-financiadora' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR}} </th>
+        <td mat-cell *matCellDef="let element">{{element.entidadFinanciadoraEmpresa.nombre}}</td>
       </ng-container>
 
       <!-- Fuente Financiacion Column -->
       <ng-container matColumnDef="fuenteFinanciacion">
-        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.fuente.financiacion' | translate}} </th>
+        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.fuente-financiacion' | translate}} </th>
         <td mat-cell *matCellDef="let element">{{element.entidadFinanciadora.fuenteFinanciacion?.nombre}}</td>
       </ng-container>
 
       <!-- Acciones Column -->
       <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.acciones' | translate}} </th>
+        <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
         <td mat-cell *matCellDef="let element;let i=index;">
           <ng-container>
             <button class="button-accion" mat-stroked-button color="primary"
-              [routerLink]="[element.convocatoria.id]">{{'botones.ver' | translate}}</button>
+              [routerLink]="[element.convocatoria.id]">{{'btn.view' | translate}}</button>
           </ng-container>
           <ng-container>
-            <button class="button-accion" mat-stroked-button color="primary">{{'botones.tramitar' | translate}}</button>
+            <button class="button-accion" mat-stroked-button color="primary">{{'btn.process' | translate}}</button>
           </ng-container>
         </td>
       </ng-container>

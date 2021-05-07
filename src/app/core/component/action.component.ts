@@ -7,9 +7,9 @@ import { OnDestroy, OnInit, ViewChild, Directive } from '@angular/core';
 import { ActionFooterComponent } from '@shared/action-footer/action-footer.component';
 import { ActivatedRoute, Router } from '@angular/router';
 
-const MSG_FORM_UNSAVED = marker('common.dialog.unsaved.msg');
-const MSG_FORM_UNSAVED_CANCEL = marker('botones.cancelar');
-const MSG_FORM_UNSAVED_CONTINUE = marker('common.dialog.unsaved.button.continue');
+const MSG_FORM_UNSAVED = marker('msg.unsaved');
+const MSG_FORM_UNSAVED_CANCEL = marker('btn.cancel');
+const MSG_FORM_UNSAVED_CONTINUE = marker('btn.continue');
 
 export interface SgiAllowNavigation {
   allowNavigation(): Observable<boolean>;

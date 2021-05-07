@@ -1,21 +1,21 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { PeticionEvaluacionListadoGesComponent } from './peticion-evaluacion-listado-ges/peticion-evaluacion-listado-ges.component';
-import { SgiAuthGuard } from '@sgi/framework/auth';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { SgiRoutes } from '@core/route';
-import { PeticionEvaluacionEditarComponent } from './peticion-evaluacion-editar/peticion-evaluacion-editar.component';
-import { PeticionEvaluacionResolver } from './peticion-evaluacion.resolver';
-import { ActionGuard } from '@core/guards/master-form.guard';
-import { PETICION_EVALUACION_ROUTE_NAMES } from './peticion-evaluacion-route-names';
-import { PeticionEvaluacionDatosGeneralesComponent } from './peticion-evaluacion-formulario/peticion-evaluacion-datos-generales/peticion-evaluacion-datos-generales.component';
 import { FragmentGuard } from '@core/guards/detail-form.guard';
+import { ActionGuard } from '@core/guards/master-form.guard';
+import { MSG_PARAMS } from '@core/i18n';
+import { SgiRoutes } from '@core/route';
+import { SgiAuthGuard } from '@sgi/framework/auth';
+import { PeticionEvaluacionEditarComponent } from './peticion-evaluacion-editar/peticion-evaluacion-editar.component';
 import { EquipoInvestigadorListadoComponent } from './peticion-evaluacion-formulario/equipo-investigador/equipo-investigador-listado/equipo-investigador-listado.component';
-import { PeticionEvaluacionTareasListadoComponent } from './peticion-evaluacion-formulario/peticion-evaluacion-tareas/peticion-evaluacion-tareas-listado/peticion-evaluacion-tareas-listado.component';
 import { MemoriasListadoComponent } from './peticion-evaluacion-formulario/memorias-listado/memorias-listado.component';
+import { PeticionEvaluacionDatosGeneralesComponent } from './peticion-evaluacion-formulario/peticion-evaluacion-datos-generales/peticion-evaluacion-datos-generales.component';
+import { PeticionEvaluacionTareasListadoComponent } from './peticion-evaluacion-formulario/peticion-evaluacion-tareas/peticion-evaluacion-tareas-listado/peticion-evaluacion-tareas-listado.component';
+import { PeticionEvaluacionListadoGesComponent } from './peticion-evaluacion-listado-ges/peticion-evaluacion-listado-ges.component';
+import { PETICION_EVALUACION_ROUTE_NAMES } from './peticion-evaluacion-route-names';
+import { PeticionEvaluacionResolver } from './peticion-evaluacion.resolver';
 
-const MSG_LISTADO_TITLE = marker('eti.peticionEvaluacion.listado.titulo');
-const MSG_EDIT_TITLE = marker('eti.peticionEvaluacion.actualizar.titulo');
+const PETICION_EVALUACION_KEY = marker('eti.peticion-evaluacion');
 
 const routes: SgiRoutes = [
   {
@@ -23,7 +23,8 @@ const routes: SgiRoutes = [
     component: PeticionEvaluacionListadoGesComponent,
     canActivate: [SgiAuthGuard],
     data: {
-      title: MSG_LISTADO_TITLE,
+      title: PETICION_EVALUACION_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.PLURAL,
       hasAuthorityForAnyUO: 'ETI-PEV-V'
     }
   },
@@ -36,7 +37,8 @@ const routes: SgiRoutes = [
       peticionEvaluacion: PeticionEvaluacionResolver
     },
     data: {
-      title: MSG_EDIT_TITLE,
+      title: PETICION_EVALUACION_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.SINGULAR,
       hasAuthorityForAnyUO: 'ETI-PEV-V',
       readonly: true
     },

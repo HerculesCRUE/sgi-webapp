@@ -35,10 +35,19 @@
     "secure": false,
     "logLevel": "debug"
   },
-  "/api/sge": {
+  "/api/sge/**": {
     "target": "http://sgi-esb:8080",
     "pathRewrite": {
       "^/api/sge": "/sge"
+    },
+    "changeOrigin": true,
+    "secure": false,
+    "logLevel": "debug"
+  },
+  "/api/sgemp": {
+    "target": "http://sgi-esb:8080",
+    "pathRewrite": {
+      "^/api/sgemp": "/sgemp"
     },
     "changeOrigin": true,
     "secure": false,

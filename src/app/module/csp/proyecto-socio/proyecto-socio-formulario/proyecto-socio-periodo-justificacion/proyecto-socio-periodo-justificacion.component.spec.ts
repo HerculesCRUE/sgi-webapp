@@ -1,30 +1,29 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
-import { ProyectoSocioPeriodoJustificacionComponent } from './proyecto-socio-periodo-justificacion.component';
-import { IProyectoSocio } from '@core/models/csp/proyecto-socio';
-import TestUtils from '@core/utils/test-utils';
-import { MaterialDesignModule } from '@material/material-design.module';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { LoggerTestingModule } from 'ngx-logger/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FlexModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute, Data } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
+import TestUtils from '@core/utils/test-utils';
+import { MaterialDesignModule } from '@material/material-design.module';
 import { SharedModule } from '@shared/shared.module';
-import { ProyectoSocioActionService } from '../../proyecto-socio.action.service';
-import { IProyectoSocioState } from '../../../proyecto/proyecto-formulario/proyecto-socios/proyecto-socios.component';
+import { LoggerTestingModule } from 'ngx-logger/testing';
+import { PROYECTO_SOCIO_DATA_KEY } from '../../proyecto-socio-data.resolver';
+import { IProyectoSocioData, ProyectoSocioActionService } from '../../proyecto-socio.action.service';
+import { ProyectoSocioPeriodoJustificacionComponent } from './proyecto-socio-periodo-justificacion.component';
 
 describe('ProyectoSocioPeriodoJustificacionComponent', () => {
   let component: ProyectoSocioPeriodoJustificacionComponent;
   let fixture: ComponentFixture<ProyectoSocioPeriodoJustificacionComponent>;
-
-  const state: IProyectoSocioState = {
-    proyectoId: 1,
-    coordinadorExterno: false,
-    proyectoSocio: { id: 1 } as IProyectoSocio,
-    selectedProyectoSocios: [],
-    urlProyecto: ''
+  const routeData: Data = {
+    [PROYECTO_SOCIO_DATA_KEY]: {
+      proyecto: {
+        id: 1
+      }
+    } as IProyectoSocioData
   };
+  const routeMock = TestUtils.buildActivatedRouteMock('1', routeData);
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -43,14 +42,13 @@ describe('ProyectoSocioPeriodoJustificacionComponent', () => {
       ],
       providers: [
         ProyectoSocioActionService,
+        { provide: ActivatedRoute, useValue: routeMock }
       ],
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    spyOnProperty(history, 'state', 'get').and.returnValue(state);
-
     fixture = TestBed.createComponent(ProyectoSocioPeriodoJustificacionComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

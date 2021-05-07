@@ -4,6 +4,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IInforme } from '@core/models/eti/informe';
 import { TIPO_EVALUACION } from '@core/models/eti/tipo-evaluacion';
 import { IDocumento } from '@core/models/sgdoc/documento';
@@ -38,6 +39,10 @@ export class MemoriaInformesComponent extends FragmentComponent implements OnIni
 
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
 
   constructor(
     protected readonly dialogService: DialogService,

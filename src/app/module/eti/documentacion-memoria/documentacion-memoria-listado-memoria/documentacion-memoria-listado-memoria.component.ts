@@ -7,7 +7,7 @@ import { SnackBarService } from '@core/services/snack-bar.service';
 import { SgiRestFilter, SgiRestListResult } from '@sgi/framework/http';
 import { Observable } from 'rxjs';
 
-const MSG_ERROR = marker('eti.documentacion-memoria.listado.error');
+const MSG_ERROR = marker('error.load');
 
 @Component({
   selector: 'sgi-documentacion-memoria-listado-memoria',

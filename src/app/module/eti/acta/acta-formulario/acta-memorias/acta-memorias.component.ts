@@ -1,18 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { FragmentComponent } from '@core/component/fragment.component';
-import { MemoriaListado } from '@core/models/eti/memoria-listado';
+import { MSG_PARAMS } from '@core/i18n';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
 import { BehaviorSubject } from 'rxjs';
 import { ActaActionService } from '../../acta.action.service';
-import { ActaMemoriasFragment } from './acta-memorias.fragment';
-
-
-
-
-
-
+import { ActaMemoriasFragment, MemoriaListado } from './acta-memorias.fragment';
 @Component({
   selector: 'sgi-acta-memorias',
   templateUrl: './acta-memorias.component.html',
@@ -26,6 +20,10 @@ export class ActaMemoriasComponent extends FragmentComponent implements OnInit {
   displayedColumns: string[];
 
   memorias$: BehaviorSubject<MemoriaListado[]>;
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
 
   constructor(
     protected readonly convocatoriaReunionService: ConvocatoriaReunionService,

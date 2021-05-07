@@ -10,8 +10,8 @@ import { StatusWrapper } from '@core/utils/status-wrapper';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
 import { LoggerTestingModule } from 'ngx-logger/testing';
+import { CspSharedModule } from '../../../shared/csp-shared.module';
 import { AreaTematicaData } from '../../convocatoria-formulario/convocatoria-datos-generales/convocatoria-datos-generales.fragment';
-
 import { ConvocatoriaAreaTematicaModalComponent } from './convocatoria-area-tematica-modal.component';
 
 describe('ConvocatoriaAreaTematicaModalComponent', () => {
@@ -38,7 +38,8 @@ describe('ConvocatoriaAreaTematicaModalComponent', () => {
         TestUtils.getIdiomas(),
         RouterTestingModule,
         FormsModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        CspSharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },

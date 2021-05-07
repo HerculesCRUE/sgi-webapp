@@ -1,17 +1,20 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { MSG_PARAMS } from '@core/i18n';
 import { IConfiguracion } from '@core/models/eti/configuracion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ConfiguracionService } from '@core/services/eti/configuracion.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
+import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
 import { Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
-
-const MSG_SUCCESS = marker('eti.configuracion.formulario.acualizar.correcto');
-const MSG_ERROR = marker('eti.configuracion.formulario.acualizar.error');
+const MSG_SUCCESS = marker('msg.update.entity.success');
+const MSG_ERROR = marker('error.update.entity');
+const CONFIGURACION_KEY = marker('eti.configuracion')
 
 @Component({
   selector: 'sgi-configuracion-formulario',
@@ -31,10 +34,18 @@ export class ConfiguracionFormularioComponent implements OnInit, OnDestroy {
 
   updateEnable = false;
 
+  textoUpdateSuccess: string;
+  textoUpdateError: string;
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
+
   constructor(
     private readonly logger: NGXLogger,
     private service: ConfiguracionService,
-    private snackBarService: SnackBarService
+    private snackBarService: SnackBarService,
+    private readonly translate: TranslateService
   ) {
 
     this.fxFlexProperties = new FxFlexProperties();
@@ -51,7 +62,35 @@ export class ConfiguracionFormularioComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.initFormGroup();
+    this.setupI18N();
     this.loadConfiguracion();
+  }
+
+  private setupI18N(): void {
+
+    this.translate.get(
+      CONFIGURACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoUpdateSuccess = value);
+
+    this.translate.get(
+      CONFIGURACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoUpdateError = value);
   }
 
   /**
@@ -102,13 +141,13 @@ export class ConfiguracionFormularioComponent implements OnInit, OnDestroy {
   update() {
     const configuracionUpdateSubscription = this.service.update(this.configuracion.id, this.getForm()).subscribe(
       (value) => {
-        this.snackBarService.showSuccess(MSG_SUCCESS);
+        this.snackBarService.showSuccess(this.textoUpdateSuccess);
         this.configuracion = value;
         this.updateEnable = false;
       },
       (error) => {
         this.logger.error(error);
-        this.snackBarService.showError(MSG_ERROR);
+        this.snackBarService.showError(this.textoUpdateError);
       }
     );
     this.suscripciones.push(configuracionUpdateSubscription);

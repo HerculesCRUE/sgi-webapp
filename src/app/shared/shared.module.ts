@@ -1,26 +1,27 @@
+import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { MaterialDesignModule } from '@material/material-design.module';
 import { TranslateModule } from '@ngx-translate/core';
-
-import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
-import { FooterCrearComponent } from './footers/footer-crear/footer-crear.component';
-import { ActionFooterComponent } from './action-footer/action-footer.component';
-import { RootComponent } from './root/root.component';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { BuscarPersonaComponent } from './buscar-persona/buscar-persona.component';
-import { BuscarPersonaDialogoComponent } from './buscar-persona/dialogo/buscar-persona-dialogo.component';
-import { ActionFragmentMenuItemComponent } from './action-fragment-menu-item/action-fragment-menu-item.component';
-import { ActionFragmentLinkItemComponent } from './action-fragment-link-item/action-fragment-link-item.component';
 import { ActionFooterButtonComponent } from './action-footer-button/action-footer-button.component';
-import { SelectPersonaComponent } from './select-persona/select-persona.component';
-import { SelectEmpresaEconomicaComponent } from './select-empresa-economica/select-empresa-economica.component';
-import { SearchEmpresaEconomicaModalComponent } from './select-empresa-economica/dialog/search-empresa-economica.component';
-import { SelectConvocatoriaComponent } from './select-convocatoria/select-convocatoria.component';
-import { SearchConvocatoriaModalComponent } from './select-convocatoria/dialog/search-convocatoria.component';
-import { SgiFileUploadComponent } from './file-upload/file-upload.component';
+import { ActionFooterComponent } from './action-footer/action-footer.component';
+import { ActionFragmentLinkItemComponent } from './action-fragment-link-item/action-fragment-link-item.component';
 import { ActionFragmentMenuGroupComponent } from './action-fragment-menu-group/action-fragment-menu-group.component';
+import { ActionFragmentMenuItemComponent } from './action-fragment-menu-item/action-fragment-menu-item.component';
+import { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
+import { SgiFileUploadComponent } from './file-upload/file-upload.component';
+import { FooterCrearComponent } from './footers/footer-crear/footer-crear.component';
+import { LuxonDatePipe } from './luxon-date-pipe';
+import { RootComponent } from './root/root.component';
+import { SelectBooleanComponent } from './select-boolean/select-boolean.component';
+import { SearchEmpresaModalComponent } from './select-empresa/dialog/search-empresa.component';
+import { SelectEmpresaComponent } from './select-empresa/select-empresa.component';
+import { SelectEntityComponent } from './select-entity/select-entity.component';
+import { SelectEnumComponent } from './select-enum/select-enum.component';
+import { SearchPersonaModalComponent } from './select-persona/dialog/search-persona.component';
+import { SelectPersonaComponent } from './select-persona/select-persona.component';
+import { SelectComponent } from './select/select.component';
 
 @NgModule({
   declarations: [
@@ -29,17 +30,19 @@ import { ActionFragmentMenuGroupComponent } from './action-fragment-menu-group/a
     ActionFooterComponent,
     ActionFooterButtonComponent,
     RootComponent,
-    BuscarPersonaComponent,
-    BuscarPersonaDialogoComponent,
+    SearchPersonaModalComponent,
     ActionFragmentMenuItemComponent,
     ActionFragmentLinkItemComponent,
     SelectPersonaComponent,
-    SelectEmpresaEconomicaComponent,
-    SearchEmpresaEconomicaModalComponent,
-    SelectConvocatoriaComponent,
-    SearchConvocatoriaModalComponent,
+    SelectEmpresaComponent,
+    SearchEmpresaModalComponent,
     SgiFileUploadComponent,
-    ActionFragmentMenuGroupComponent
+    ActionFragmentMenuGroupComponent,
+    LuxonDatePipe,
+    SelectBooleanComponent,
+    SelectComponent,
+    SelectEntityComponent,
+    SelectEnumComponent
   ],
   imports: [
     CommonModule,
@@ -55,15 +58,17 @@ import { ActionFragmentMenuGroupComponent } from './action-fragment-menu-group/a
     ActionFooterComponent,
     ActionFooterButtonComponent,
     RootComponent,
-    BuscarPersonaComponent,
     ActionFragmentMenuItemComponent,
     ActionFragmentLinkItemComponent,
     SelectPersonaComponent,
-    SelectEmpresaEconomicaComponent,
-    SelectConvocatoriaComponent,
+    SelectEmpresaComponent,
     SgiFileUploadComponent,
-    ActionFragmentMenuGroupComponent
+    ActionFragmentMenuGroupComponent,
+    LuxonDatePipe,
+    SelectBooleanComponent,
+    SelectComponent,
+    SelectEntityComponent,
+    SelectEnumComponent
   ]
 })
-export class SharedModule {
-}
+export class SharedModule { }

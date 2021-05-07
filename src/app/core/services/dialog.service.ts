@@ -5,8 +5,8 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DialogComponent, DialogData } from '../../block/dialog/dialog.component';
 
-const MSG_BUTTON_OK = marker('botones.aceptar');
-const MSG_BUTTON_CANCEL = marker('botones.cancelar');
+const MSG_BUTTON_OK = marker('btn.ok');
+const MSG_BUTTON_CANCEL = marker('btn.cancel');
 
 @Injectable({
   providedIn: 'root'

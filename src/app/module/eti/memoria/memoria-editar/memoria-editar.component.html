@@ -2,32 +2,33 @@
   <mat-drawer class="tabs" mode="side" opened>
     <mat-list class="opciones-menu">
       <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.DATOS_GENERALES]"
-        [title]="'eti.memoria.datosGenerales.title' | translate"
+        [title]="'label.datos-generales' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.FORMULARIO]"
-        [title]="'eti.memoria.formulario.title' | translate"
+        [title]="'eti.memoria.formulario' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.FORMULARIO)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.DOCUMENTACION]"
-        [title]="'eti.memoria.documentacion.title' | translate"
+        [title]="'eti.documentacion' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.DOCUMENTACION)">
       </sgi-action-fragment-menu-item>
 
       <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.EVALUACIONES]"
-        [title]="'eti.memoria.evaluaciones.title' | translate"
+        [title]="'eti.memoria.evaluacion' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.EVALUACIONES)">
       </sgi-action-fragment-menu-item>
 
       <sgi-action-fragment-menu-item [route]="[MEMORIA_ROUTE_NAMES.VERSIONES]"
-        [title]="'eti.memoria.versiones.title' | translate"
+        [title]="'eti.memoria.version' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.VERSIONES)">
       </sgi-action-fragment-menu-item>
     </mat-list>
 
     <mat-list class="enlaces-menu" *ngIf="actionService.getActionLinks().length">
       <sgi-action-fragment-link-item *ngFor="let action of actionService.getActionLinks()"
-        [title]="action.title | translate" [route]="action.routerLink"></sgi-action-fragment-link-item>
+        [title]="action.title | translate:action.titleParams" [route]="action.routerLink">
+      </sgi-action-fragment-link-item>
     </mat-list>
 
   </mat-drawer>

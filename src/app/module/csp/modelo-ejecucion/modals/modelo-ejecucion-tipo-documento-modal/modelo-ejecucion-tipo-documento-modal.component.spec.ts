@@ -8,6 +8,7 @@ import { IModeloTipoDocumento } from '@core/models/csp/modelo-tipo-documento';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
+import { SharedModule } from '@shared/shared.module';
 import { LoggerTestingModule } from 'ngx-logger/testing';
 import { ModeloEjecucionTipoDocumentoModalComponent } from './modelo-ejecucion-tipo-documento-modal.component';
 
@@ -28,7 +29,8 @@ describe('ModeloEjecucionTipoDocumentoModalComponent', () => {
         TestUtils.getIdiomas(),
         RouterTestingModule,
         FormsModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        SharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },

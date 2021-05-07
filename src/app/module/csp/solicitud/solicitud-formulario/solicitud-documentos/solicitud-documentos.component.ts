@@ -4,6 +4,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatTree, MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { ISolicitudDocumento } from '@core/models/csp/solicitud-documento';
 import { ITipoDocumento } from '@core/models/csp/tipos-configuracion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
@@ -15,18 +16,22 @@ import { DocumentoService, triggerDownloadToUser } from '@core/services/sgdoc/do
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { IsEntityValidator } from '@core/validators/is-entity-validador';
+import { TranslateService } from '@ngx-translate/core';
 import { SgiFileUploadComponent, UploadEvent } from '@shared/file-upload/file-upload.component';
 import { NGXLogger } from 'ngx-logger';
 import { Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { SolicitudActionService } from '../../solicitud.action.service';
 import { NodeDocumentoSolicitud, SolicitudDocumentosFragment } from './solicitud-documentos.fragment';
 
-const MSG_FILE_NOT_FOUND_ERROR = marker('file.info.error');
-const MSG_UPLOAD_SUCCESS = marker('file.upload.success');
-const MSG_UPLOAD_ERROR = marker('file.upload.error');
-const MSG_DOWNLOAD_ERROR = marker('file.download.error');
-const MSG_DELETE = marker('csp.solicitud.documentos.documento.eliminar.msg');
+const MSG_FILE_NOT_FOUND_ERROR = marker('error.file.info');
+const MSG_UPLOAD_SUCCESS = marker('msg.file.upload.success');
+const MSG_UPLOAD_ERROR = marker('error.file.upload');
+const MSG_DOWNLOAD_ERROR = marker('error.file.download');
+const MSG_DELETE = marker('msg.delete.entity');
+const SOLICITUD_DOCUMENTOS_KEY = marker('csp.documento');
+const SOLICITUD_DOCUMENTO_FICHERO_KEY = marker('csp.documento.fichero');
+const SOLICITUD_DOCUMENTO_NOMBRE_KEY = marker('csp.documento.nombre');
 
 enum VIEW_MODE {
   NONE = '',
@@ -55,7 +60,6 @@ export class SolicitudDocumentosComponent extends FragmentComponent implements O
   dataSource: MatTreeFlatDataSource<NodeDocumentoSolicitud, NodeDocumentoSolicitud>;
   @ViewChild('uploader') private uploader: SgiFileUploadComponent;
 
-
   viewingNode: NodeDocumentoSolicitud;
   viewMode = VIEW_MODE.NONE;
 
@@ -69,6 +73,11 @@ export class SolicitudDocumentosComponent extends FragmentComponent implements O
   disableUpload = true;
   tiposDocumento: ITipoDocumento[] = [];
 
+  msgParamEntity = {};
+  msgParamNombreEntity = {};
+  msgParamFicheroEntity = {};
+  textoDelete: string;
+
   private getLevel = (node: NodeDocumentoSolicitud) => node.level;
   private isExpandable = (node: NodeDocumentoSolicitud) => node.childs.length > 0;
   private getChildren = (node: NodeDocumentoSolicitud): NodeDocumentoSolicitud[] => node.childs;
@@ -77,13 +86,18 @@ export class SolicitudDocumentosComponent extends FragmentComponent implements O
   hasChild = (_: number, node: NodeDocumentoSolicitud) => node.childs.length > 0;
   compareTipoDocumento = (option: ITipoDocumento, value: ITipoDocumento) => option?.id === value?.id;
 
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
+
   constructor(
     private readonly logger: NGXLogger,
     public actionService: SolicitudActionService,
     private documentoService: DocumentoService,
     private configuracionSolicitudService: ConfiguracionSolicitudService,
     private snackBar: SnackBarService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.DOCUMENTOS, actionService);
     this.fxFlexProperties = new FxFlexProperties();
@@ -106,6 +120,7 @@ export class SolicitudDocumentosComponent extends FragmentComponent implements O
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     const subcription = this.formPart.documentos$.subscribe(
       (documentos) => {
         this.dataSource.data = documentos;
@@ -127,7 +142,7 @@ export class SolicitudDocumentosComponent extends FragmentComponent implements O
     }
 
     this.group.initialize();
-    const convocatoriaId = this.actionService.getDatosGeneralesSolicitud().convocatoria?.id;
+    const convocatoriaId = this.actionService.convocatoriaId;
     if (convocatoriaId) {
       this.subscriptions.push(
         this.configuracionSolicitudService.findAllTipoDocumentosFasePresentacion(convocatoriaId)
@@ -141,6 +156,37 @@ export class SolicitudDocumentosComponent extends FragmentComponent implements O
       );
     }
     this.switchToNone();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      SOLICITUD_DOCUMENTOS_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      SOLICITUD_DOCUMENTO_NOMBRE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamNombreEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+
+    this.translate.get(
+      SOLICITUD_DOCUMENTO_FICHERO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFicheroEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      SOLICITUD_DOCUMENTOS_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+
   }
 
   private sortTipoDocumentos(tipoDocumentos: ITipoDocumento[]): ITipoDocumento[] {
@@ -219,7 +265,6 @@ export class SolicitudDocumentosComponent extends FragmentComponent implements O
         break;
     }
   }
-
 
   downloadFile(node: NodeDocumentoSolicitud): void {
     this.subscriptions.push(this.documentoService.downloadFichero(node.fichero.documentoRef).subscribe(
@@ -300,10 +345,9 @@ export class SolicitudDocumentosComponent extends FragmentComponent implements O
     this.formGroup.get('tipoDocumento').disable();
   }
 
-
   deleteDetail(): void {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado) => {
           if (aceptado) {
             this.formPart.deleteNode(this.viewingNode);
@@ -329,4 +373,5 @@ export class SolicitudDocumentosComponent extends FragmentComponent implements O
     this.matTree.renderNodeChanges([]);
     this.matTree.renderNodeChanges(nodes);
   }
+
 }

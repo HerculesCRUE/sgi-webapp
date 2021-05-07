@@ -3,6 +3,7 @@ import { RouterModule } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentGuard } from '@core/guards/detail-form.guard';
 import { ActionGuard } from '@core/guards/master-form.guard';
+import { MSG_PARAMS } from '@core/i18n';
 import { SgiRoutes } from '@core/route';
 import { ROUTE_NAMES } from '@core/route.names';
 import { SgiAuthGuard } from '@sgi/framework/auth';
@@ -14,9 +15,8 @@ import { PlanInvestigacionListadoComponent } from './plan-investigacion-listado/
 import { PLAN_INVESTIGACION_ROUTE_NAMES } from './plan-investigacion-route-names';
 import { PlanInvestigacionResolver } from './plan-investigacion.resolver';
 
-const MSG_LISTADO_TITLE = marker('csp.plan.investigacion.listado.titulo');
-const MSG_NEW_TITLE = marker('csp.plan.investigacion.crear.titulo');
-const MSG_EDIT_TITLE = marker('csp.plan.investigacion.editar.titulo');
+const MSG_NEW_TITLE = marker('title.new.entity');
+const PLAN_INVESTIGACION_KEY = marker('csp.plan-investigacion');
 
 const routes: SgiRoutes = [
   {
@@ -24,7 +24,8 @@ const routes: SgiRoutes = [
     component: PlanInvestigacionListadoComponent,
     canActivate: [SgiAuthGuard],
     data: {
-      title: MSG_LISTADO_TITLE
+      title: PLAN_INVESTIGACION_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.PLURAL
     },
   },
   {
@@ -34,6 +35,9 @@ const routes: SgiRoutes = [
     canDeactivate: [ActionGuard],
     data: {
       title: MSG_NEW_TITLE,
+      titleParams: {
+        entity: PLAN_INVESTIGACION_KEY, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR
+      }
     },
     children: [
       {
@@ -62,7 +66,8 @@ const routes: SgiRoutes = [
       plan: PlanInvestigacionResolver
     },
     data: {
-      title: MSG_EDIT_TITLE,
+      title: PLAN_INVESTIGACION_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.SINGULAR
     },
     children: [
       {

@@ -1,18 +1,27 @@
 import { Injectable } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { ISolicitudProyecto } from '@core/models/csp/solicitud-proyecto';
 import { ISolicitudProyectoSocio } from '@core/models/csp/solicitud-proyecto-socio';
+import { IEmpresa } from '@core/models/sgemp/empresa';
 import { ActionService } from '@core/services/action-service';
-import { SolicitudProyectoEquipoSocioService } from '@core/services/csp/solicitud-proyecto-equipo-socio.service';
-import { SolicitudProyectoPeriodoJustificacionService } from '@core/services/csp/solicitud-proyecto-periodo-justificacion.service';
-import { SolicitudProyectoPeriodoPagoService } from '@core/services/csp/solicitud-proyecto-periodo-pago.service';
+import { SolicitudProyectoSocioEquipoService } from '@core/services/csp/solicitud-proyecto-socio-equipo.service';
+import { SolicitudProyectoSocioPeriodoJustificacionService } from '@core/services/csp/solicitud-proyecto-socio-periodo-justificacion.service';
+import { SolicitudProyectoSocioPeriodoPagoService } from '@core/services/csp/solicitud-proyecto-socio-periodo-pago.service';
 import { SolicitudProyectoSocioService } from '@core/services/csp/solicitud-proyecto-socio.service';
-import { SolicitudService } from '@core/services/csp/solicitud.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { NGXLogger } from 'ngx-logger';
-import { ISolicitudProyectoSocioState } from '../solicitud/solicitud-formulario/solicitud-socios-colaboradores/solicitud-socios-colaboradores.component';
-import { SolicitudProyectoPeriodoJustificacionesFragment } from './solicitud-proyecto-socio-formulario/solicitud-proyecto-periodo-justificaciones/solicitud-proyecto-periodo-justificaciones.fragment';
+import { SOLICITUD_PROYECTO_SOCIO_DATA_KEY } from './solicitud-proyecto-socio-data.resolver';
 import { SolicitudProyectoSocioDatosGeneralesFragment } from './solicitud-proyecto-socio-formulario/solicitud-proyecto-socio-datos-generales/solicitud-proyecto-socio-datos-generales.fragment';
-import { SolicitudProyectoSocioEquipoSocioFragment } from './solicitud-proyecto-socio-formulario/solicitud-proyecto-socio-equipo-socio/solicitud-proyecto-socio-equipo-socio.fragment';
+import { SolicitudProyectoSocioEquipoFragment } from './solicitud-proyecto-socio-formulario/solicitud-proyecto-socio-equipo/solicitud-proyecto-socio-equipo.fragment';
+import { SolicitudProyectoSocioPeriodoJustificacionFragment } from './solicitud-proyecto-socio-formulario/solicitud-proyecto-socio-periodo-justificacion/solicitud-proyecto-socio-periodo-justificacion.fragment';
 import { SolicitudProyectoSocioPeriodoPagoFragment } from './solicitud-proyecto-socio-formulario/solicitud-proyecto-socio-periodo-pago/solicitud-proyecto-socio-periodo-pago.fragment';
+import { SOLICITUD_PROYECTO_SOCIO_ROUTE_PARAMS } from './solicitud-proyecto-socio-route-params';
+
+export interface ISolicitudProyectoSocioData {
+  readonly: boolean;
+  solicitudProyecto: ISolicitudProyecto;
+  solicitudProyectoSocios: ISolicitudProyectoSocio[];
+}
 
 @Injectable()
 export class SolicitudProyectoSocioActionService extends ActionService {
@@ -20,67 +29,73 @@ export class SolicitudProyectoSocioActionService extends ActionService {
     DATOS_GENERALES: 'datos-generales',
     PERIODOS_PAGOS: 'periodos-pagos',
     PERIODOS_JUSTIFICACION: 'periodos-justificacion',
-    EQUIPO_SOCIO: 'equipo-socio'
+    EQUIPO: 'equipo'
   };
 
   private datosGenerales: SolicitudProyectoSocioDatosGeneralesFragment;
   private periodosPago: SolicitudProyectoSocioPeriodoPagoFragment;
-  private periodoJustificaciones: SolicitudProyectoPeriodoJustificacionesFragment;
-  private socioEquipoSocio: SolicitudProyectoSocioEquipoSocioFragment;
+  private periodosJustificacion: SolicitudProyectoSocioPeriodoJustificacionFragment;
+  private equipo: SolicitudProyectoSocioEquipoFragment;
 
-  private urlProyecto: string;
-  private solicitudId: number;
-  private solicitudProyectoSocio: ISolicitudProyectoSocio;
-  private selectedSolicitudProyectoSocios: ISolicitudProyectoSocio[];
-  private coordinadorExternoValue = false;
+  private readonly data: ISolicitudProyectoSocioData;
 
-  get coordinadorExterno(): boolean {
-    return this.coordinadorExternoValue;
+  get solicitudProyectoCoordinadorExterno(): boolean {
+    return this.data.solicitudProyecto.coordinadorExterno;
+  }
+
+  get solicitudProyectoDuracion(): number {
+    return this.data.solicitudProyecto.duracion;
+  }
+
+  get solicitudProyectoSocios(): ISolicitudProyectoSocio[] {
+    return this.data.solicitudProyectoSocios;
+  }
+
+  get mesInicio(): number {
+    return this.datosGenerales.getValue().mesInicio;
+  }
+
+  get mesFin(): number {
+    return this.datosGenerales.getValue().mesFin;
+  }
+
+  get empresa(): IEmpresa {
+    return this.datosGenerales.getValue().empresa;
   }
 
   constructor(
     readonly logger: NGXLogger,
-    solicitudService: SolicitudService,
+    route: ActivatedRoute,
     solicitudProyectoSocioService: SolicitudProyectoSocioService,
-    solicitudProyectoPeriodoPagoService: SolicitudProyectoPeriodoPagoService,
-    solicitudProyectoPeriodoJustificacionService: SolicitudProyectoPeriodoJustificacionService,
-    solicitudProyectoEquipoSocioService: SolicitudProyectoEquipoSocioService,
-    personaFisicaService: PersonaFisicaService
+    solicitudProyectoSocioPeriodoPagoService: SolicitudProyectoSocioPeriodoPagoService,
+    solicitudProyectoSocioPeriodoJustificacionService: SolicitudProyectoSocioPeriodoJustificacionService,
+    solicitudProyectoSocioEquipoService: SolicitudProyectoSocioEquipoService,
+    personaService: PersonaService
   ) {
     super();
 
-    const state: ISolicitudProyectoSocioState = history.state;
-    this.solicitudProyectoSocio = state.solicitudProyectoSocio;
-    this.solicitudId = state.solicitudId;
-    this.selectedSolicitudProyectoSocios = state.selectedSolicitudProyectoSocios;
-    this.coordinadorExternoValue = state?.coordinadorExterno;
+    this.data = route.snapshot.data[SOLICITUD_PROYECTO_SOCIO_DATA_KEY];
+    const id = Number(route.snapshot.paramMap.get(SOLICITUD_PROYECTO_SOCIO_ROUTE_PARAMS.ID));
 
-    if (this.solicitudProyectoSocio?.id) {
+    if (id) {
       this.enableEdit();
     }
 
     this.datosGenerales = new SolicitudProyectoSocioDatosGeneralesFragment(
-      this.solicitudProyectoSocio?.id, this.solicitudId, solicitudProyectoSocioService, solicitudService, history.state.readonly);
-    this.periodosPago = new SolicitudProyectoSocioPeriodoPagoFragment(logger, this.solicitudProyectoSocio?.id,
-      solicitudProyectoSocioService, solicitudProyectoPeriodoPagoService, history.state.readonly);
-    this.periodoJustificaciones = new SolicitudProyectoPeriodoJustificacionesFragment(logger, this.solicitudProyectoSocio?.id,
-      solicitudProyectoSocioService, solicitudProyectoPeriodoJustificacionService, history.state.readonly);
-    this.socioEquipoSocio = new SolicitudProyectoSocioEquipoSocioFragment(logger, this.solicitudProyectoSocio?.id,
-      solicitudProyectoSocioService, solicitudProyectoEquipoSocioService, personaFisicaService, history.state.readonly);
+      id, this.data.solicitudProyecto.id, solicitudProyectoSocioService, this.data.readonly);
+    this.periodosPago = new SolicitudProyectoSocioPeriodoPagoFragment(logger, id,
+      solicitudProyectoSocioService, solicitudProyectoSocioPeriodoPagoService, this.data.readonly);
+    this.periodosJustificacion = new SolicitudProyectoSocioPeriodoJustificacionFragment(logger, id,
+      solicitudProyectoSocioService, solicitudProyectoSocioPeriodoJustificacionService, this.data.readonly);
+    this.equipo = new SolicitudProyectoSocioEquipoFragment(logger, id,
+      solicitudProyectoSocioService, solicitudProyectoSocioEquipoService, personaService, this.data.readonly);
 
     this.addFragment(this.FRAGMENT.DATOS_GENERALES, this.datosGenerales);
     this.addFragment(this.FRAGMENT.PERIODOS_PAGOS, this.periodosPago);
-    this.addFragment(this.FRAGMENT.PERIODOS_JUSTIFICACION, this.periodoJustificaciones);
-    this.addFragment(this.FRAGMENT.EQUIPO_SOCIO, this.socioEquipoSocio);
+    this.addFragment(this.FRAGMENT.PERIODOS_JUSTIFICACION, this.periodosJustificacion);
+    this.addFragment(this.FRAGMENT.EQUIPO, this.equipo);
 
-
-  }
-
-  getSolicitudProyectoSocio(): ISolicitudProyectoSocio {
-    return this.datosGenerales.isInitialized() ? this.datosGenerales.getValue() : this.solicitudProyectoSocio;
-  }
-
-  getSelectedSolicitudProyectoSocios(): ISolicitudProyectoSocio[] {
-    return this.selectedSolicitudProyectoSocios;
+    // Inicializamos los datos generales ya que son necesarios en todas las pestañas
+    this.datosGenerales.initialize();
   }
 }

@@ -1,17 +1,13 @@
 <section class="solicitud-proyecto-desglose-presupuesto-global">
-  <!-- Error no ISolicitudProyectoDatos -->
-  <div *ngIf="!formPart.existsDatosProyecto" class="info-message">
-    {{'csp.solicitud.desglose-presupuesto-global.error.proyecto.datos' | translate}}
-  </div>
-
-  <mat-label>{{'csp.solicitud.desglose-presupuesto-global.partidas-gasto' | translate}}</mat-label>
+  <h2>{{'menu.csp.solicitudes.desgloses-presupuesto' | translate}}</h2>
+  <mat-label>{{'list.entity' | translate:msgParamPartidaGastoEntity}}</mat-label>
 
   <table class="mat-elevation-z8 table-desglose-presupuesto-global" mat-table [dataSource]="dataSource" matSort
     matSortActive="id" matSortDirection="asc" matSortDisableClear>
     <!-- Concepto de gasto Column -->
     <ng-container matColumnDef="conceptoGasto">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.solicitud.desglose-presupuesto-global.concepto-gasto' | translate}}
+        {{'csp.solicitud-desglose-presupuesto.global.concepto-gasto' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.value.conceptoGasto.nombre}}
@@ -21,7 +17,7 @@
     <!-- Anualidad Column -->
     <ng-container matColumnDef="anualidad">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.solicitud.desglose-presupuesto-global.anualidad' | translate}}
+        {{'csp.solicitud-desglose-presupuesto.global.anualidad' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.value.anualidad | translate}}
@@ -31,7 +27,7 @@
     <!-- Importe Column -->
     <ng-container matColumnDef="importe">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.solicitud.desglose-presupuesto-global.importe' | translate}}
+        {{'csp.solicitud-desglose-presupuesto.global.importe' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.value.importeSolicitado}}
@@ -41,7 +37,7 @@
     <!-- Observaciones Column -->
     <ng-container matColumnDef="observaciones">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.solicitud.desglose-presupuesto-global.observaciones' | translate}}
+        {{'csp.solicitud-desglose-presupuesto.global.observaciones' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.value.observaciones}}
@@ -50,18 +46,18 @@
 
     <!-- Acciones Column -->
     <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef> {{'columna.acciones' | translate}} </th>
+      <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper">
         <ng-container>
-          <button mat-button matTooltip="{{'botones.ver' | translate}}" (click)="openModal(wrapper)"
+          <button mat-button matTooltip="{{'btn.view' | translate}}" (click)="openModal(wrapper)"
             *ngIf="formPart.readonly">
             <mat-icon color="primary">visibility</mat-icon>
           </button>
-          <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModal(wrapper)"
+          <button mat-button matTooltip="{{'btn.edit' | translate}}" (click)="openModal(wrapper)"
             *ngIf="!formPart.readonly">
             <mat-icon color="primary">border_color</mat-icon>
           </button>
-          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deletePartidaGasto(wrapper)"
+          <button mat-button matTooltip="{{'btn.delete' | translate}}" (click)="deletePartidaGasto(wrapper)"
             *ngIf="!formPart.readonly">
             <mat-icon color="warn">highlight_off</mat-icon>
           </button>
@@ -75,10 +71,10 @@
   <mat-paginator [pageSizeOptions]="elementsPage" showFirstLastButtons>
   </mat-paginator>
 
-  <div class="separation-button" *ngIf="formPart.existsDatosProyecto && !formPart.readonly">
+  <div class="separation-button" *ngIf="!formPart.readonly">
     <button color="three" mat-button mat-raised-button (click)="openModal()">
       <mat-icon color="accent">add_circle</mat-icon>
-      {{'csp.solicitud.desglose-presupuesto-global.añadir' | translate}}
+      {{ 'btn.add.entity' | translate:msgParamEntity }}
     </button>
   </div>
 
@@ -89,9 +85,9 @@
       <!-- Total del presupuesto -->
       <div class="col">
         <mat-form-field>
-          <mat-label>{{'csp.solicitud.desglose-presupuesto-global.total-presupuesto' | translate}}</mat-label>
+          <mat-label>{{'csp.solicitud-desglose-presupuesto.total-presupuesto' | translate}}</mat-label>
           <input matInput type="text"
-            placeholder="{{'csp.solicitud.desglose-presupuesto-global.total-presupuesto' | translate}}"
+            placeholder="{{'csp.solicitud-desglose-presupuesto.total-presupuesto' | translate}}"
             formControlName="totalPresupuesto">
         </mat-form-field>
       </div>
@@ -99,8 +95,8 @@
 
     <div class="buttons-final">
       <div class="col filter-button" *ngIf="!formPart.readonly">
-        <button color="primary" aria-label="Center Align" md-button mat-raised-button>
-          {{'csp.solicitud.desglose-presupuesto-global.presupuesto-completo'| translate}}
+        <button color="primary" aria-label="Center Align" mat-raised-button>
+          {{'csp.solicitud-desglose-presupuesto.global.presupuesto-completo'| translate}}
         </button>
       </div>
     </div>

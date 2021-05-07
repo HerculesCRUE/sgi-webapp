@@ -1,19 +1,17 @@
-import { ValidatorFn, ValidationErrors, AbstractControl } from '@angular/forms';
-import { DateUtils } from '@core/utils/date-utils';
+import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { DateTime } from 'luxon';
 
 export interface DateRange {
-  fechaInicio: Date;
-  fechaFin: Date;
+  fechaInicio: DateTime;
+  fechaFin: DateTime;
 }
 
 export class RangeDateValidator {
   static notOverlaps(dateRanges: DateRange[]): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const date = DateUtils.fechaToDate(control.value);
+      const date: DateTime = control.value;
       for (const dataRange of dateRanges) {
-        const fechaInicio = DateUtils.fechaToDate(dataRange.fechaInicio);
-        const fechaFin = DateUtils.fechaToDate(dataRange.fechaFin);
-        if (fechaInicio <= date && fechaFin >= date) {
+        if (dataRange.fechaInicio <= date && dataRange.fechaFin >= date) {
           return { overlaps: true } as ValidationErrors;
         }
       }

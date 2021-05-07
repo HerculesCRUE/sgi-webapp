@@ -80,8 +80,8 @@ export class ProyectoSocioPeriodoJustificacionFragment extends Fragment {
     let numPeriodo = 1;
     current.sort(
       (a, b) => {
-        const dateA = new Date(a.value.fechaInicio);
-        const dateB = new Date(b.value.fechaInicio);
+        const dateA = a.value.fechaInicio;
+        const dateB = b.value.fechaInicio;
         return (dateA > dateB) ? 1 : ((dateB > dateA) ? -1 : 0);
       }
     );

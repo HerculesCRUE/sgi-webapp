@@ -4,7 +4,8 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
-import { ISocioPeriodoJustificacionDocumento } from '@core/models/csp/socio-periodo-justificacion-documento';
+import { MSG_PARAMS } from '@core/i18n';
+import { IProyectoSocioPeriodoJustificacionDocumento } from '@core/models/csp/proyecto-socio-periodo-justificacion-documento';
 import { ITipoDocumento } from '@core/models/csp/tipos-configuracion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
@@ -15,19 +16,25 @@ import { DocumentoService, triggerDownloadToUser } from '@core/services/sgdoc/do
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { IsEntityValidator } from '@core/validators/is-entity-validador';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestSort, SgiRestFindOptions, SgiRestSortDirection } from '@sgi/framework/http';
 import { SgiFileUploadComponent, UploadEvent } from '@shared/file-upload/file-upload.component';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { ProyectoSocioPeriodoJustificacionActionService } from '../../proyecto-socio-periodo-justificacion.action.service';
 import { NodeDocumentoProyecto, ProyectoSocioPeriodoJustificacionDocumentosFragment } from './proyecto-socio-periodo-justificacion-documentos.fragment';
 
-const MSG_FILE_NOT_FOUND_ERROR = marker('file.info.error');
-const MSG_UPLOAD_SUCCESS = marker('file.upload.success');
-const MSG_UPLOAD_ERROR = marker('file.upload.error');
-const MSG_DOWNLOAD_ERROR = marker('file.download.error');
-const MSG_DELETE = marker('csp.proyecto-socio-periodo-justificacion.documentos.documento.eliminar.msg');
+const MSG_FILE_NOT_FOUND_ERROR = marker('error.file.info');
+const MSG_UPLOAD_SUCCESS = marker('msg.file.upload.success');
+const MSG_UPLOAD_ERROR = marker('error.file.upload');
+const MSG_DOWNLOAD_ERROR = marker('error.file.download');
+const MSG_DELETE = marker('msg.delete.entity');
+const PROYECTO_SOCIO_PERIODO_JUSTIFICACION_COMENTARIO_KEY = marker('csp.documento.comentarios');
+const PROYECTO_SOCIO_PERIODO_JUSTIFICACION_DOCUMENTO_KEY = marker('csp.documento');
+const PROYECTO_SOCIO_PERIODO_JUSTIFICACION_FICHERO_KEY = marker('csp.documento.fichero');
+const PROYECTO_SOCIO_PERIODO_JUSTIFICACION_NOMBRE_KEY = marker('csp.documento.nombre');
+const DOCUMENTO_KEY = marker('csp.documento');
 
 enum VIEW_MODE {
   NONE = '',
@@ -49,6 +56,13 @@ export class ProyectoSocioPeriodoJustificacionDocumentosComponent extends Fragme
 
   fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
+
+  msgParamComentarioEntity = {};
+  msgParamEntity = {};
+  msgParamEntities = {};
+  msgParamFicheroEntity = {};
+  msgParamNombreEntity = {};
+  textoDelete: string;
 
   treeControl: FlatTreeControl<NodeDocumentoProyecto>;
   private treeFlattener: MatTreeFlattener<NodeDocumentoProyecto, NodeDocumentoProyecto>;
@@ -82,7 +96,8 @@ export class ProyectoSocioPeriodoJustificacionDocumentosComponent extends Fragme
     private documentoService: DocumentoService,
     private tipoDocumentoService: TipoDocumentoService,
     private snackBar: SnackBarService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.DOCUMENTOS, actionService);
     this.fxFlexProperties = new FxFlexProperties();
@@ -103,8 +118,10 @@ export class ProyectoSocioPeriodoJustificacionDocumentosComponent extends Fragme
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
   }
 
+
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     const subcription = this.formPart.documentos$.subscribe(
       (documentos) => {
         this.dataSource.data = documentos;
@@ -129,6 +146,46 @@ export class ProyectoSocioPeriodoJustificacionDocumentosComponent extends Fragme
       map(result => result.items)
     );
     this.switchToNone();
+  }
+
+
+  private setupI18N(): void {
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_JUSTIFICACION_DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_JUSTIFICACION_FICHERO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFicheroEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_JUSTIFICACION_NOMBRE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamNombreEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_JUSTIFICACION_COMENTARIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamComentarioEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.PLURAL });
+
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_JUSTIFICACION_DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+
+    this.translate.get(
+      DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamEntities = { entity: value, ...MSG_PARAMS.GENDER.MALE });
   }
 
   ngOnDestroy(): void {
@@ -280,7 +337,7 @@ export class ProyectoSocioPeriodoJustificacionDocumentosComponent extends Fragme
 
   deleteDetail(): void {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado) => {
           if (aceptado) {
             this.formPart.deleteNode(this.viewingNode);
@@ -292,7 +349,7 @@ export class ProyectoSocioPeriodoJustificacionDocumentosComponent extends Fragme
   }
 
   switchToNew(): void {
-    const wrapper = new StatusWrapper<ISocioPeriodoJustificacionDocumento>({} as ISocioPeriodoJustificacionDocumento);
+    const wrapper = new StatusWrapper<IProyectoSocioPeriodoJustificacionDocumento>({} as IProyectoSocioPeriodoJustificacionDocumento);
     const newNode: NodeDocumentoProyecto = new NodeDocumentoProyecto(null, undefined, 2, wrapper);
     this.viewMode = VIEW_MODE.NEW;
     this.viewingNode = newNode;

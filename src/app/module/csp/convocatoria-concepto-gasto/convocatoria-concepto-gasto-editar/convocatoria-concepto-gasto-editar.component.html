@@ -1,12 +1,12 @@
 <mat-drawer-container class="mat-drawer-tabs" autosize>
   <mat-drawer mode="side" class="tabs" opened>
     <mat-list class="opciones-menu">
-      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES.CONCEPTO_GASTO]"
-        [title]="'csp.convocatoria.concepto-gasto.conceptoGasto' | translate"
-        [fragment]="actionService.getFragment(actionService.FRAGMENT.CONCEPTO_GASTO)">
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES.DATOS_GENERALES]"
+        [title]="'label.datos-generales' | translate"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_CONCEPTO_GASTO_ROUTE_NAMES.CODIGOS_ECONOMICOS]"
-        [title]="'csp.convocatoria.concepto-gasto.codigosEconomicos' | translate"
+        [title]="'csp.convocatoria-elegibilidad.codigos-economicos' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.CODIGOS_ECONOMICOS)">
       </sgi-action-fragment-menu-item>
     </mat-list>

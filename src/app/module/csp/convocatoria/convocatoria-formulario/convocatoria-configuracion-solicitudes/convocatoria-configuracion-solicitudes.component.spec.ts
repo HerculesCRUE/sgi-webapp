@@ -8,9 +8,9 @@ import { SnackBarService } from '@core/services/snack-bar.service';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
 import { SgiAuthService } from '@sgi/framework/auth';
+import { SharedModule } from '@shared/shared.module';
 import { LoggerTestingModule } from 'ngx-logger/testing';
 import { ConvocatoriaActionService } from '../../convocatoria.action.service';
-
 import { ConvocatoriaConfiguracionSolicitudesComponent } from './convocatoria-configuracion-solicitudes.component';
 
 describe('ConvocatoriaConfiguracionSolicitudesComponent', () => {
@@ -30,6 +30,7 @@ describe('ConvocatoriaConfiguracionSolicitudesComponent', () => {
         FormsModule,
         ReactiveFormsModule,
         RouterTestingModule,
+        SharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },

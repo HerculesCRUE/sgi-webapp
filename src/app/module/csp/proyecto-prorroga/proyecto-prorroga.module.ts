@@ -1,17 +1,16 @@
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialDesignModule } from '@material/material-design.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { SgiAuthModule } from '@sgi/framework/auth';
 import { SharedModule } from '@shared/shared.module';
 import { ProyectoProrrogaCrearComponent } from './proyecto-prorroga-crear/proyecto-prorroga-crear.component';
+import { ProyectoProrrogaDataResolver } from './proyecto-prorroga-data.resolver';
 import { ProyectoProrrogaEditarComponent } from './proyecto-prorroga-editar/proyecto-prorroga-editar.component';
-import { ProyectoProrrogaRouting } from './proyecto-prorroga-routing.module';
 import { ProyectoProrrogaDatosGeneralesComponent } from './proyecto-prorroga-formulario/proyecto-prorroga-datos-generales/proyecto-prorroga-datos-generales.component';
-import { ProyectoProrrogaGuard } from './proyecto-prorroga.guard';
 import { ProyectoProrrogaDocumentosComponent } from './proyecto-prorroga-formulario/proyecto-prorroga-documentos/proyecto-prorroga-documentos.component';
-
+import { ProyectoProrrogaRouting } from './proyecto-prorroga-routing.module';
 
 @NgModule({
   declarations: [
@@ -31,7 +30,7 @@ import { ProyectoProrrogaDocumentosComponent } from './proyecto-prorroga-formula
     ReactiveFormsModule
   ],
   providers: [
-    ProyectoProrrogaGuard
+    ProyectoProrrogaDataResolver
   ]
 })
 export class ProyectoProrrogaModule { }

@@ -1,17 +1,14 @@
-import { ISolicitud } from '@core/models/csp/solicitud';
 import { ISolicitudHito } from '@core/models/csp/solicitud-hito';
 import { Fragment } from '@core/services/action-service';
 import { SolicitudHitoService } from '@core/services/csp/solicitud-hito.service';
 import { SolicitudService } from '@core/services/csp/solicitud.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
-import { map, mergeMap, switchMap, takeLast, tap } from 'rxjs/operators';
+import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
 
 export class SolicitudHitosFragment extends Fragment {
   hitos$ = new BehaviorSubject<StatusWrapper<ISolicitudHito>[]>([]);
   private hitosEliminados: StatusWrapper<ISolicitudHito>[] = [];
-
-  solicitud: ISolicitud;
 
   constructor(
     key: number,
@@ -25,16 +22,10 @@ export class SolicitudHitosFragment extends Fragment {
 
   protected onInitialize(): void {
     if (this.getKey()) {
-      const subscription = this.solicitudService.findById(this.getKey() as number).pipe(
-        switchMap((solicitud) => {
-          this.solicitud = solicitud as ISolicitud;
-          return this.solicitudService.findHitosSolicitud(this.solicitud.id);
-        })
-      ).subscribe((hitos) => {
-        this.hitos$.next(hitos.items.map(
-          listaHitos => new StatusWrapper<ISolicitudHito>(listaHitos))
-        );
-      });
+      const subscription = this.solicitudService.findHitosSolicitud(this.getKey() as number).subscribe(
+        (hitos) => {
+          this.hitos$.next(hitos.items.map(listaHitos => new StatusWrapper<ISolicitudHito>(listaHitos)));
+        });
       this.subscriptions.push(subscription);
     }
   }
@@ -47,9 +38,6 @@ export class SolicitudHitosFragment extends Fragment {
     this.hitos$.next(current);
     this.setChanges(true);
   }
-
-
-
 
   public deleteHito(wrapper: StatusWrapper<ISolicitudHito>) {
     const current = this.hitos$.value;
@@ -66,7 +54,6 @@ export class SolicitudHitosFragment extends Fragment {
     }
   }
 
-
   saveOrUpdate(): Observable<void> {
     return merge(
       this.deleteHitos(),
@@ -80,7 +67,6 @@ export class SolicitudHitosFragment extends Fragment {
         }
       })
     );
-
   }
 
   private deleteHitos(): Observable<void> {
@@ -123,10 +109,7 @@ export class SolicitudHitosFragment extends Fragment {
       return of(void 0);
     }
     createdHitos.forEach(
-      (wrapper) => wrapper.value.solicitud = {
-        id: this.getKey(),
-        activo: true
-      } as ISolicitud
+      (wrapper) => wrapper.value.solicitudId = this.getKey() as number
     );
     return from(createdHitos).pipe(
       mergeMap((wrappedHitos) => {

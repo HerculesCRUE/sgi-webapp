@@ -3,10 +3,10 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { MSG_PARAMS } from '@core/i18n';
 import { IDocumentacionMemoria } from '@core/models/eti/documentacion-memoria';
 import { ITipoDocumento } from '@core/models/eti/tipo-documento';
 import { IDocumento } from '@core/models/sgdoc/documento';
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { TipoDocumentoService } from '@core/services/eti/tipo-documento.service';
 import { DocumentoService, FileModel } from '@core/services/sgdoc/documento.service';
@@ -14,28 +14,26 @@ import { SnackBarService } from '@core/services/snack-bar.service';
 import { FormGroupUtil } from '@core/utils/form-group-util';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { NullIdValidador } from '@core/validators/null-id-validador';
+import { TranslateService } from '@ngx-translate/core';
 import { SgiRestListResult } from '@sgi/framework/http/types';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of, Subscription } from 'rxjs';
-import { catchError, map, startWith } from 'rxjs/operators';
+import { catchError, map, startWith, switchMap } from 'rxjs/operators';
 
-const MSG_ERROR_APORTAR_DOCUMENTACION = marker('eti.memoria.documentacion.error.aportar');
-const MSG_ERROR_INIT = marker('eti.memoria.documentacion.error.cargar');
-const MSG_ERROR_FORM_GROUP = marker('form-group.error');
+const MSG_ERROR_APORTAR_DOCUMENTACION = marker('error.eti.memoria.documentacion.aportar');
+const MSG_ERROR_INIT = marker('error.load');
+const MSG_ERROR_FORM_GROUP = marker('error.form-group');
+const TITLE_NEW_ENTITY = marker('title.new.entity');
+const DOCUMENTO_KEY = marker('eti.memoria.documento');
+const DOCUMENTO_TIPO_KEY = marker('eti.memoria.documento.tipo');
 
 @Component({
   templateUrl: './memoria-documentacion-memoria-modal.component.html',
   styleUrls: ['./memoria-documentacion-memoria-modal.component.scss']
 })
 export class MemoriaDocumentacionMemoriaModalComponent implements OnInit {
-
   @ViewChild(MatAutocompleteTrigger) autocomplete: MatAutocompleteTrigger;
-
   formGroup: FormGroup;
-
-  fxFlexProperties: FxFlexProperties;
-  fxFlexProperties2: FxFlexProperties;
-  fxFlexProperties3: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
 
   tiposDcoumentacionFiltered: ITipoDocumento[];
@@ -43,32 +41,17 @@ export class MemoriaDocumentacionMemoriaModalComponent implements OnInit {
 
   suscripciones: Subscription[] = [];
 
+  title: string;
+  msgParamTipoEntity = {};
+
   constructor(
     private readonly logger: NGXLogger,
     public readonly matDialogRef: MatDialogRef<MemoriaDocumentacionMemoriaModalComponent>,
     private readonly snackBarService: SnackBarService,
     private readonly tipoDocumentoService: TipoDocumentoService,
     private readonly documentoService: DocumentoService,
-    @Inject(MAT_DIALOG_DATA) public documentacionesMemoria: StatusWrapper<IDocumentacionMemoria>[]) {
-
-    this.fxFlexProperties = new FxFlexProperties();
-    this.fxFlexProperties.sm = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.md = '0 1 calc(33%-10px)';
-    this.fxFlexProperties.gtMd = '0 1 calc(15%-10px)';
-    this.fxFlexProperties.order = '2';
-
-    this.fxFlexProperties2 = new FxFlexProperties();
-    this.fxFlexProperties2.sm = '0 1 calc(100%-10px)';
-    this.fxFlexProperties2.md = '0 1 calc(100%-10px)';
-    this.fxFlexProperties2.gtMd = '0 1 calc(100%-10px)';
-    this.fxFlexProperties2.order = '3';
-
-    this.fxFlexProperties3 = new FxFlexProperties();
-    this.fxFlexProperties3.sm = '0 1 calc(100%-10px)';
-    this.fxFlexProperties3.md = '0 1 calc(100%-10px)';
-    this.fxFlexProperties3.gtMd = '0 1 calc(100%-10px)';
-    this.fxFlexProperties3.order = '3';
-
+    @Inject(MAT_DIALOG_DATA) public documentacionesMemoria: StatusWrapper<IDocumentacionMemoria>[],
+    private readonly translate: TranslateService) {
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
@@ -77,7 +60,27 @@ export class MemoriaDocumentacionMemoriaModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.initFormGroup();
+    this.setupI18N();
     this.loadTiposDocumento();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          TITLE_NEW_ENTITY,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.title = value);
+
+    this.translate.get(
+      DOCUMENTO_TIPO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamTipoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
   }
 
   /**
@@ -131,15 +134,8 @@ export class MemoriaDocumentacionMemoriaModalComponent implements OnInit {
   getTipoDocumento(tipoDocumento?: ITipoDocumento): string | undefined {
     return typeof tipoDocumento === 'string' ? tipoDocumento : tipoDocumento?.nombre;
   }
-  /**
-   * Cierra la ventana modal y devuelve el documento aportado.
-   *
-   */
-  closeModal(documentacionMemoria?: StatusWrapper<IDocumentacionMemoria>): void {
-    this.matDialogRef.close(documentacionMemoria);
-  }
 
-  save(): void {
+  saveOrUpdate(): void {
     if (FormGroupUtil.valid(this.formGroup)) {
       let existDocumentacion = false;
       let documentacionMemoria: IDocumentacionMemoria = {} as IDocumentacionMemoria;
@@ -166,7 +162,7 @@ export class MemoriaDocumentacionMemoriaModalComponent implements OnInit {
                 }
                 documentacionMemoriaListado.value.aportado = true;
                 existDocumentacion = true;
-                this.closeModal(documentacionMemoriaListado);
+                this.matDialogRef.close(documentacionMemoriaListado);
               }
               if (!existDocumentacion) {
                 this.documentacionesMemoria = [];
@@ -182,7 +178,7 @@ export class MemoriaDocumentacionMemoriaModalComponent implements OnInit {
                   new StatusWrapper<IDocumentacionMemoria>(documentacionMemoria);
                 wrapperDocumentacion.setCreated();
                 this.documentacionesMemoria.push(wrapperDocumentacion);
-                this.closeModal(wrapperDocumentacion);
+                this.matDialogRef.close(wrapperDocumentacion);
               }
             });
           } else {
@@ -199,7 +195,7 @@ export class MemoriaDocumentacionMemoriaModalComponent implements OnInit {
               new StatusWrapper<IDocumentacionMemoria>(documentacionMemoria);
             wrapperDocumentacion.setCreated();
             this.documentacionesMemoria.push(wrapperDocumentacion);
-            this.closeModal(wrapperDocumentacion);
+            this.matDialogRef.close(wrapperDocumentacion);
           }
         });
     } else {

@@ -1,26 +1,36 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { FlexLayoutModule, FlexModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute, Data } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
-import { LoggerTestingModule } from 'ngx-logger/testing';
-
-import { ActionFooterComponent } from '@shared/action-footer/action-footer.component';
-import { FlexModule, FlexLayoutModule } from '@angular/flex-layout';
-
-import { SharedModule } from '@shared/shared.module';
 import { SgiAuthService } from '@sgi/framework/auth';
+import { ActionFooterComponent } from '@shared/action-footer/action-footer.component';
+import { SharedModule } from '@shared/shared.module';
+import { LoggerTestingModule } from 'ngx-logger/testing';
+import { CONVOCATORIA_CONCEPTO_GASTO_DATA_KEY } from '../convocatoria-concepto-gasto-data.resolver';
+import { ConvocatoriaConceptoGastoActionService, IConvocatoriaConceptoGastoData } from '../convocatoria-concepto-gasto.action.service';
 import { ConvocatoriaConceptoGastoEditarComponent } from './convocatoria-concepto-gasto-editar.component';
-import { ConvocatoriaConceptoGastoActionService } from '../convocatoria-concepto-gasto.action.service';
-import { IConvocatoriaConceptoGasto } from '@core/models/csp/convocatoria-concepto-gasto';
 
 describe('ConvocatoriaConceptoGastoEditarComponent', () => {
   let component: ConvocatoriaConceptoGastoEditarComponent;
   let fixture: ComponentFixture<ConvocatoriaConceptoGastoEditarComponent>;
+  const routeData: Data = {
+    [CONVOCATORIA_CONCEPTO_GASTO_DATA_KEY]: {
+      convocatoria: {
+        id: 1
+      },
+      selectedConvocatoriaConceptoGastos: [],
+      permitido: true,
+      readonly: false
+    } as IConvocatoriaConceptoGastoData
+  };
+  const routeMock = TestUtils.buildActivatedRouteMock('1', routeData);
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
         ConvocatoriaConceptoGastoEditarComponent,
@@ -41,16 +51,14 @@ describe('ConvocatoriaConceptoGastoEditarComponent', () => {
       ],
       providers: [
         ConvocatoriaConceptoGastoActionService,
-        SgiAuthService
+        SgiAuthService,
+        { provide: ActivatedRoute, useValue: routeMock }
       ],
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    const proyectoSocio = { id: 1 } as IConvocatoriaConceptoGasto;
-    history.pushState({ proyectoSocio }, 'proyectoSocio');
-
     fixture = TestBed.createComponent(ConvocatoriaConceptoGastoEditarComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

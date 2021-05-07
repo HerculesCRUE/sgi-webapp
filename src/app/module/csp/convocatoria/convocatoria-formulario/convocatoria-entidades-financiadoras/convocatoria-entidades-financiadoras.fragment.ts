@@ -1,4 +1,3 @@
-import { IConvocatoria } from '@core/models/csp/convocatoria';
 import { IConvocatoriaEntidadFinanciadora } from '@core/models/csp/convocatoria-entidad-financiadora';
 import { Fragment } from '@core/services/action-service';
 import { ConvocatoriaEntidadFinanciadoraService } from '@core/services/csp/convocatoria-entidad-financiadora.service';
@@ -123,10 +122,7 @@ export class ConvocatoriaEntidadesFinanciadorasFragment extends Fragment {
       return of(void 0);
     }
     createdEntidades.forEach(
-      (wrapper: StatusWrapper<IConvocatoriaEntidadFinanciadora>) => wrapper.value.convocatoria = {
-        id: this.getKey(),
-        activo: true
-      } as IConvocatoria
+      (wrapper: StatusWrapper<IConvocatoriaEntidadFinanciadora>) => wrapper.value.convocatoriaId = this.getKey() as number
     );
     return from(createdEntidades).pipe(
       mergeMap((wrapped) => {

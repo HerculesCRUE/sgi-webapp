@@ -3,30 +3,32 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { ITipoFase } from '@core/models/csp/tipos-configuracion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { TipoFaseService } from '@core/services/csp/tipo-fase.service';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { TipoFaseModalComponent } from '../tipo-fase-modal/tipo-fase-modal.component';
 
-const MSG_ERROR = marker('csp.tipo.fase.listado.error');
-const MSG_ERROR_SAVE = marker('csp.tipo.fase.añadir.error');
-const MSG_ERROR_UPDATE = marker('csp.tipo.fase.actualizar.error');
-const MSG_SAVE = marker('csp.tipo.fase.añadir');
-const MSG_UPDATE = marker('csp.tipo.fase.actualizar');
-const MSG_DEACTIVATE = marker('csp.tipo.fase.desactivar');
-const MSG_SUCCESS_DEACTIVATE = marker('csp.tipo.fase.desactivar.correcto');
-const MSG_ERROR_DEACTIVATE = marker('csp.tipo.fase.desactivar.error');
-const MSG_REACTIVE = marker('csp.tipo.fase.reactivar');
-const MSG_SUCCESS_REACTIVE = marker('csp.tipo.fase.reactivar.correcto');
-const MSG_ERROR_REACTIVE = marker('csp.tipo.fase.reactivar.error');
+const MSG_ERROR = marker('error.load');
+const MSG_SAVE_ERROR = marker('error.save.entity');
+const MSG_UPDATE_ERROR = marker('error.update.entity');
+const MSG_SAVE_SUCCESS = marker('msg.save.entity.success');
+const MSG_UPDATE_SUCCESS = marker('msg.update.entity.success');
+const MSG_DEACTIVATE = marker('msg.deactivate.entity');
+const MSG_SUCCESS_DEACTIVATE = marker('msg.csp.deactivate.success');
+const MSG_ERROR_DEACTIVATE = marker('error.csp.deactivate.entity');
+const MSG_REACTIVE = marker('msg.csp.reactivate');
+const MSG_SUCCESS_REACTIVE = marker('msg.reactivate.entity.success');
+const MSG_ERROR_REACTIVE = marker('error.reactivate.entity');
+const TIPO_FASE_KEY = marker('csp.tipo-fase');
 
 @Component({
   selector: 'sgi-tipo-fase-listado',
@@ -39,12 +41,26 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
   fxLayoutProperties: FxLayoutProperties;
   tiposFase$: Observable<ITipoFase[]>;
 
+  msgParamEntity = {};
+
+  textoCrearSuccess: string;
+  textoCrearError: string;
+  textoUpdateSuccess: string;
+  textoUpdateError: string;
+  textoDesactivar: string;
+  textoReactivar: string;
+  textoErrorDesactivar: string;
+  textoSuccessDesactivar: string;
+  textoSuccessReactivar: string;
+  textoErrorReactivar: string;
+
   constructor(
     private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     private readonly tipoFaseService: TipoFaseService,
     private matDialog: MatDialog,
-    private readonly dialogService: DialogService
+    private readonly dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(snackBarService, MSG_ERROR);
     this.fxFlexProperties = new FxFlexProperties();
@@ -61,11 +77,142 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.formGroup = new FormGroup({
       nombre: new FormControl(''),
       activo: new FormControl('true')
     });
     this.filter = this.createFilter();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      TIPO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      TIPO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SAVE_SUCCESS,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoCrearSuccess = value);
+
+    this.translate.get(
+      TIPO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SAVE_ERROR,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoCrearError = value);
+
+    this.translate.get(
+      TIPO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_UPDATE_SUCCESS,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoUpdateSuccess = value);
+
+    this.translate.get(
+      TIPO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_UPDATE_ERROR,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoUpdateError = value);
+
+    this.translate.get(
+      TIPO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDesactivar = value);
+
+    this.translate.get(
+      TIPO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoErrorDesactivar = value);
+
+    this.translate.get(
+      TIPO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS_DEACTIVATE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoSuccessDesactivar = value);
+
+
+    this.translate.get(
+      TIPO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoReactivar = value);
+
+    this.translate.get(
+      TIPO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoSuccessReactivar = value);
+
+
+    this.translate.get(
+      TIPO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR_REACTIVE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoErrorReactivar = value);
+
   }
 
   protected createObservable(): Observable<SgiRestListResult<ITipoFase>> {
@@ -104,8 +251,7 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
    */
   openModal(tipoFase?: ITipoFase): void {
     const config = {
-      width: GLOBAL_CONSTANTS.widthModalCSP,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
+      panelClass: 'sgi-dialog-container',
       data: tipoFase ? Object.assign({}, tipoFase) : { activo: true } as ITipoFase
     };
     const dialogRef = this.matDialog.open(TipoFaseModalComponent, config);
@@ -116,23 +262,23 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
           if (tipoFase) {
             subscription = this.tipoFaseService.update(tipoFase.id, result).subscribe(
               () => {
-                this.snackBarService.showSuccess(MSG_UPDATE);
+                this.snackBarService.showSuccess(this.textoUpdateSuccess);
                 this.loadTable();
               },
               (error) => {
                 this.logger.error(error);
-                this.snackBarService.showError(MSG_ERROR_UPDATE);
+                this.snackBarService.showError(this.textoUpdateError);
               }
             );
           } else {
             subscription = this.tipoFaseService.create(result).subscribe(
               () => {
-                this.snackBarService.showSuccess(MSG_SAVE);
+                this.snackBarService.showSuccess(this.textoCrearSuccess);
                 this.loadTable();
               },
               (error) => {
                 this.logger.error(error);
-                this.snackBarService.showError(MSG_ERROR_SAVE);
+                this.snackBarService.showError(this.textoSuccessDesactivar);
               }
             );
           }
@@ -147,7 +293,7 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
    * @param tipoFase tipo de fase
    */
   deactivateTipoFase(tipoFase: ITipoFase): void {
-    const subcription = this.dialogService.showConfirmation(MSG_DEACTIVATE)
+    const subcription = this.dialogService.showConfirmation(this.textoDesactivar)
       .pipe(switchMap((accept) => {
         if (accept) {
           return this.tipoFaseService.desactivar(tipoFase.id);
@@ -156,12 +302,12 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
         }
       })).subscribe(
         () => {
-          this.snackBarService.showSuccess(MSG_SUCCESS_DEACTIVATE);
+          this.snackBarService.showSuccess(this.textoSuccessDesactivar);
           this.loadTable();
         },
         (error) => {
           this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_DEACTIVATE);
+          this.snackBarService.showError(this.textoErrorDesactivar);
         }
       );
     this.suscripciones.push(subcription);
@@ -173,7 +319,7 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
    * @param tipoFase tipo finalidad
    */
   activateTipoFase(tipoFase: ITipoFase): void {
-    const subcription = this.dialogService.showConfirmation(MSG_REACTIVE)
+    const subcription = this.dialogService.showConfirmation(this.textoReactivar)
       .pipe(switchMap((accept) => {
         if (accept) {
           tipoFase.activo = true;
@@ -183,13 +329,13 @@ export class TipoFaseListadoComponent extends AbstractTablePaginationComponent<I
         }
       })).subscribe(
         () => {
-          this.snackBarService.showSuccess(MSG_SUCCESS_REACTIVE);
+          this.snackBarService.showSuccess(this.textoSuccessReactivar);
           this.loadTable();
         },
         (error) => {
           this.logger.error(error);
           tipoFase.activo = false;
-          this.snackBarService.showError(MSG_ERROR_REACTIVE);
+          this.snackBarService.showError(this.textoErrorDesactivar);
         }
       );
     this.suscripciones.push(subcription);

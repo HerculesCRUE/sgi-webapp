@@ -1,24 +1,24 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { MSG_PARAMS } from '@core/i18n';
 import { SgiRoutes } from '@core/route';
 import { SgiAuthGuard } from '@sgi/framework/auth';
-
+import { EtiInicioComponent } from './eti-inicio/eti-inicio.component';
 import { EtiRootComponent } from './eti-root/eti-root.component';
 import { ETI_ROUTE_NAMES } from './eti-route-names';
-import { EtiInicioComponent } from './eti-inicio/eti-inicio.component';
 
 const MSG_ROOT_TITLE = marker('eti.root.title');
-const MSG_SOLICITUDES_CONVOCATORIA_TITLE = marker('menu.principal.eti.solicitudesConvocatoria');
-const MSG_EVALUACIONES_EVALUADOR_TITLE = marker('menu.principal.eti.evaluacionesEvaluador');
-const MSG_EVALUACIONES_TITLE = marker('menu.principal.eti.evaluaciones');
-const MSG_ACTAS_TITLE = marker('menu.principal.eti.acta');
-const MSG_EVALUADORES_TITLE = marker('menu.principal.eti.evaluador');
-const MSG_MEMORIAS_TITLE = marker('menu.principal.eti.memorias');
-const MSG_SEGUIMIENTOS_TITLE = marker('menu.principal.eti.seguimientos');
-const MSG_PETICIONES_EVALUACION_TITLE = marker('menu.principal.eti.peticionesEvaluacion');
-const MSG_GESTION_SEGUIMIENTO_TITLE = marker('menu.principal.eti.gestionSeguimiento');
-const MSG_CONFIGURACION_TITLE = marker('menu.principal.eti.configuracion');
+const MSG_SOLICITUDES_CONVOCATORIA_TITLE = marker('eti.convocatoria-reunion');
+const MSG_EVALUACIONES_EVALUADOR_TITLE = marker('menu.eti.evaluacion-evaluador');
+const MSG_EVALUACIONES_TITLE = marker('eti.evaluacion');
+const MSG_ACTAS_TITLE = marker('eti.acta');
+const MSG_EVALUADORES_TITLE = marker('eti.evaluador');
+const MSG_MEMORIAS_TITLE = marker('eti.memoria');
+const MSG_SEGUIMIENTOS_TITLE = marker('menu.eti.seguimiento-evaluador');
+const MSG_PETICIONES_EVALUACION_TITLE = marker('eti.peticion-evaluacion');
+const MSG_GESTION_SEGUIMIENTO_TITLE = marker('eti.seguimiento');
+const MSG_CONFIGURACION_TITLE = marker('eti.configuracion');
 
 const routes: SgiRoutes = [
   {
@@ -45,6 +45,7 @@ const routes: SgiRoutes = [
         canActivate: [SgiAuthGuard],
         data: {
           title: MSG_SOLICITUDES_CONVOCATORIA_TITLE,
+          titleParams: MSG_PARAMS.CARDINALIRY.PLURAL,
           hasAnyAuthorityForAnyUO: ['ETI-CNV-V', 'ETI-CNV-C', 'ETI-CNV-E', 'ETI-CNV-B', 'ETI-CNV-ENV']
         }
       },
@@ -71,6 +72,7 @@ const routes: SgiRoutes = [
         canActivate: [SgiAuthGuard],
         data: {
           title: MSG_EVALUACIONES_TITLE,
+          titleParams: MSG_PARAMS.CARDINALIRY.PLURAL,
           hasAnyAuthorityForAnyUO: [
             'ETI-EVC-V', 'ETI-EVC-EVAL'
           ]
@@ -85,6 +87,7 @@ const routes: SgiRoutes = [
         canActivate: [SgiAuthGuard],
         data: {
           title: MSG_ACTAS_TITLE,
+          titleParams: MSG_PARAMS.CARDINALIRY.PLURAL,
           hasAnyAuthorityForAnyUO: ['ETI-ACT-V', 'ETI-ACT-C', 'ETI-ACT-E', 'ETI-ACT-B', 'ETI-ACT-DES', 'ETI-ACT-FIN']
         }
       },
@@ -97,6 +100,7 @@ const routes: SgiRoutes = [
         canActivate: [SgiAuthGuard],
         data: {
           title: MSG_EVALUADORES_TITLE,
+          titleParams: MSG_PARAMS.CARDINALIRY.PLURAL,
           hasAnyAuthorityForAnyUO: ['ETI-EVR-V', 'ETI-EVR-C', 'ETI-EVR-E', 'ETI-EVR-B']
         }
       },
@@ -109,6 +113,7 @@ const routes: SgiRoutes = [
         canActivate: [SgiAuthGuard],
         data: {
           title: MSG_MEMORIAS_TITLE,
+          titleParams: MSG_PARAMS.CARDINALIRY.PLURAL,
           hasAuthorityForAnyUO: 'ETI-PEV-V'
         }
       },
@@ -121,6 +126,7 @@ const routes: SgiRoutes = [
         canActivate: [SgiAuthGuard],
         data: {
           title: MSG_SEGUIMIENTOS_TITLE,
+          titleParams: MSG_PARAMS.CARDINALIRY.PLURAL,
           hasAnyAuthorityForAnyUO: ['ETI-EVC-V', 'ETI-EVC-VR', 'ETI-EVC-EVAL', 'ETI-EVC-EVALR']
         }
       },
@@ -145,6 +151,7 @@ const routes: SgiRoutes = [
         canActivate: [SgiAuthGuard],
         data: {
           title: MSG_PETICIONES_EVALUACION_TITLE,
+          titleParams: MSG_PARAMS.CARDINALIRY.PLURAL,
           hasAnyAuthorityForAnyUO: ['ETI-PEV-V']
         }
       }, {
@@ -156,6 +163,7 @@ const routes: SgiRoutes = [
         canActivate: [SgiAuthGuard],
         data: {
           title: MSG_CONFIGURACION_TITLE,
+          titleParams: MSG_PARAMS.CARDINALIRY.PLURAL,
           hasAnyAuthorityForAnyUO: ['ETI-CNF-E']
         }
       },

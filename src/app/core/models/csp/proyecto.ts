@@ -1,113 +1,75 @@
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { ClasificacionCVN } from '@core/enums/clasificacion-cvn';
+import { DateTime } from 'luxon';
 import { IUnidadGestion } from '../usr/unidad-gestion';
-import { IConvocatoria } from './convocatoria';
 import { IEstadoProyecto } from './estado-proyecto';
-import { ISolicitud } from './solicitud';
 import { ITipoAmbitoGeografico } from './tipo-ambito-geografico';
 import { IModeloEjecucion, ITipoFinalidad } from './tipos-configuracion';
 
-
-
 export interface IProyecto {
-
   /** Id */
   id: number;
-
   /** EstadoProyecto */
   estado: IEstadoProyecto;
-
   /** Titulo */
   titulo: string;
-
   /** Acronimo */
   acronimo: string;
-
   /** codigoExterno */
   codigoExterno: string;
-
   /** Fecha Inicio */
-  fechaInicio: Date;
-
+  fechaInicio: DateTime;
   /** Fecha Fin */
-  fechaFin: Date;
-
+  fechaFin: DateTime;
   /** Comentario */
   comentario: string;
-
   /** Unidad gestion */
   unidadGestion: IUnidadGestion;
-
   /** modelo ejecucion */
   modeloEjecucion: IModeloEjecucion;
-
   /** convocatoriaExterna */
   convocatoriaExterna: string;
-
   /** finalidad */
   finalidad: ITipoFinalidad;
-
-  /** convocatoria */
-  convocatoria: IConvocatoria;
-
-  /** solicitud */
-  solicitud: ISolicitud;
-
+  /** Id de Convocatoria */
+  convocatoriaId: number;
+  /** Id de Solicitud */
+  solicitudId: number;
   /** ambitoGeografico */
   ambitoGeografico: ITipoAmbitoGeografico;
-
   /** confidencial */
   confidencial: boolean;
-
   /** clasificacionCVN */
   clasificacionCVN: ClasificacionCVN;
-
   /** colaborativo */
   colaborativo: boolean;
-
   /** coordinadorExterno */
   coordinadorExterno: boolean;
-
-  /** uniSubcontratada */
-  uniSubcontratada: boolean;
-
   /** timesheet */
   timesheet: boolean;
-
-  /** paquetesTrabajo */
-  paquetesTrabajo: boolean;
-
+  /** permitePaquetesTrabajo */
+  permitePaquetesTrabajo: boolean;
   /** costeHora */
   costeHora: boolean;
-
   /** tipoHorasAnuales */
   tipoHorasAnuales: TipoHorasAnuales;
-
   /** contratos */
   contratos: boolean;
-
   /** facturacion */
   facturacion: boolean;
-
   /** iva */
   iva: boolean;
-
   /** observaciones */
   observaciones: string;
-
   /** finalista */
   finalista: boolean;
-
   /** limitativo */
   limitativo: boolean;
-
   /** anualidades */
   anualidades: boolean;
-
   /** activo  */
   activo: boolean;
 }
-
 
 export enum TipoHorasAnuales {
   FIJO = 'FIJO',

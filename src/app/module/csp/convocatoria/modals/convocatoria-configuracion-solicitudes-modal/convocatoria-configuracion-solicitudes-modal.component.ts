@@ -1,25 +1,28 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { BaseModalComponent } from '@core/component/base-modal.component';
-import { IDocumentoRequerido } from '@core/models/csp/documentos-requeridos-solicitud';
+import { MSG_PARAMS } from '@core/i18n';
+import { IDocumentoRequeridoSolicitud } from '@core/models/csp/documento-requerido-solicitud';
 import { ITipoDocumento } from '@core/models/csp/tipos-configuracion';
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ModeloEjecucionService } from '@core/services/csp/modelo-ejecucion.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestFilter, SgiRestFilterOperator, SgiRestFindOptions } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
 import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 
-const MSG_ERROR_INIT = marker('csp.convocatoria.plazos.enlace.error.cargar');
-const MSG_ANADIR = marker('botones.aniadir');
-const MSG_ACEPTAR = marker('botones.aceptar');
+const MSG_ANADIR = marker('btn.add');
+const MSG_ACEPTAR = marker('btn.ok');
+const CONVOCATORIA_CONFIGURACION_SOLICITUD_TIPO_DOCUMENTO_KEY = marker('csp.documento.tipo');
+const CONVOCATORIA_CONFIGURACION_SOLICITUD_DOCUMENTO_REQUERIDO_KEY = marker('csp.convocatoria-configuracion-solicitud-documento-requerido');
+const TITLE_NEW_ENTITY = marker('title.new.entity');
 
 export interface ConvocatoriaConfiguracionSolicitudesModalData {
-  documentoRequerido: IDocumentoRequerido;
+  documentoRequerido: IDocumentoRequeridoSolicitud;
+  tipoFaseId: number;
   modeloEjecucionId: number;
   readonly: boolean;
 }
@@ -28,88 +31,71 @@ export interface ConvocatoriaConfiguracionSolicitudesModalData {
   templateUrl: './convocatoria-configuracion-solicitudes-modal.component.html',
   styleUrls: ['./convocatoria-configuracion-solicitudes-modal.component.scss']
 })
-export class ConvocatoriaConfiguracionSolicitudesModalComponent extends
-  BaseModalComponent<ConvocatoriaConfiguracionSolicitudesModalData, ConvocatoriaConfiguracionSolicitudesModalComponent>
+export class ConvocatoriaConfiguracionSolicitudesModalComponent
+  extends BaseModalComponent<ConvocatoriaConfiguracionSolicitudesModalData, ConvocatoriaConfiguracionSolicitudesModalComponent>
   implements OnInit {
   fxLayoutProperties: FxLayoutProperties;
-  fxFlexProperties: FxFlexProperties;
 
-  documentoRequeridoFiltered: ITipoDocumento[];
-  documentoRequerido$: Observable<ITipoDocumento[]>;
+  documentosRequeridos$: Observable<ITipoDocumento[]>;
   textSaveOrUpdate: string;
+  title: string;
+
+  msgParamTipoDocumentoEntity = {};
 
   constructor(
-    private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
     public readonly matDialogRef: MatDialogRef<ConvocatoriaConfiguracionSolicitudesModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ConvocatoriaConfiguracionSolicitudesModalData,
-    private modeloEjecucionService: ModeloEjecucionService
+    modeloEjecucionService: ModeloEjecucionService,
+    private readonly translate: TranslateService
   ) {
     super(snackBarService, matDialogRef, data);
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.layout = 'row';
     this.fxLayoutProperties.layoutAlign = 'row';
-    this.fxFlexProperties = new FxFlexProperties();
-    this.fxFlexProperties.sm = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.md = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.gtMd = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.order = '2';
+
+    const options: SgiRestFindOptions = {
+      filter: new RSQLSgiRestFilter(
+        'modeloTipoFase.tipoFase.id',
+        SgiRestFilterOperator.EQUALS,
+        this.data.tipoFaseId ? this.data.tipoFaseId.toString() : null
+      )
+    };
+    this.documentosRequeridos$ = modeloEjecucionService.findModeloTipoDocumento(this.data.modeloEjecucionId, options).pipe(
+      map(response => response.items.map(modeloDocumento => modeloDocumento.tipoDocumento))
+    );
   }
 
   ngOnInit(): void {
     super.ngOnInit();
-    this.loadTipoDocumento();
+    this.setupI18N();
     this.textSaveOrUpdate = this.data.documentoRequerido.tipoDocumento ? MSG_ACEPTAR : MSG_ANADIR;
   }
 
-  /**
-   * Carga todos los tipos de documento
-   */
-  loadTipoDocumento() {
-    const modeloEjecucionId = this.data.modeloEjecucionId;
-    const idTipoFase = this.data.documentoRequerido.configuracionSolicitud.fasePresentacionSolicitudes?.tipoFase.id;
-    const options: SgiRestFindOptions = {
-      filter: new RSQLSgiRestFilter('modeloTipoFase.tipoFase.id', SgiRestFilterOperator.EQUALS, idTipoFase ? idTipoFase.toString() : null)
-    };
-    const subscription = this.modeloEjecucionService.findModeloTipoDocumento(modeloEjecucionId, options).pipe(
-      map((result => {
-        const listado: ITipoDocumento[] = [];
-        result.items.forEach(x => listado.push(x.tipoDocumento));
-        return listado;
-      }))
-    ).subscribe(
-      (res) => {
-        this.documentoRequeridoFiltered = res;
-        this.documentoRequerido$ = this.formGroup.controls.tipoDocumento.valueChanges
-          .pipe(
-            startWith(''),
-            map(value => this.filtroTipoDocumento(value))
+  private setupI18N(): void {
+    this.translate.get(
+      CONVOCATORIA_CONFIGURACION_SOLICITUD_TIPO_DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamTipoDocumentoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    if (this.data?.documentoRequerido?.tipoDocumento) {
+      this.translate.get(
+        CONVOCATORIA_CONFIGURACION_SOLICITUD_DOCUMENTO_REQUERIDO_KEY,
+        MSG_PARAMS.CARDINALIRY.SINGULAR
+      ).subscribe((value) => this.title = value);
+    } else {
+      this.translate.get(
+        CONVOCATORIA_CONFIGURACION_SOLICITUD_DOCUMENTO_REQUERIDO_KEY,
+        MSG_PARAMS.CARDINALIRY.SINGULAR
+      ).pipe(
+        switchMap((value) => {
+          return this.translate.get(
+            TITLE_NEW_ENTITY,
+            { entity: value, ...MSG_PARAMS.GENDER.MALE }
           );
-      },
-      (error) => {
-        this.logger.error(error);
-        this.snackBarService.showError(MSG_ERROR_INIT);
-      }
-    );
-    this.subscriptions.push(subscription);
-  }
-
-  /**
-   * Filtra la lista devuelta por el servicio.
-   *
-   * @param value del input para autocompletar
-   */
-  filtroTipoDocumento(value: string): ITipoDocumento[] {
-    const filterValue = value.toString().toLowerCase();
-    return this.documentoRequeridoFiltered.filter(docRequerido => docRequerido.nombre.toLowerCase().includes(filterValue));
-  }
-
-  /**
-   * Devuelve el nombre
-   * @param docRequerido array de documentos requeridos
-   */
-  getNombreTipoDocumento(docRequerido?: ITipoDocumento): string | undefined {
-    return typeof docRequerido === 'string' ? docRequerido : docRequerido?.nombre;
+        })
+      ).subscribe((value) => this.title = value);
+    }
   }
 
   protected getDatosForm(): ConvocatoriaConfiguracionSolicitudesModalData {
@@ -120,7 +106,7 @@ export class ConvocatoriaConfiguracionSolicitudesModalComponent extends
 
   protected getFormGroup(): FormGroup {
     const formGroup = new FormGroup({
-      tipoDocumento: new FormControl(this.data.documentoRequerido.tipoDocumento),
+      tipoDocumento: new FormControl(this.data.documentoRequerido.tipoDocumento, Validators.required),
       observaciones: new FormControl(this.data.documentoRequerido.observaciones),
     });
     if (this.data.readonly) {

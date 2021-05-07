@@ -1,15 +1,14 @@
-import { IEmpresaEconomica } from '../sgp/empresa-economica';
-import { IProyecto } from './proyecto';
+import { DateTime } from 'luxon';
+import { IEmpresa } from '../sgemp/empresa';
 import { IRolSocio } from './rol-socio';
-
 
 export interface IProyectoSocio {
   id: number;
-  proyecto: IProyecto;
-  empresa: IEmpresaEconomica;
+  proyectoId: number;
+  empresa: IEmpresa;
   rolSocio: IRolSocio;
-  fechaInicio: Date;
-  fechaFin: Date;
+  fechaInicio: DateTime;
+  fechaFin: DateTime;
   numInvestigadores: number;
   importeConcedido: number;
 }

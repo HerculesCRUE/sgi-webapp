@@ -4,7 +4,7 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
-import { IProyecto } from '@core/models/csp/proyecto';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoPeriodoSeguimiento } from '@core/models/csp/proyecto-periodo-seguimiento';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
@@ -12,20 +12,15 @@ import { ROUTE_NAMES } from '@core/route.names';
 import { ProyectoPeriodoSeguimientoService } from '@core/services/csp/proyecto-periodo-seguimiento.service';
 import { DialogService } from '@core/services/dialog.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { CSP_ROUTE_NAMES } from '../../../csp-route-names';
+import { switchMap } from 'rxjs/operators';
 import { ProyectoActionService } from '../../proyecto.action.service';
 import { ProyectoPeriodoSeguimientosFragment } from './proyecto-periodo-seguimientos.fragment';
 
-
-const MSG_DELETE = marker('csp.proyecto.periodos-seguimiento-cientifico.borrar');
-const MSG_DELETE_DOCUMENTOS = marker('csp.proyecto.periodos-seguimiento-cientifico.borrar.documentos');
-export interface IProyectoPeriodoSeguimientoState {
-  proyecto: IProyecto;
-  proyectoPeriodoSeguimiento: IProyectoPeriodoSeguimiento;
-  selectedProyectoPeriodoSeguimientos: IProyectoPeriodoSeguimiento[];
-  readonly: boolean;
-}
+const MSG_DELETE = marker('msg.delete.entity');
+const MSG_DELETE_DOCUMENTOS = marker('msg.csp.proyecto-periodo-seguimiento-cientifico.documento.delete');
+const PROYECTO_PERIODO_SEGUIMIENTO_CIENTIFICO_KEY = marker('csp.proyecto-periodo-seguimiento-cientifico');
 
 @Component({
   selector: 'sgi-proyecto-periodo-seguimientos',
@@ -33,7 +28,6 @@ export interface IProyectoPeriodoSeguimientoState {
   styleUrls: ['./proyecto-periodo-seguimientos.component.scss']
 })
 export class ProyectoPeriodoSeguimientosComponent extends FragmentComponent implements OnInit, OnDestroy {
-  CSP_ROUTE_NAMES = CSP_ROUTE_NAMES;
   ROUTE_NAMES = ROUTE_NAMES;
 
   private subscriptions: Subscription[] = [];
@@ -44,6 +38,9 @@ export class ProyectoPeriodoSeguimientosComponent extends FragmentComponent impl
 
   displayedColumns = ['numPeriodo', 'fechaInicio', 'fechaFin', 'fechaInicioPresentacion', 'fechaFinPresentacion', 'observaciones', 'acciones'];
 
+  msgParamEntity = {};
+  textoDelete: string;
+
   dataSource = new MatTableDataSource<StatusWrapper<IProyectoPeriodoSeguimiento>>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
@@ -51,7 +48,8 @@ export class ProyectoPeriodoSeguimientosComponent extends FragmentComponent impl
   constructor(
     public actionService: ProyectoActionService,
     private dialogService: DialogService,
-    private proyectoPeriodoSeguimientoService: ProyectoPeriodoSeguimientoService
+    private proyectoPeriodoSeguimientoService: ProyectoPeriodoSeguimientoService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.SEGUIMIENTO_CIENTIFICO, actionService);
     this.formPart = this.fragment as ProyectoPeriodoSeguimientosFragment;
@@ -59,6 +57,7 @@ export class ProyectoPeriodoSeguimientosComponent extends FragmentComponent impl
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     const subscription = this.formPart.periodoSeguimientos$.subscribe(
       (proyectoPeriodoSeguimientos) => {
         this.dataSource.data = proyectoPeriodoSeguimientos;
@@ -75,6 +74,25 @@ export class ProyectoPeriodoSeguimientosComponent extends FragmentComponent impl
         }
       };
     this.dataSource.sort = this.sort;
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      PROYECTO_PERIODO_SEGUIMIENTO_CIENTIFICO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      PROYECTO_PERIODO_SEGUIMIENTO_CIENTIFICO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
   }
 
   ngOnDestroy(): void {
@@ -95,7 +113,7 @@ export class ProyectoPeriodoSeguimientosComponent extends FragmentComponent impl
         );
       } else {
         this.subscriptions.push(
-          this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+          this.dialogService.showConfirmation(this.textoDelete).subscribe(
             (aceptado) => {
               if (aceptado) {
                 this.formPart.deletePeriodoSeguimiento(wrapper);
@@ -104,20 +122,7 @@ export class ProyectoPeriodoSeguimientosComponent extends FragmentComponent impl
           )
         );
       }
-
-
     });
-  }
-
-
-  createState(wrapper?: StatusWrapper<IProyectoPeriodoSeguimiento>): IProyectoPeriodoSeguimientoState {
-    const state: IProyectoPeriodoSeguimientoState = {
-      proyecto: this.actionService.proyecto as IProyecto,
-      proyectoPeriodoSeguimiento: wrapper ? wrapper.value : {} as IProyectoPeriodoSeguimiento,
-      selectedProyectoPeriodoSeguimientos: this.dataSource.data.map(element => element.value),
-      readonly: this.formPart.readOnly
-    };
-    return state;
   }
 
 }

@@ -4,6 +4,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoDocumento } from '@core/models/csp/proyecto-documento';
 import { ITipoDocumento, ITipoFase } from '@core/models/csp/tipos-configuracion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
@@ -15,22 +16,24 @@ import { DocumentoService, triggerDownloadToUser } from '@core/services/sgdoc/do
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { IsEntityValidator } from '@core/validators/is-entity-validador';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestFilter, SgiRestFilterOperator, SgiRestFindOptions } from '@sgi/framework/http';
 import { SgiFileUploadComponent, UploadEvent } from '@shared/file-upload/file-upload.component';
 import { NGXLogger } from 'ngx-logger';
 import { of, Subscription } from 'rxjs';
 import { Observable } from 'rxjs/internal/Observable';
-import { map, tap } from 'rxjs/operators';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { ProyectoActionService } from '../../proyecto.action.service';
 import { NodeDocumento, ProyectoDocumentosFragment } from './proyecto-documentos.fragment';
 
-const MSG_FILE_NOT_FOUND_ERROR = marker('file.info.error');
-const MSG_UPLOAD_SUCCESS = marker('file.upload.success');
-const MSG_UPLOAD_ERROR = marker('file.upload.error');
-const MSG_DOWNLOAD_ERROR = marker('file.download.error');
-const MSG_DELETE = marker('csp.proyecto.documentos.documento.eliminar.msg');
-
-
+const MSG_FILE_NOT_FOUND_ERROR = marker('error.file.info');
+const MSG_UPLOAD_SUCCESS = marker('msg.file.upload.success');
+const MSG_UPLOAD_ERROR = marker('error.file.upload');
+const MSG_DOWNLOAD_ERROR = marker('error.file.download');
+const MSG_DELETE = marker('msg.delete.entity');
+const DOCUMENTO_KEY = marker('csp.documento');
+const PROYECTO_DOCUMENTO_FICHERO_KEY = marker('csp.proyecto-documento.fichero');
+const PROYECTO_DOCUMENTO_NOMBRE_KEY = marker('csp.documento.nombre');
 
 enum VIEW_MODE {
   NONE = '',
@@ -66,10 +69,20 @@ export class ProyectoDocumentosComponent extends FragmentComponent implements On
   tiposDocumento: ITipoDocumento[] = [];
   tipoFases$: Observable<ITipoFase[]> = of([]);
 
+  msgParamEntity = {};
+  msgParamFicheroEntity = {};
+  msgParamNombreEntity = {};
+  textoDelete: string;
+
   private tipoDocumentosFase = new Map<number, ITipoDocumento[]>();
 
   fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
+
+  treeControl: FlatTreeControl<NodeDocumento>;
+  private treeFlattener: MatTreeFlattener<NodeDocumento, NodeDocumento>;
+  dataSource: MatTreeFlatDataSource<NodeDocumento, NodeDocumento>;
+  @ViewChild('uploader') private uploader: SgiFileUploadComponent;
 
   private getLevel = (node: NodeDocumento) => node.level;
   private isExpandable = (node: NodeDocumento) => node.childs.length > 0;
@@ -77,23 +90,19 @@ export class ProyectoDocumentosComponent extends FragmentComponent implements On
   private transformer = (node: NodeDocumento, level: number) => node;
 
   hasChild = (_: number, node: NodeDocumento) => node.childs.length > 0;
-
-
   compareFase = (option: ITipoFase, value: ITipoFase) => option?.id === value?.id;
   compareTipoDocumento = (option: ITipoDocumento, value: ITipoDocumento) => option?.id === value?.id;
 
-  treeControl: FlatTreeControl<NodeDocumento>;
-  private treeFlattener: MatTreeFlattener<NodeDocumento, NodeDocumento>;
-  dataSource: MatTreeFlatDataSource<NodeDocumento, NodeDocumento>;
-  @ViewChild('uploader') private uploader: SgiFileUploadComponent;
 
-
-  constructor(protected logger: NGXLogger,
+  constructor(
+    protected logger: NGXLogger,
     private dialogService: DialogService,
     public actionService: ProyectoActionService,
     private snackBarService: SnackBarService,
     private modeloEjecucionService: ModeloEjecucionService,
-    private documentoService: DocumentoService) {
+    private documentoService: DocumentoService,
+    private readonly translate: TranslateService
+  ) {
 
     super(actionService.FRAGMENT.DOCUMENTOS, actionService);
     this.fxFlexProperties = new FxFlexProperties();
@@ -114,9 +123,9 @@ export class ProyectoDocumentosComponent extends FragmentComponent implements On
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
   }
 
-
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     const subcription = this.formPart.documentos$.subscribe(
       (documentos) => {
         this.dataSource.data = documentos;
@@ -136,8 +145,7 @@ export class ProyectoDocumentosComponent extends FragmentComponent implements On
     }));
     this.group.initialize();
 
-
-    const idModeloEjecucion = this.actionService.proyecto?.modeloEjecucion?.id;
+    const idModeloEjecucion = this.actionService.modeloEjecucionId;
     const options: SgiRestFindOptions = {
       filter: new RSQLSgiRestFilter('proyecto', SgiRestFilterOperator.EQUALS, 'true')
     };
@@ -171,15 +179,42 @@ export class ProyectoDocumentosComponent extends FragmentComponent implements On
     this.switchToNone();
   }
 
+  private setupI18N(): void {
+    this.translate.get(
+      DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      PROYECTO_DOCUMENTO_FICHERO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFicheroEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_DOCUMENTO_NOMBRE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamNombreEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+  }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
-
   deleteDetail(): void {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado) => {
           if (aceptado) {
             this.formPart.deleteNode(this.viewingNode);
@@ -190,14 +225,11 @@ export class ProyectoDocumentosComponent extends FragmentComponent implements On
     );
   }
 
-
-
   private switchToNone() {
     this.viewMode = VIEW_MODE.NONE;
     this.viewingNode = undefined;
     this.loadDetails(undefined);
   }
-
 
   private loadDetails(node: NodeDocumento) {
     this.formGroup.enable();
@@ -219,7 +251,6 @@ export class ProyectoDocumentosComponent extends FragmentComponent implements On
       this.formGroup.disable();
     }
   }
-
 
   cancelDetail(): void {
     if (this.viewMode === VIEW_MODE.EDIT) {
@@ -260,7 +291,6 @@ export class ProyectoDocumentosComponent extends FragmentComponent implements On
         break;
     }
   }
-
 
   downloadFile(node: NodeDocumento): void {
     this.subscriptions.push(this.documentoService.downloadFichero(node.fichero.documentoRef).subscribe(
@@ -308,7 +338,6 @@ export class ProyectoDocumentosComponent extends FragmentComponent implements On
     this.expandParents(createdNode);
     this.switchToNone();
   }
-
 
   private updateNode(node: NodeDocumento): void {
     this.formPart.updateNode(node);

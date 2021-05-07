@@ -10,8 +10,8 @@
         <!-- Título proyecto -->
         <div class="col">
           <mat-form-field>
-            <mat-label>{{'eti.memoria.listado.buscador.proyecto.titulo' | translate}}</mat-label>
-            <input matInput type="text" placeholder="{{'eti.memoria.listado.buscador.proyecto.titulo' | translate}}"
+            <mat-label>{{'eti.memoria.proyecto-titulo' | translate}}</mat-label>
+            <input matInput type="text" placeholder="{{'eti.memoria.proyecto-titulo' | translate}}"
               formControlName="titulo">
           </mat-form-field>
         </div>
@@ -19,9 +19,9 @@
         <!-- Comité -->
         <div class="col">
           <mat-form-field class="input-form">
-            <mat-label>{{'eti.memoria.listado.buscador.comite' | translate}}</mat-label>
-            <input type="text" [placeholder]="'eti.memoria.listado.buscador.comite' | translate" arial-label="Number"
-              matInput formControlName="comite" [matAutocomplete]="autocompleteComite">
+            <mat-label>{{'label.eti.comite' | translate}}</mat-label>
+            <input type="text" [placeholder]="'label.eti.comite' | translate" arial-label="Number" matInput
+              formControlName="comite" [matAutocomplete]="autocompleteComite">
             <mat-autocomplete #autocompleteComite="matAutocomplete" [displayWith]="getComite">
               <mat-option *ngFor="let comite of filteredComites | async" [value]="comite">
                 {{comite.comite}}
@@ -33,25 +33,28 @@
         <!-- Referencia memoria-->
         <div class="col">
           <mat-form-field>
-            <mat-label>{{'eti.memoria.listado.buscador.referencia' | translate}}</mat-label>
-            <input matInput type="text" placeholder="{{'eti.memoria.listado.buscador.referencia' | translate}}"
+            <mat-label>{{'eti.memoria.referencia' | translate}}</mat-label>
+            <input matInput type="text" placeholder="{{'eti.memoria.referencia' | translate}}"
               formControlName="numReferencia">
           </mat-form-field>
         </div>
 
-        <!--Solicitante-->
+        <!--Persona-->
         <div class="col">
-          <sgi-buscar-persona [textoLabel]="textoUsuarioLabel" [textoInput]="textoUsuarioInput"
-            [textoButton]="textoUsuarioButton" (usuarioSeleccionado)="
-                                              setUsuario($event)"></sgi-buscar-persona>
+          <mat-form-field fxFill>
+            <mat-label>{{'title.eti.search.solicitante' | translate}}</mat-label>
+            <sgi-select-persona placeholder="{{'title.eti.search.solicitante' | translate}}"
+              formControlName="solicitante" [tipoColectivo]="tipoColectivoSolicitante">
+            </sgi-select-persona>
+          </mat-form-field>
         </div>
 
         <!-- Estado Memoria -->
         <div class="col">
           <mat-form-field class="input-form">
-            <mat-label>{{'eti.memoria.listado.buscador.estado' | translate}}</mat-label>
-            <input type="text" [placeholder]="'eti.memoria.listado.buscador.estado' | translate" arial-label="Number"
-              matInput formControlName="tipoEstadoMemoria" [matAutocomplete]="autocompleteEstadoMemoria">
+            <mat-label>{{'eti.memoria.estado' | translate}}</mat-label>
+            <input type="text" [placeholder]="'eti.memoria.estado' | translate" arial-label="Number" matInput
+              formControlName="tipoEstadoMemoria" [matAutocomplete]="autocompleteEstadoMemoria">
             <mat-autocomplete #autocompleteEstadoMemoria="matAutocomplete" [displayWith]="getEstadoMemoria">
               <mat-option *ngFor="let tipoEstadoMemoria of filteredEstadosMemoria | async" [value]="tipoEstadoMemoria">
                 {{tipoEstadoMemoria.nombre}}
@@ -64,10 +67,10 @@
       <div class="buttons-final">
         <div class="col filter-button">
           <button color="primary" aria-label="Center Align" mat-raised-button (click)="onSearch()">
-            <mat-icon>search</mat-icon> {{'botones.buscar'| translate}}
+            <mat-icon>search</mat-icon> {{'btn.search'| translate}}
           </button>
-          <button color="warn" aria-label="Center Align" (click)="onClearFilters()"
-            mat-button>{{'botones.limpiar'| translate}}
+          <button color="warn" aria-label="Center Align" (click)="onClearFilters()" mat-button>{{'btn.clean'|
+            translate}}
           </button>
         </div>
       </div>
@@ -79,7 +82,7 @@
 
       <!-- Referencia memoria -->
       <ng-container matColumnDef="numReferencia">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.memoria.listado.referencia' | translate}}
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.memoria.referencia' | translate}}
         </th>
         <td mat-cell *matCellDef="let memoria"> {{memoria.numReferencia}} </td>
       </ng-container>
@@ -87,7 +90,7 @@
       <!-- Comité -->
       <ng-container matColumnDef="comite">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          {{'eti.memoria.listado.comite' | translate}}
+          {{'label.eti.comite' | translate}}
         </th>
         <td mat-cell *matCellDef="let memoria">{{memoria.comite?.comite}}</td>
       </ng-container>
@@ -95,7 +98,7 @@
       <!-- Estado memoria -->
       <ng-container matColumnDef="estadoActual">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          {{'eti.memoria.listado.estado' | translate}}
+          {{'eti.memoria.estado' | translate}}
         </th>
         <td mat-cell *matCellDef="let memoria"> {{memoria.estadoActual?.nombre}} </td>
       </ng-container>
@@ -103,31 +106,30 @@
       <!-- Fecha evaluacion -->
       <ng-container matColumnDef="fechaEvaluacion">
         <th mat-header-cell *matHeaderCellDef>
-          {{'eti.memoria.listado.fechaEvaluacion' | translate}}
+          {{'eti.memoria.fecha-evaluacion' | translate}}
         </th>
-        <td mat-cell *matCellDef="let memoria"> {{memoria.fechaEvaluacion | date:'yyyy-MM-dd'}} </td>
+        <td mat-cell *matCellDef="let memoria"> {{memoria.fechaEvaluacion | luxon:'short'}} </td>
       </ng-container>
 
       <!-- Fecha límite -->
       <ng-container matColumnDef="fechaLimite">
         <th mat-header-cell *matHeaderCellDef>
-          {{'eti.memoria.listado.fechaLimite' | translate}}
+          {{'eti.memoria.fecha-limite' | translate}}
         </th>
-        <td mat-cell *matCellDef="let memoria"> {{memoria.fechaLimite}} </td>
+        <td mat-cell *matCellDef="let memoria"> {{memoria.fechaLimite | luxon: 'short'}} </td>
       </ng-container>
 
       <!-- Acciones Column -->
       <ng-container matColumnDef="acciones" class="acciones">
-        <th mat-header-cell *matHeaderCellDef> {{'eti.memoria.listado.acciones' | translate}} </th>
+        <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
         <td mat-cell *matCellDef="let memoria;let i=index;">
           <ng-container>
-            <button mat-button [routerLink]="[memoria.id]" matTooltip="{{'eti.memoria.listado.editar' | translate}}">
-              <mat-icon color="primary">border_color</mat-icon>
+            <button mat-button [routerLink]="[memoria.id]" matTooltip="{{'btn.view' | translate}}">
+              <mat-icon color="primary">visibility</mat-icon>
             </button>
             <button *ngIf="memoria.estadoActual.id === 3 || memoria.estadoActual.id === 4 || 
               memoria.estadoActual.id === 10 || memoria.estadoActual.id === 5" mat-button
-              (click)="recuperarEstadoAnterior(memoria)"
-              matTooltip="{{'eti.memoria.listado.volverEstadoAnterior' | translate}}">
+              (click)="recuperarEstadoAnterior(memoria)" matTooltip="{{'btn.eti.memoria.estado-anterior' | translate}}">
               <mat-icon color="primary">restore</mat-icon>
             </button>
           </ng-container>

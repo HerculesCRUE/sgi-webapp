@@ -3,56 +3,64 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { BaseModalComponent } from '@core/component/base-modal.component';
+import { MSG_PARAMS } from '@core/i18n';
+import { IConvocatoria } from '@core/models/csp/convocatoria';
 import { IProyecto } from '@core/models/csp/proyecto';
-import { ISolicitudProyectoDatos } from '@core/models/csp/solicitud-proyecto-datos';
+import { ISolicitud } from '@core/models/csp/solicitud';
+import { ISolicitudProyecto } from '@core/models/csp/solicitud-proyecto';
 import { IModeloEjecucion } from '@core/models/csp/tipos-configuracion';
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
+import { ConvocatoriaService } from '@core/services/csp/convocatoria.service';
 import { ModeloUnidadService } from '@core/services/csp/modelo-unidad.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { DateUtils } from '@core/utils/date-utils';
 import { DateValidator } from '@core/validators/date-validator';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestFilter, SgiRestFilterOperator, SgiRestFindOptions } from '@sgi/framework/http';
+import { DateTime } from 'luxon';
 import { NGXLogger } from 'ngx-logger';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
-const MSG_ACEPTAR = marker('botones.aceptar');
-const MSG_ERROR_INIT = marker('csp.solicitud.crear.proyecto.error.cargar');
+const MSG_ACEPTAR = marker('btn.ok');
+const MSG_ERROR_INIT = marker('error.load');
+const SOLICITUD_PROYECTO_FECHA_INICIO_KEY = marker('csp.solicitud-proyecto.fecha-inicio');
+const SOLICITUD_PROYECTO_FECHA_FIN_KEY = marker('csp.solicitud-proyecto.fecha-fin');
+const SOLICITUD_PROYECTO_MODELO_EJECUCION_KEY = marker('csp.solicitud-proyecto.modelo-ejecucion');
 
 export interface ISolicitudCrearProyectoModalData {
-  proyecto: IProyecto;
-  solicitudProyectoDatos: ISolicitudProyectoDatos;
+  solicitud: ISolicitud;
+  solicitudProyecto: ISolicitudProyecto;
 }
 
 @Component({
   templateUrl: './solicitud-crear-proyecto-modal.component.html',
   styleUrls: ['./solicitud-crear-proyecto-modal.component.scss']
 })
-export class SolicitudCrearProyectoModalComponent extends
-  BaseModalComponent<IProyecto, SolicitudCrearProyectoModalComponent> implements OnInit {
-  fxFlexProperties: FxFlexProperties;
+export class SolicitudCrearProyectoModalComponent
+  extends BaseModalComponent<IProyecto, SolicitudCrearProyectoModalComponent> implements OnInit {
   fxLayoutProperties: FxLayoutProperties;
   textSaveOrUpdate: string;
 
   private modelosEjecucionFiltered = [] as IModeloEjecucion[];
   modelosEjecucion$: Observable<IModeloEjecucion[]>;
 
+  private convocatoria: IConvocatoria;
+
+  msgParamFechaFinEntity = {};
+  msgParamFechaInicioEntity = {};
+  msgParamModeloEjecucionEntity = {};
+
   constructor(
     protected snackBarService: SnackBarService,
     public matDialogRef: MatDialogRef<SolicitudCrearProyectoModalComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public solicitudCrearProyectoModalData: ISolicitudCrearProyectoModalData,
+    public data: ISolicitudCrearProyectoModalData,
     private unidadModeloService: ModeloUnidadService,
-    private logger: NGXLogger
+    private logger: NGXLogger,
+    private readonly translate: TranslateService,
+    private convocatoriaService: ConvocatoriaService
   ) {
-    super(snackBarService, matDialogRef, solicitudCrearProyectoModalData.proyecto);
-    this.fxFlexProperties = new FxFlexProperties();
-    this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
-    this.fxFlexProperties.md = '0 1 calc(50%-10px)';
-    this.fxFlexProperties.gtMd = '0 1 calc(32%-10px)';
-    this.fxFlexProperties.order = '2';
-
+    super(snackBarService, matDialogRef, { solicitudId: data.solicitud?.id } as IProyecto);
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
@@ -62,14 +70,40 @@ export class SolicitudCrearProyectoModalComponent extends
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
+    if (this.data.solicitud.convocatoriaId) {
+      this.subscriptions.push(this.convocatoriaService.findById(this.data.solicitud.convocatoriaId).subscribe(
+        (convocatoria => this.convocatoria = convocatoria)
+      ));
+    }
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      SOLICITUD_PROYECTO_FECHA_INICIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaInicioEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_FECHA_FIN_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaFinEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_MODELO_EJECUCION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamModeloEjecucionEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
   }
 
   protected getFormGroup(): FormGroup {
     const formGroup = new FormGroup(
       {
-        fechaInicio: new FormControl('', [Validators.required]),
-        fechaFin: new FormControl('', [Validators.required]),
-        modeloEjecucion: new FormControl(this.solicitudCrearProyectoModalData?.proyecto?.solicitud?.convocatoria?.modeloEjecucion, [Validators.required])
+        fechaInicio: new FormControl(null, [Validators.required]),
+        fechaFin: new FormControl(null, [Validators.required]),
+        modeloEjecucion: new FormControl(
+          this.convocatoria?.modeloEjecucion,
+          [Validators.required]
+        )
       },
       {
         validators: [
@@ -85,7 +119,7 @@ export class SolicitudCrearProyectoModalComponent extends
       })
     );
 
-    if (this.solicitudCrearProyectoModalData?.proyecto?.solicitud?.convocatoria?.modeloEjecucion) {
+    if (this.convocatoria?.modeloEjecucion) {
       formGroup.controls.modeloEjecucion.disable();
     }
 
@@ -97,7 +131,7 @@ export class SolicitudCrearProyectoModalComponent extends
       fechaInicio: this.formGroup.controls.fechaInicio.value,
       fechaFin: this.formGroup.controls.fechaFin.value,
       modeloEjecucion: this.formGroup.controls.modeloEjecucion.value
-    } as IProyecto
+    } as IProyecto;
   }
 
   /**
@@ -111,7 +145,11 @@ export class SolicitudCrearProyectoModalComponent extends
 
   loadModelosEjecucion(): void {
     const options: SgiRestFindOptions = {
-      filter: new RSQLSgiRestFilter('unidadGestionRef', SgiRestFilterOperator.EQUALS, this.solicitudCrearProyectoModalData?.proyecto?.solicitud?.unidadGestion?.acronimo)
+      filter: new RSQLSgiRestFilter(
+        'unidadGestionRef',
+        SgiRestFilterOperator.EQUALS,
+        this.data?.solicitud?.unidadGestion?.acronimo
+      )
     };
     const subcription = this.unidadModeloService.findAll(options).subscribe(
       res => {
@@ -140,12 +178,10 @@ export class SolicitudCrearProyectoModalComponent extends
     return this.modelosEjecucionFiltered.filter(modeloEjecucion => modeloEjecucion.nombre.toLowerCase().includes(filterValue));
   }
 
-  private getFechaFinProyecto(fecha: string): void {
-    const fechaInicio = fecha ? DateUtils.fechaToDate(fecha) : null;
-    let fechaFin = fechaInicio;
-    if (fechaInicio && this.solicitudCrearProyectoModalData?.solicitudProyectoDatos?.duracion) {
-      fechaFin.setMonth(fechaInicio.getMonth() + this.solicitudCrearProyectoModalData?.solicitudProyectoDatos?.duracion);
-      this.formGroup.controls.fechaFin.setValue(DateUtils.formatFechaAsISODate(fechaFin));
+  private getFechaFinProyecto(fecha: DateTime): void {
+    if (fecha && this.data?.solicitudProyecto?.duracion) {
+      const fechaFin = fecha.plus({ months: this.data?.solicitudProyecto?.duracion });
+      this.formGroup.controls.fechaFin.setValue(fechaFin);
     }
   }
 

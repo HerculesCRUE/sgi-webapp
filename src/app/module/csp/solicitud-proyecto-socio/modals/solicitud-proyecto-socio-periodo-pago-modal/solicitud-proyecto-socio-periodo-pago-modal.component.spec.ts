@@ -1,43 +1,31 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
-import { SolicitudProyectoSocioPeriodoPagoModalData, SolicitudProyectoSocioPeriodoPagoModalComponent } from './solicitud-proyecto-socio-periodo-pago-modal.component';
-import { SharedModule } from '@shared/shared.module';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MaterialDesignModule } from '@material/material-design.module';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { LoggerTestingModule } from 'ngx-logger/testing';
-import TestUtils from '@core/utils/test-utils';
-import { RouterTestingModule } from '@angular/router/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { SnackBarService } from '@core/services/snack-bar.service';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { ISolicitudProyectoPeriodoPago } from '@core/models/csp/solicitud-proyecto-periodo-pago';
-import { ISolicitudProyectoSocio } from '@core/models/csp/solicitud-proyecto-socio';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterTestingModule } from '@angular/router/testing';
+import { ISolicitudProyectoSocioPeriodoPago } from '@core/models/csp/solicitud-proyecto-socio-periodo-pago';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import TestUtils from '@core/utils/test-utils';
+import { MaterialDesignModule } from '@material/material-design.module';
+import { SharedModule } from '@shared/shared.module';
+import { LoggerTestingModule } from 'ngx-logger/testing';
+import { SolicitudProyectoSocioPeriodoPagoModalComponent, SolicitudProyectoSocioPeriodoPagoModalData } from './solicitud-proyecto-socio-periodo-pago-modal.component';
 
 describe('SolicitudProyectoPeriodoPagoModalComponent', () => {
   let component: SolicitudProyectoSocioPeriodoPagoModalComponent;
   let fixture: ComponentFixture<SolicitudProyectoSocioPeriodoPagoModalComponent>;
 
-  const solicitudProyectoSocio: ISolicitudProyectoSocio = {
-    empresa: undefined,
-    id: undefined,
-    importeSolicitado: undefined,
-    mesFin: undefined,
-    mesInicio: undefined,
-    numInvestigadores: undefined,
-    rolSocio: undefined,
-    solicitudProyectoDatos: undefined
-  };
-
-  const solicitudProyectoPeriodoPago: ISolicitudProyectoPeriodoPago = {
+  const solicitudProyectoPeriodoPago: ISolicitudProyectoSocioPeriodoPago = {
     id: 1,
     importe: undefined,
     mes: undefined,
     numPeriodo: undefined,
-    solicitudProyectoSocio
+    solicitudProyectoSocioId: undefined
   };
 
   const newData: SolicitudProyectoSocioPeriodoPagoModalData = {
+    duracion: 5,
     isEdit: false,
     selectedMeses: [],
     solicitudProyectoPeriodoPago,

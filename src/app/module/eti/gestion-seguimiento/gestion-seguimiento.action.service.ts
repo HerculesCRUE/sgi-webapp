@@ -3,7 +3,7 @@ import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { IEvaluacion } from '@core/models/eti/evaluacion';
 import { EvaluacionService } from '@core/services/eti/evaluacion.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { SeguimientoComentarioFragment } from '../seguimiento-formulario/seguimiento-comentarios/seguimiento-comentarios.fragment';
 import { SeguimientoDocumentacionFragment } from '../seguimiento-formulario/seguimiento-documentacion/seguimiento-documentacion.fragment';
@@ -19,7 +19,7 @@ export class GestionSeguimientoActionService extends SeguimientoFormularioAction
     route: ActivatedRoute,
     service: EvaluacionService,
     protected readonly snackBarService: SnackBarService,
-    personaFisicaService: PersonaFisicaService) {
+    personaService: PersonaService) {
     super();
     this.evaluacion = {} as IEvaluacion;
     if (route.snapshot.data.evaluacion) {
@@ -27,7 +27,7 @@ export class GestionSeguimientoActionService extends SeguimientoFormularioAction
       this.enableEdit();
     }
     this.evaluaciones = new SeguimientoEvaluacionFragment(
-      fb, this.evaluacion?.id, snackBarService, service, personaFisicaService);
+      fb, this.evaluacion?.id, snackBarService, service, personaService);
     this.comentarios = new SeguimientoComentarioFragment(this.evaluacion?.id, Gestion.GESTOR, service);
     this.documentacion = new SeguimientoDocumentacionFragment(this.evaluacion?.id);
 

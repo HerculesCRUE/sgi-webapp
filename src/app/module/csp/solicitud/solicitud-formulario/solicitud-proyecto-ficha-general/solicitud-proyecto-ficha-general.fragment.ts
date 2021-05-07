@@ -1,15 +1,13 @@
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { IAreaTematica } from '@core/models/csp/area-tematica';
-import { ISolicitud } from '@core/models/csp/solicitud';
-import { ISolicitudProyectoDatos } from '@core/models/csp/solicitud-proyecto-datos';
+import { ISolicitudProyecto } from '@core/models/csp/solicitud-proyecto';
 import { FormFragment } from '@core/services/action-service';
 import { ConvocatoriaService } from '@core/services/csp/convocatoria.service';
-import { SolicitudProyectoDatosService } from '@core/services/csp/solicitud-proyecto-datos.service';
+import { SolicitudProyectoService } from '@core/services/csp/solicitud-proyecto.service';
 import { SolicitudService } from '@core/services/csp/solicitud.service';
 import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
-import { SolicitudActionService } from '../../solicitud.action.service';
+import { catchError, map, switchMap, take } from 'rxjs/operators';
 
 export interface AreaTematicaSolicitudData {
   rootTree: IAreaTematica;
@@ -17,66 +15,83 @@ export interface AreaTematicaSolicitudData {
   areaTematicaSolicitud: IAreaTematica;
   readonly: boolean;
 }
-export class SolicitudProyectoFichaGeneralFragment extends FormFragment<ISolicitudProyectoDatos>{
-  solicitudProyectoDatos: ISolicitudProyectoDatos;
+
+export class SolicitudProyectoFichaGeneralFragment extends FormFragment<ISolicitudProyecto>{
+  solicitudProyecto: ISolicitudProyecto;
   areasTematicas$ = new BehaviorSubject<AreaTematicaSolicitudData[]>([]);
-  coordinadorExterno$: Subject<boolean> = new Subject<boolean>();
+  hasConvocatoria = false;
+  readonly colaborativo$: Subject<boolean> = new BehaviorSubject<boolean>(false);
+  readonly presupuestoPorEntidades$: Subject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(
     private readonly logger: NGXLogger,
-    private solicitud: ISolicitud,
+    key: number,
     private solicitudService: SolicitudService,
-    private solicitudProyectoDatosService: SolicitudProyectoDatosService,
+    private solicitudProyectoService: SolicitudProyectoService,
     private convocatoriaService: ConvocatoriaService,
-    private actionService: SolicitudActionService,
-    public readonly: boolean
+    public readonly: boolean,
+    private convocatoriaId: number
   ) {
-    super(solicitud?.id, true);
+    super(key, true);
     this.setComplete(true);
-    this.solicitudProyectoDatos = {} as ISolicitudProyectoDatos;
+    this.solicitudProyecto = {} as ISolicitudProyecto;
+
+    // Hack edit mode
+    this.initialized$.pipe(
+      take(2)
+    ).subscribe(value => {
+      if (value) {
+        this.performChecks(true);
+      }
+    });
   }
 
   protected buildFormGroup(): FormGroup {
     const form = new FormGroup({
-      titulo: new FormControl('', [Validators.required, Validators.maxLength(250)]),
-      acronimo: new FormControl('', [Validators.maxLength(50)]),
-      duracion: new FormControl('', [Validators.min(1), Validators.max(9999)]),
-      colaborativo: new FormControl('', [Validators.required]),
-      coordinadorExterno: new FormControl('', [Validators.required]),
-      universidadSubcontratada: new FormControl('', []),
-      presupuestoPorEntidades: new FormControl('', [Validators.required]),
-      objetivos: new FormControl('', [Validators.maxLength(2000)]),
-      intereses: new FormControl('', [Validators.maxLength(2000)]),
-      resultadosPrevistos: new FormControl('', [Validators.maxLength(2000)]),
-      envioEtica: new FormControl('', [])
+      titulo: new FormControl(undefined, [Validators.required, Validators.maxLength(250)]),
+      acronimo: new FormControl(null, [Validators.maxLength(50)]),
+      codExterno: new FormControl(undefined, [Validators.maxLength(250)]),
+      duracion: new FormControl(null, [Validators.min(1), Validators.max(9999)]),
+      colaborativo: new FormControl(undefined, [Validators.required]),
+      coordinadorExterno: new FormControl(undefined, [Validators.required]),
+      presupuestoPorEntidades: new FormControl(undefined, [Validators.required]),
+      objetivos: new FormControl(null, [Validators.maxLength(2000)]),
+      intereses: new FormControl(null, [Validators.maxLength(2000)]),
+      resultadosPrevistos: new FormControl(null, [Validators.maxLength(2000)]),
+      envioEtica: new FormControl(null, [])
     });
 
     if (this.readonly) {
       form.disable();
     }
 
+    const colaborativo = form.controls.colaborativo;
+    const coordinadorExterno = form.controls.coordinadorExterno;
+    this.subscriptions.push(
+      colaborativo.valueChanges.subscribe(
+        (value) => {
+          if (value && !this.readonly) {
+            coordinadorExterno.enable();
+          } else {
+            coordinadorExterno.disable();
+          }
+          this.colaborativo$.next(value);
+        }
+      )
+    );
+
+    this.subscriptions.push(
+      form.controls.presupuestoPorEntidades.valueChanges.subscribe((value) => {
+        this.presupuestoPorEntidades$.next(value);
+      })
+    );
     return form;
   }
 
   /**
-   * Deshabilitar presupuesto global en caso
-   * de tener datos la pestaña
-   * Desglose presupuesto entidad
+   * Deshabilitar presupuesto por entidades
    */
-  disablePresupuestoGlobalEntidad(value: boolean): void {
-    if (value) {
-      this.getFormGroup()?.controls.presupuestoPorEntidades.disable();
-    } else {
-      this.getFormGroup()?.controls.presupuestoPorEntidades.enable();
-    }
-  }
-
-  /**
-   * Deshabilitar presupuesto global en caso
-   * de tener datos la pestaña
-   * Desglose presupuesto
-   */
-  disablePresupuestoGlobal(value: boolean): void {
+  disablePresupuestoPorEntidades(value: boolean): void {
     if (value) {
       this.getFormGroup()?.controls.presupuestoPorEntidades.disable();
     } else {
@@ -97,146 +112,65 @@ export class SolicitudProyectoFichaGeneralFragment extends FormFragment<ISolicit
     }
   }
 
-  protected buildPatch(proyectoDatos: ISolicitudProyectoDatos): { [key: string]: any; } {
-    const result = {
-      titulo: proyectoDatos.titulo,
-      acronimo: proyectoDatos.acronimo,
-      duracion: proyectoDatos.duracion,
-      colaborativo: proyectoDatos.colaborativo,
-      coordinadorExterno: proyectoDatos.coordinadorExterno,
-      universidadSubcontratada: proyectoDatos.universidadSubcontratada,
-      presupuestoPorEntidades: proyectoDatos.presupuestoPorEntidades,
-      objetivos: proyectoDatos.objetivos,
-      intereses: proyectoDatos.intereses,
-      resultadosPrevistos: proyectoDatos.resultadosPrevistos,
-      envioEtica: proyectoDatos.envioEtica
+  protected buildPatch(solicitudProyecto: ISolicitudProyecto): { [key: string]: any; } {
+    if (solicitudProyecto) {
+      this.solicitudProyecto = solicitudProyecto;
+    }
+    return {
+      titulo: solicitudProyecto?.titulo,
+      acronimo: solicitudProyecto?.acronimo,
+      codExterno: solicitudProyecto?.codExterno,
+      duracion: solicitudProyecto?.duracion,
+      colaborativo: solicitudProyecto?.colaborativo,
+      coordinadorExterno: solicitudProyecto?.coordinadorExterno,
+      presupuestoPorEntidades: solicitudProyecto?.presupuestoPorEntidades,
+      objetivos: solicitudProyecto?.objetivos,
+      intereses: solicitudProyecto?.intereses,
+      resultadosPrevistos: solicitudProyecto?.resultadosPrevistos,
+      envioEtica: solicitudProyecto?.envioEtica
     };
-    this.actionService.sociosColaboradores = proyectoDatos.colaborativo;
-    this.actionService.enableAddSocioColaborador = proyectoDatos.colaborativo;
-
-    const form = this.getFormGroup();
-    const coordinadorExterno = form.get('coordinadorExterno');
-    const colaborativo = form.get('colaborativo');
-    this.subscriptions.push(
-      colaborativo.valueChanges.subscribe(
-        (value) => {
-          if (value === false) {
-            coordinadorExterno.disable();
-          } else {
-            if (!this.readonly) {
-              coordinadorExterno.enable();
-            }
-            coordinadorExterno.setValue(proyectoDatos.coordinadorExterno);
-          }
-          this.actionService.sociosColaboradores = value;
-        }
-      )
-    );
-    this.subscriptions.push(
-      colaborativo.valueChanges.subscribe(
-        (value) => this.actionService.enableAddSocioColaborador = value)
-    );
-
-    this.subscriptions.push(
-      coordinadorExterno.valueChanges.subscribe((value) => {
-        this.coordinadorExterno$.next(value);
-      })
-    );
-
-    return result;
   }
 
-  protected initializer(key: number): Observable<ISolicitudProyectoDatos> {
-    return this.solicitudService.findSolicitudProyectoDatos(key).pipe(
-      map(solicitudProyectoDatos => {
-        const newProyecto: ISolicitudProyectoDatos = {
-          acronimo: undefined,
-          areaTematica: undefined,
-          checkListRef: undefined,
-          colaborativo: undefined,
-          coordinadorExterno: undefined,
-          duracion: undefined,
-          envioEtica: undefined,
-          id: undefined,
-          intereses: undefined,
-          objetivos: undefined,
-          presupuestoPorEntidades: undefined,
-          resultadosPrevistos: undefined,
-          solicitud: this.solicitud,
-          titulo: undefined,
-          universidadSubcontratada: undefined
-        };
-        this.solicitudProyectoDatos = solicitudProyectoDatos ? solicitudProyectoDatos : newProyecto;
-        return this.solicitudProyectoDatos;
-      }),
+  protected initializer(key: number): Observable<ISolicitudProyecto> {
+
+    return this.solicitudService.findSolicitudProyecto(key).pipe(
       switchMap((solicitudProyectoDatos) => {
-        if (solicitudProyectoDatos?.solicitud?.convocatoria) {
-          const id = solicitudProyectoDatos.solicitud.convocatoria.id;
-          return this.convocatoriaService.findAreaTematicas(id).pipe(
-            map((results) => {
-              const nodes = results.items.map(convocatoriaAreaTematica => {
-                const area: AreaTematicaSolicitudData = {
-                  rootTree: this.getFirstLevelAreaTematica(convocatoriaAreaTematica.areaTematica),
-                  areaTematicaConvocatoria: convocatoriaAreaTematica.areaTematica,
-                  areaTematicaSolicitud: solicitudProyectoDatos.areaTematica,
-                  readonly: this.readonly
-                };
-                return area;
-              });
-              this.areasTematicas$.next(nodes);
-              return results;
-            }),
-            switchMap(() => of(solicitudProyectoDatos))
-          );
-        }
-        return of(solicitudProyectoDatos);
+        return this.loadSolicitudProyecto(solicitudProyectoDatos);
       }),
-      switchMap(solicitudProyectoDatos => {
-        if (solicitudProyectoDatos?.id) {
-          return this.solicitudProyectoDatosService.hasSolicitudSocio(solicitudProyectoDatos?.id).pipe(
-            map(status => {
-              this.disableSocioColaborador(status);
-              return solicitudProyectoDatos;
+      switchMap(solicitudProyecto => {
+        if (solicitudProyecto?.id) {
+          return this.solicitudProyectoService.hasSolicitudSocio(solicitudProyecto?.id).pipe(
+            map(hasSolicitudSocio => {
+              this.disableSocioColaborador(hasSolicitudSocio);
+              return solicitudProyecto;
             })
           );
         }
-        return of(solicitudProyectoDatos);
+        return of(solicitudProyecto);
       }),
-
-      switchMap(solicitudProyectoDatos => {
-        if (solicitudProyectoDatos?.id && !solicitudProyectoDatos?.presupuestoPorEntidades) {
-          return this.solicitudProyectoDatosService.hasSolicitudPresupuesto(solicitudProyectoDatos?.id).pipe(
-            map(status => {
-              this.disablePresupuestoGlobal(status);
-              return solicitudProyectoDatos;
+      switchMap(solicitudProyecto => {
+        if (solicitudProyecto?.id) {
+          return this.solicitudProyectoService.hasSolicitudPresupuesto(solicitudProyecto.id).pipe(
+            map(hasSolicitudPresupuesto => {
+              this.disablePresupuestoPorEntidades(hasSolicitudPresupuesto);
+              return solicitudProyecto;
             })
           );
         }
-        return of(solicitudProyectoDatos);
+        return of(solicitudProyecto);
       }),
-
-      switchMap(solicitudProyectoDatos => {
-        if (solicitudProyectoDatos?.id && solicitudProyectoDatos?.presupuestoPorEntidades
-          && !solicitudProyectoDatos?.solicitud?.convocatoria?.id) {
-          return this.solicitudProyectoDatosService.hasSolicitudEntidadFinanciadora(solicitudProyectoDatos?.id).pipe(
-            map(status => {
-              this.disablePresupuestoGlobalEntidad(status);
-              return solicitudProyectoDatos;
+      switchMap(solicitudProyecto => {
+        if (this.convocatoriaId && !solicitudProyecto?.id) {
+          return this.convocatoriaService.findById(this.convocatoriaId).pipe(
+            map(convocatoria => {
+              solicitudProyecto = {} as ISolicitudProyecto;
+              solicitudProyecto.colaborativo = convocatoria.colaborativos;
+              solicitudProyecto.duracion = convocatoria.duracion;
+              return solicitudProyecto;
             })
           );
         }
-        return of(solicitudProyectoDatos);
-      }),
-      switchMap(solicitudProyectoDatos => {
-        if (solicitudProyectoDatos?.solicitud?.convocatoria?.id && solicitudProyectoDatos?.presupuestoPorEntidades) {
-          return this.convocatoriaService.hasConvocatoriaEntidad(solicitudProyectoDatos?.solicitud.id).pipe(
-            map(status => {
-              this.disablePresupuestoGlobalEntidad(!status);
-              return solicitudProyectoDatos;
-            })
-          );
-        }
-        return of(solicitudProyectoDatos);
+        return of(solicitudProyecto);
       }),
       catchError(error => {
         this.logger.error(error);
@@ -245,6 +179,35 @@ export class SolicitudProyectoFichaGeneralFragment extends FormFragment<ISolicit
     );
   }
 
+  private loadSolicitudProyecto(solicitudProyecto: ISolicitudProyecto): Observable<ISolicitudProyecto> {
+    if (solicitudProyecto?.id) {
+      return this.solicitudService.findById(solicitudProyecto.id).pipe(
+        switchMap(solicitud => {
+          if (solicitud?.convocatoriaId) {
+            this.hasConvocatoria = true;
+            return this.convocatoriaService.findAreaTematicas(solicitud.id).pipe(
+              map((results) => {
+                const nodes = results.items.map(convocatoriaAreaTematica => {
+                  const area: AreaTematicaSolicitudData = {
+                    rootTree: this.getFirstLevelAreaTematica(convocatoriaAreaTematica.areaTematica),
+                    areaTematicaConvocatoria: convocatoriaAreaTematica.areaTematica,
+                    areaTematicaSolicitud: solicitudProyecto.areaTematica,
+                    readonly: this.readonly
+                  };
+                  return area;
+                });
+                this.areasTematicas$.next(nodes);
+                return results;
+              }),
+              switchMap(() => of(solicitudProyecto))
+            );
+          }
+          return of(solicitudProyecto);
+        })
+      );
+    }
+    return of(solicitudProyecto);
+  }
 
   getFirstLevelAreaTematica(areaTematica: IAreaTematica): IAreaTematica {
     if (areaTematica.padre) {
@@ -253,43 +216,40 @@ export class SolicitudProyectoFichaGeneralFragment extends FormFragment<ISolicit
     return areaTematica;
   }
 
-  getValue(): ISolicitudProyectoDatos {
-    const form = this.getFormGroup().value;
-    this.solicitudProyectoDatos.titulo = form.titulo;
-    this.solicitudProyectoDatos.acronimo = form.acronimo;
-    this.solicitudProyectoDatos.duracion = form.duracion;
-    this.solicitudProyectoDatos.colaborativo = Boolean(form.colaborativo);
-    this.solicitudProyectoDatos.coordinadorExterno = Boolean(form.coordinadorExterno);
-    this.solicitudProyectoDatos.universidadSubcontratada = form.universidadSubcontratada;
-    this.solicitudProyectoDatos.objetivos = form.objetivos;
-    this.solicitudProyectoDatos.intereses = form.intereses;
-    this.solicitudProyectoDatos.resultadosPrevistos = form.resultadosPrevistos;
-    this.solicitudProyectoDatos.envioEtica = form.envioEtica;
-    this.solicitudProyectoDatos.presupuestoPorEntidades = Boolean(form.presupuestoPorEntidades);
-    return this.solicitudProyectoDatos;
+  getValue(): ISolicitudProyecto {
+    const form = this.getFormGroup().controls;
+    this.solicitudProyecto.titulo = form.titulo.value;
+    this.solicitudProyecto.acronimo = form.acronimo.value;
+    this.solicitudProyecto.codExterno = form.codExterno.value;
+    this.solicitudProyecto.duracion = form.duracion.value;
+    this.solicitudProyecto.colaborativo = Boolean(form.colaborativo.value);
+    this.solicitudProyecto.coordinadorExterno = Boolean(form.coordinadorExterno.value);
+    this.solicitudProyecto.objetivos = form.objetivos.value;
+    this.solicitudProyecto.intereses = form.intereses.value;
+    this.solicitudProyecto.resultadosPrevistos = form.resultadosPrevistos.value;
+    this.solicitudProyecto.envioEtica = form.envioEtica.value;
+    this.solicitudProyecto.presupuestoPorEntidades = Boolean(form.presupuestoPorEntidades.value);
+    return this.solicitudProyecto;
   }
 
-  saveOrUpdate(): Observable<number> {
-    const solicitudProyectoDatos = this.getValue();
-    const observable$ = this.solicitudProyectoDatos.id ? this.update(solicitudProyectoDatos) :
-      this.create(solicitudProyectoDatos);
+  saveOrUpdate(): Observable<void> {
+    const solicitudProyecto = this.getValue();
+    const observable$ = this.solicitudProyecto.id ? this.update(solicitudProyecto) : this.create(solicitudProyecto);
     return observable$.pipe(
       map(value => {
-        this.solicitudProyectoDatos = value;
-        this.refreshInitialState(true);
-        return this.solicitudProyectoDatos.id;
+        this.setChanges(false);
+        this.solicitudProyecto = value;
+        return void 0;
       })
     );
   }
 
-  private create(solicitudProyectoDatos: ISolicitudProyectoDatos): Observable<ISolicitudProyectoDatos> {
-    solicitudProyectoDatos.solicitud = {
-      id: this.getKey()
-    } as ISolicitud;
-    return this.solicitudProyectoDatosService.create(solicitudProyectoDatos);
+  private create(solicitudProyecto: ISolicitudProyecto): Observable<ISolicitudProyecto> {
+    solicitudProyecto.id = this.getKey() as number;
+    return this.solicitudProyectoService.create(solicitudProyecto);
   }
 
-  private update(solicitudProyectoDatos: ISolicitudProyectoDatos): Observable<ISolicitudProyectoDatos> {
-    return this.solicitudProyectoDatosService.update(solicitudProyectoDatos.id, solicitudProyectoDatos);
+  private update(solicitudProyecto: ISolicitudProyecto): Observable<ISolicitudProyecto> {
+    return this.solicitudProyectoService.update(solicitudProyecto.id, solicitudProyecto);
   }
 }

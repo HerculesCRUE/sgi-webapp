@@ -1,93 +1,116 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { BaseModalComponent } from '@core/component/base-modal.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
 import { IPersona } from '@core/models/sgp/persona';
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
+import { DatosAcademicosService } from '@core/services/sgp/datos-academicos.service';
+import { VinculacionService } from '@core/services/sgp/vinculacion.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
 import { FormGroupUtil } from '@core/utils/form-group-util';
+import { TranslateService } from '@ngx-translate/core';
+import { TipoColectivo } from '@shared/select-persona/select-persona.component';
+
+const PERSONA_KEY = marker('eti.peticion-evaluacion.equipo-investigador.persona');
 
 @Component({
   selector: 'sgi-equipo-investigador-crear-modal',
   templateUrl: './equipo-investigador-crear-modal.component.html',
   styleUrls: ['./equipo-investigador-crear-modal.component.scss']
 })
-export class EquipoInvestigadorCrearModalComponent implements OnInit {
+export class EquipoInvestigadorCrearModalComponent extends
+  BaseModalComponent<IEquipoTrabajo, EquipoInvestigadorCrearModalComponent> implements OnInit, OnDestroy {
 
   FormGroupUtil = FormGroupUtil;
-  formGroup: FormGroup;
 
-  fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
 
+  msgParamEntity = {};
 
-  nuevaPersonaEquipo: IPersona;
+  get tipoColectivoPersona() {
+    return TipoColectivo.EQUIPO_TRABAJO_ETICA;
+  }
 
   constructor(
-    public readonly matDialogRef: MatDialogRef<EquipoInvestigadorCrearModalComponent>
-  ) { }
-
-  ngOnInit(): void {
-    this.fxFlexProperties = new FxFlexProperties();
-    this.fxFlexProperties.sm = '0 1 calc(50%-10px)';
-    this.fxFlexProperties.md = '0 1 calc(33%-10px)';
-    this.fxFlexProperties.gtMd = '0 1 calc(22%-10px)';
-    this.fxFlexProperties.order = '2';
+    public readonly matDialogRef: MatDialogRef<EquipoInvestigadorCrearModalComponent>,
+    private readonly translate: TranslateService,
+    protected readonly snackBarService: SnackBarService,
+    private vinculacionService: VinculacionService,
+    private datosAcademicosService: DatosAcademicosService
+  ) {
+    super(snackBarService, matDialogRef, null);
 
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'column';
-
-    this.initFormGroup();
   }
 
-  /**
-   * Cierra la ventana modal y devuelve el equipoInvestigador si se ha añadido
-   *
-   */
-  addPersonaEquipoInvestigador(): void {
-    const equipoTrabajo: IEquipoTrabajo = {
-      id: null,
-      peticionEvaluacion: null,
-      personaRef: this.nuevaPersonaEquipo?.personaRef,
-      nombre: this.nuevaPersonaEquipo?.nombre,
-      primerApellido: this.nuevaPersonaEquipo?.primerApellido,
-      segundoApellido: this.nuevaPersonaEquipo?.segundoApellido,
-      identificadorNumero: this.nuevaPersonaEquipo?.identificadorNumero,
-      identificadorLetra: this.nuevaPersonaEquipo?.identificadorLetra,
-      nivelAcademico: this.nuevaPersonaEquipo?.nivelAcademico,
-      vinculacion: this.nuevaPersonaEquipo?.vinculacion,
-      eliminable: true
-    };
-
-    this.matDialogRef.close(equipoTrabajo);
+  ngOnInit(): void {
+    super.ngOnInit();
+    this.setupI18N();
+    this.subscriptions.push(
+      this.formGroup.controls.persona.valueChanges.subscribe((value) => {
+        this.onSelectPersona(value);
+      }));
   }
 
+  private setupI18N(): void {
+    this.translate.get(
+      PERSONA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+  }
 
   /**
    * Setea el persona seleccionado a través del componente
    * @param persona persona seleccionada
    */
-  public onSelectPersona(personaSeleccionada: IPersona): void {
-    personaSeleccionada.vinculacion = 'PDI';
-    personaSeleccionada.nivelAcademico = 'Licenciado';
-    this.nuevaPersonaEquipo = personaSeleccionada;
-    this.formGroup.controls.numDocumento.setValue(`${personaSeleccionada.identificadorNumero}${personaSeleccionada.identificadorLetra}`);
-    this.formGroup.controls.nombreCompleto.setValue(`${personaSeleccionada.nombre} ${personaSeleccionada.primerApellido} ${personaSeleccionada.segundoApellido}`);
-    this.formGroup.controls.vinculacion.setValue(personaSeleccionada.vinculacion);
-    this.formGroup.controls.nivelAcademico.setValue(personaSeleccionada.nivelAcademico);
+  private onSelectPersona(personaSeleccionada: IPersona): void {
+    this.formGroup.controls.numDocumento.setValue(personaSeleccionada.numeroDocumento);
+    this.formGroup.controls.nombreCompleto.setValue(`${personaSeleccionada.nombre} ${personaSeleccionada.apellidos}`);
+
+    this.subscriptions.push(
+      this.vinculacionService.findByPersonaId(personaSeleccionada.id)
+        .subscribe((vinculacion) => {
+          personaSeleccionada.vinculacion = vinculacion;
+          this.formGroup.controls.vinculacion.setValue(vinculacion?.categoriaProfesional.nombre);
+        })
+    );
+
+    this.subscriptions.push(
+      this.datosAcademicosService.findByPersonaId(personaSeleccionada.id)
+        .subscribe((datosAcademicos) => {
+          personaSeleccionada.datosAcademicos = datosAcademicos;
+          this.formGroup.controls.nivelAcademico.setValue(datosAcademicos?.nivelAcademico.nombre);
+        })
+    );
   }
 
-  /**
-   * Inicializa el formGroup
-   */
-  private initFormGroup() {
-    this.formGroup = new FormGroup({
-      numDocumento: new FormControl({ value: '', disabled: true }, [Validators.required]),
+  protected getDatosForm(): IEquipoTrabajo {
+    const equipoTrabajo: IEquipoTrabajo = {
+      id: null,
+      peticionEvaluacion: null,
+      persona: this.formGroup.controls.persona.value
+    };
+    return equipoTrabajo;
+  }
+
+  protected getFormGroup(): FormGroup {
+    const formGroup = new FormGroup({
+      numDocumento: new FormControl({ value: '', disabled: true }),
       nombreCompleto: new FormControl({ value: '', disabled: true }),
       vinculacion: new FormControl({ value: '', disabled: true }),
-      nivelAcademico: new FormControl({ value: '', disabled: true })
+      nivelAcademico: new FormControl({ value: '', disabled: true }),
+      persona: new FormControl(null, [Validators.required])
     });
+
+    return formGroup;
   }
 
+  ngOnDestroy(): void {
+    super.ngOnDestroy();
+  }
 }

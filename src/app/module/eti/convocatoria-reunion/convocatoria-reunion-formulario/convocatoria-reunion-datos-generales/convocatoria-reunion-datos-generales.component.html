@@ -1,6 +1,5 @@
 <section class="convocatoria-reunion-datos-generales">
-  <mat-card *ngIf="disableCamposDatosGenerales">
-    {{'eti.convocatoriaReunion.formulario.datosGenerales.campos.disabled' | translate}}</mat-card>
+  <h2>{{'label.datos-generales' | translate}}</h2>
 
   <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
     [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
@@ -9,7 +8,7 @@
     <div *ngIf="fragment.isEdit()" [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md"
       [fxFlex.gt-md]="fxFlexProperties.gtMd" [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'eti.convocatoriaReunion.formulario.datosGenerales.codigo.titulo' | translate}}</mat-label>
+        <mat-label>{{'eti.convocatoria-reunion.codigo' | translate}}</mat-label>
         <input matInput formControlName="codigo" id="codigo" readonly="true" />
       </mat-form-field>
     </div>
@@ -18,18 +17,16 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
-        <mat-label>{{'eti.convocatoriaReunion.formulario.datosGenerales.comite.titulo' | translate}}</mat-label>
-        <input (click)="getConvocantesComite()" type="text"
-          [placeholder]="'eti.convocatoriaReunion.formulario.datosGenerales.comite.titulo' | translate"
-          arial-label="Number" matInput formControlName="comite" [matAutocomplete]="autocompleteComite" required
-          [readOnly]="disableCamposDatosGenerales">
+        <mat-label>{{'label.eti.comite' | translate}}</mat-label>
+        <input (click)="getConvocantesComite()" type="text" [placeholder]="'label.eti.comite' | translate"
+          arial-label="Number" matInput formControlName="comite" [matAutocomplete]="autocompleteComite" required>
         <mat-autocomplete #autocompleteComite="matAutocomplete" [displayWith]="getComite">
           <mat-option *ngFor="let comite of filteredComites | async" [value]="comite">
             {{comite.comite}}
           </mat-option>
         </mat-autocomplete>
-        <mat-error *ngIf="formGroup.controls.comite.errors?.vacio">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.comite.error.vacio' | translate}}
+        <mat-error *ngIf="formGroup.controls.comite.errors?.required">
+          {{'error.required.entity' | translate:msgParamComiteEntity}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -38,18 +35,18 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'eti.convocatoriaReunion.formulario.datosGenerales.fechaEvaluacion.titulo' | translate}}
+        <mat-label>{{'eti.convocatoria-reunion.fecha-evaluacion' | translate}}
         </mat-label>
-        <input matInput formControlName="fechaEvaluacion" [matDatepicker]="pickerFechaEvaluacion"
-          [placeholder]="'eti.convocatoriaReunion.formulario.datosGenerales.fechaEvaluacion.titulo' | translate"
-          required>
+        <input matInput formControlName="fechaEvaluacion" [ngxMatDatetimePicker]="pickerFechaEvaluacion"
+          [placeholder]="'eti.convocatoria-reunion.fecha-evaluacion' | translate" required>
         <mat-datepicker-toggle matSuffix [for]="pickerFechaEvaluacion"></mat-datepicker-toggle>
-        <mat-datepicker #pickerFechaEvaluacion></mat-datepicker>
+        <ngx-mat-datetime-picker #pickerFechaEvaluacion showSeconds="true" [defaultTime]="[0,0,0]">
+        </ngx-mat-datetime-picker>
         <mat-error *ngIf="formGroup.controls.fechaEvaluacion.errors?.required">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.fechaEvaluacion.error.vacio' | translate}}
+          {{'error.required.entity' | translate:msgParamFechaEvaluacionEntity}}
         </mat-error>
         <mat-error *ngIf="formGroup.controls.fechaEvaluacion.errors?.after">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.fechaLimite.error.after' | translate}}
+          {{'error.eti.convocatoria-reunion.fecha-limite.after' | translate}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -58,15 +55,15 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'eti.convocatoriaReunion.formulario.datosGenerales.fechaLimite.titulo' | translate}}
+        <mat-label>{{'error.eti.convocatoria-reunion.fecha-limite' | translate}}
         </mat-label>
-        <input matInput formControlName="fechaLimite" [matDatepicker]="pickerFechaLimite"
-          [readOnly]="disableCamposDatosGenerales"
-          [placeholder]="'eti.convocatoriaReunion.formulario.datosGenerales.fechaLimite.titulo' | translate" required>
+        <input matInput formControlName="fechaLimite" [ngxMatDatetimePicker]="pickerFechaLimite"
+          [placeholder]="'error.eti.convocatoria-reunion.fecha-limite' | translate" required>
         <mat-datepicker-toggle matSuffix [for]="pickerFechaLimite"></mat-datepicker-toggle>
-        <mat-datepicker #pickerFechaLimite></mat-datepicker>
+        <ngx-mat-datetime-picker #pickerFechaLimite showSeconds="true" [defaultTime]="[0,0,0]">
+        </ngx-mat-datetime-picker>
         <mat-error *ngIf="formGroup.controls.fechaLimite.errors?.required">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.fechaLimite.error.vacio' | translate}}
+          {{'error.required.entity' | translate:msgParamFechaLimiteEntity}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -75,12 +72,10 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'eti.convocatoriaReunion.formulario.datosGenerales.tipoConvocatoriaReunion.titulo' | translate}}
+        <mat-label>{{'eti.convocatoria-reunion.tipo' | translate}}
         </mat-label>
-        <input type="text" [readOnly]="disableCamposDatosGenerales"
-          [placeholder]="'eti.convocatoriaReunion.formulario.datosGenerales.tipoConvocatoriaReunion.titulo' | translate"
-          arial-label="Number" matInput formControlName="tipoConvocatoriaReunion"
-          [matAutocomplete]="autocompleteTipoConvocatoriaReunion" required>
+        <input type="text" [placeholder]="'eti.convocatoria-reunion.tipo' | translate" arial-label="Number" matInput
+          formControlName="tipoConvocatoriaReunion" [matAutocomplete]="autocompleteTipoConvocatoriaReunion" required>
         <mat-autocomplete #autocompleteTipoConvocatoriaReunion="matAutocomplete"
           [displayWith]="getTipoConvocatoriaReunion">
           <mat-option *ngFor="let tipoConvocatoriaReunion of filteredTiposConvocatoriaReunion | async"
@@ -88,8 +83,8 @@
             {{tipoConvocatoriaReunion.nombre}}
           </mat-option>
         </mat-autocomplete>
-        <mat-error *ngIf="formGroup.controls.tipoConvocatoriaReunion.errors?.vacio">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.tipoConvocatoriaReunion.error.vacio' | translate}}
+        <mat-error *ngIf="formGroup.controls.tipoConvocatoriaReunion.errors?.required">
+          {{'error.required.entity' | translate:msgParamTipoEntity}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -98,17 +93,14 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'eti.convocatoriaReunion.formulario.datosGenerales.horaInicio.titulo' | translate}}</mat-label>
+        <mat-label>{{'eti.convocatoria-reunion.hora-inicio' | translate}}</mat-label>
         <input matInput formControlName="horaInicio" id="horaInicio" type="number"
-          placeholder="{{'eti.convocatoriaReunion.formulario.datosGenerales.horaInicio.titulo' | translate}}" required>
-        <mat-error *ngIf="formGroup.controls.horaInicio.errors?.vacio">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.horaInicio.error.vacio' | translate}}
-        </mat-error>
-        <mat-error *ngIf="formGroup.controls.horaInicio.errors?.NaN">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.horaInicio.error.NaN' | translate}}
+          placeholder="{{'eti.convocatoria-reunion.hora-inicio' | translate}}" required>
+        <mat-error *ngIf="formGroup.controls.horaInicio.errors?.required">
+          {{'error.required.entity' | translate:msgParamHoraInicioEntity}}
         </mat-error>
         <mat-error *ngIf="formGroup.controls.horaInicio.errors?.noValido">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.horaInicio.error.noValido' | translate}}
+          {{'error.invalid.entity' | translate:msgParamHoraInicioEntity}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -117,18 +109,14 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'eti.convocatoriaReunion.formulario.datosGenerales.minutoInicio.titulo' | translate}}</mat-label>
+        <mat-label>{{'eti.convocatoria-reunion.minuto-inicio' | translate}}</mat-label>
         <input matInput formControlName="minutoInicio" id="minutoInicio" type="number"
-          placeholder="{{'eti.convocatoriaReunion.formulario.datosGenerales.minutoInicio.titulo' | translate}}"
-          required>
-        <mat-error *ngIf="formGroup.controls.minutoInicio.errors?.vacio">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.minutoInicio.error.vacio' | translate}}
-        </mat-error>
-        <mat-error *ngIf="formGroup.controls.minutoInicio.errors?.NaN">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.minutoInicio.error.NaN' | translate}}
+          placeholder="{{'eti.convocatoria-reunion.minuto-inicio' | translate}}" required>
+        <mat-error *ngIf="formGroup.controls.minutoInicio.errors?.required">
+          {{'error.required.entity' | translate:msgParamMinutoInicioEntity}}
         </mat-error>
         <mat-error *ngIf="formGroup.controls.minutoInicio.errors?.noValido">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.minutoInicio.error.noValido' | translate}}
+          {{'error.invalid.entity' | translate:msgParamMinutoInicioEntity}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -137,11 +125,11 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'eti.convocatoriaReunion.formulario.datosGenerales.lugar.titulo' | translate}}</mat-label>
+        <mat-label>{{'eti.convocatoria-reunion.lugar' | translate}}</mat-label>
         <input matInput formControlName="lugar" id="lugar"
-          placeholder="{{'eti.convocatoriaReunion.formulario.datosGenerales.lugar.titulo' | translate}}" required />
+          placeholder="{{'eti.convocatoria-reunion.lugar' | translate}}" required />
         <mat-error *ngIf="formGroup.controls.lugar.errors?.required">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.lugar.error.required' | translate}}
+          {{'error.required.entity' | translate:msgParamLugarEntity}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -150,12 +138,15 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'eti.convocatoriaReunion.formulario.datosGenerales.convocantes.titulo' | translate}}</mat-label>
+        <mat-label>{{'eti.convocatoria-reunion.convocantes' | translate}}</mat-label>
         <mat-select matNativeControl formControlName="convocantes" multiple required>
           <mat-option *ngFor="let convocante of formFragment.evaluadoresComite" [value]="convocante">
-            {{convocante.nombre}} {{convocante.primerApellido}} {{convocante.segundoApellido}}
+            {{convocante?.persona?.nombre}} {{convocante?.persona?.apellidos}}
           </mat-option>
         </mat-select>
+        <mat-error *ngIf="formGroup.controls.convocantes.errors?.required">
+          {{'error.required.entity' | translate:msgParamConvocantesEntity}}
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -163,12 +154,11 @@
     <div [fxFlex.sm]="fxFlexPropertiesInline.sm" [fxFlex.md]="fxFlexProperties.md"
       [fxFlex.gt-md]="fxFlexPropertiesInline.gtMd" [fxFlexOrder]="fxFlexPropertiesInline.order">
       <mat-form-field>
-        <mat-label>{{'eti.convocatoriaReunion.formulario.datosGenerales.ordenDia.titulo' | translate}}</mat-label>
+        <mat-label>{{'eti.convocatoria-reunion.orden-dia' | translate}}</mat-label>
         <textarea matInput formControlName="ordenDia" id="ordenDia"
-          placeholder="{{'eti.convocatoriaReunion.formulario.datosGenerales.ordenDia.titulo' | translate}}"
-          required></textarea>
+          placeholder="{{'eti.convocatoria-reunion.orden-dia' | translate}}" required></textarea>
         <mat-error *ngIf="formGroup.controls.ordenDia.errors?.required">
-          {{'eti.convocatoriaReunion.formulario.datosGenerales.ordenDia.error.required' | translate}}
+          {{'error.required.entity' | translate:msgParamOrdenDiaEntity}}
         </mat-error>
       </mat-form-field>
     </div>

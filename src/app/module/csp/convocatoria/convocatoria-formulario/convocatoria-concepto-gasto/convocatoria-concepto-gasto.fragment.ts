@@ -1,5 +1,4 @@
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { IConvocatoria } from '@core/models/csp/convocatoria';
 import { IConvocatoriaConceptoGasto } from '@core/models/csp/convocatoria-concepto-gasto';
 import { FormFragment } from '@core/services/action-service';
 import { ConvocatoriaConceptoGastoService } from '@core/services/csp/convocatoria-concepto-gasto.service';
@@ -8,20 +7,17 @@ import { StatusWrapper } from '@core/utils/status-wrapper';
 import { IsEntityValidator } from '@core/validators/is-entity-validador';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
 import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
-import { ConvocatoriaDatosGeneralesFragment } from '../convocatoria-datos-generales/convocatoria-datos-generales.fragment';
-
 
 export class ConvocatoriaConceptoGastoFragment extends FormFragment<IConvocatoriaConceptoGasto[]> {
   convocatoriaConceptoGastoPermitido$ = new BehaviorSubject<StatusWrapper<IConvocatoriaConceptoGasto>[]>([]);
   convocatoriaConceptoGastoNoPermitido$ = new BehaviorSubject<StatusWrapper<IConvocatoriaConceptoGasto>[]>([]);
-  convocatoriaConceptoGastoEliminados: StatusWrapper<IConvocatoriaConceptoGasto>[] = [];
+  private convocatoriaConceptoGastoEliminados: StatusWrapper<IConvocatoriaConceptoGasto>[] = [];
 
   constructor(
     private fb: FormBuilder,
     key: number,
     private convocatoriaService: ConvocatoriaService,
     private convocatoriaConceptoGastoService: ConvocatoriaConceptoGastoService,
-    private datosGeneralesFragment: ConvocatoriaDatosGeneralesFragment,
     public readonly: boolean
   ) {
     super(key, true);
@@ -57,9 +53,8 @@ export class ConvocatoriaConceptoGastoFragment extends FormFragment<IConvocatori
     };
   }
   protected initializer(key: string | number): Observable<IConvocatoriaConceptoGasto[]> {
-    this.datosGeneralesFragment.initialize();
-    if (this.getKey()) {
-      this.subscriptions.push(this.convocatoriaService.findAllConvocatoriaConceptoGastosNoPermitidos(this.getKey() as number).pipe(
+    if (key) {
+      this.subscriptions.push(this.convocatoriaService.findAllConvocatoriaConceptoGastosNoPermitidos(key as number).pipe(
         map((response) => response.items)
       ).subscribe((convocatoriaConceptoGasto) => {
         this.convocatoriaConceptoGastoNoPermitido$.next(convocatoriaConceptoGasto.map(
@@ -67,7 +62,7 @@ export class ConvocatoriaConceptoGastoFragment extends FormFragment<IConvocatori
         );
       }));
 
-      return this.convocatoriaService.findAllConvocatoriaConceptoGastosPermitidos(this.getKey() as number).pipe(
+      return this.convocatoriaService.findAllConvocatoriaConceptoGastosPermitidos(key as number).pipe(
         map((response) => {
           if (response.items) {
             return response.items;
@@ -173,10 +168,7 @@ export class ConvocatoriaConceptoGastoFragment extends FormFragment<IConvocatori
       return of(void 0);
     }
     createdConvocatoriaConceptoGastos.forEach(
-      (wrapper: StatusWrapper<IConvocatoriaConceptoGasto>) => wrapper.value.convocatoria = {
-        id: this.getKey(),
-        activo: true
-      } as IConvocatoria
+      (wrapper: StatusWrapper<IConvocatoriaConceptoGasto>) => wrapper.value.convocatoriaId = this.getKey() as number
     );
     return from(createdConvocatoriaConceptoGastos).pipe(
       mergeMap((wrappedConvocatoriaConceptoGastos) => {
@@ -254,9 +246,4 @@ export class ConvocatoriaConceptoGastoFragment extends FormFragment<IConvocatori
     const touched: boolean = this.convocatoriaConceptoGastoPermitido$.value.some((wrapper) => wrapper.touched);
     return (this.convocatoriaConceptoGastoEliminados.length > 0 || touched);
   }
-
-  get convocatoria(): IConvocatoria {
-    return this.datosGeneralesFragment.convocatoria;
-  }
-
 }

@@ -1,9 +1,8 @@
-import { IProyectoProrroga } from './proyecto-prorroga';
 import { ITipoDocumento } from './tipos-configuracion';
 
 export interface IProyectoProrrogaDocumento {
   id: number;
-  proyectoProrroga: IProyectoProrroga;
+  proyectoProrrogaId: number;
   nombre: string;
   documentoRef: string;
   tipoDocumento: ITipoDocumento;

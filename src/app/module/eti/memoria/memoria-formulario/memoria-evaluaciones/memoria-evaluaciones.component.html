@@ -1,26 +1,26 @@
 <!-- Memoria Evaluaciones listado -->
 <section class="memoria-evaluacion-listado">
-
+  <h2>{{'eti.memoria.evaluacion' | translate:MSG_PARAMS.CARDINALIRY.PLURAL}}</h2>
   <table class="mat-elevation-z8 table-evaluacion" mat-table [dataSource]="dataSource" matSort matSortActive="id"
     matSortDirection="asc" matSortDisableClear>
 
     <!-- Tipo Column -->
     <ng-container matColumnDef="tipoEvaluacion">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.memoria.evaluaciones.listado.tipo' | translate}}
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.memoria.evaluacion.tipo' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.tipoEvaluacion.nombre}} </td>
     </ng-container>
 
     <!-- Version Column -->
     <ng-container matColumnDef="version">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.memoria.evaluaciones.listado.version' | translate}}
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.memoria.evaluacion.version' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.version}} </td>
     </ng-container>
 
     <!-- Dictamen Column -->
     <ng-container matColumnDef="dictamen">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.memoria.evaluaciones.listado.dictamen' | translate}}
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'eti.dictamen' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.dictamen?.nombre}} </td>
     </ng-container>
@@ -28,7 +28,7 @@
     <!-- Informe Evaluación Column -->
     <ng-container matColumnDef="informeEvaluacion">
       <th mat-header-cell *matHeaderCellDef>
-        {{'eti.memoria.evaluaciones.listado.informeEvaluacion' | translate}}
+        {{'eti.memoria.evaluacion.informe-evaluacion' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         <ng-container *ngIf="hasInformeEvaluacion(wrapper)">
@@ -40,7 +40,7 @@
     <!-- Informe Favorable Column -->
     <ng-container matColumnDef="informeFavorable">
       <th mat-header-cell *matHeaderCellDef>
-        {{'eti.memoria.evaluaciones.listado.informeFavorable' | translate}}
+        {{'eti.memoria.evaluacion.informe-favorable' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         <ng-container *ngIf="hasInformeFavorable(wrapper)">

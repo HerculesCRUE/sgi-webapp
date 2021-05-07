@@ -6,16 +6,20 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { BaseModalComponent } from '@core/component/base-modal.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IAreaTematica } from '@core/models/csp/area-tematica';
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { AreaTematicaService } from '@core/services/csp/area-tematica.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject, from, Observable, of } from 'rxjs';
 import { map, mergeMap, switchMap, takeLast } from 'rxjs/operators';
 import { AreaTematicaSolicitudData } from '../../solicitud-formulario/solicitud-proyecto-ficha-general/solicitud-proyecto-ficha-general.fragment';
+
+const AREA_TEMATICA_KEY = marker('csp.area-tematica');
+const TITLE_NEW_ENTITY = marker('title.new.entity');
 
 class NodeAreaTematica {
   parent: NodeAreaTematica;
@@ -48,8 +52,8 @@ function sortByName(nodes: NodeAreaTematica[]): NodeAreaTematica[] {
   });
 }
 
-const MSG_ANADIR = marker('botones.aniadir');
-const MSG_ACEPTAR = marker('botones.aceptar');
+const MSG_ANADIR = marker('btn.add');
+const MSG_ACEPTAR = marker('btn.ok');
 
 @Component({
   templateUrl: './solicitud-area-tematica-modal.component.html',
@@ -57,7 +61,6 @@ const MSG_ACEPTAR = marker('botones.aceptar');
 })
 export class SolicitudAreaTematicaModalComponent extends
   BaseModalComponent<AreaTematicaSolicitudData, SolicitudAreaTematicaModalComponent> implements OnInit {
-  fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
 
   areaTematicaTree$ = new BehaviorSubject<NodeAreaTematica[]>([]);
@@ -69,19 +72,18 @@ export class SolicitudAreaTematicaModalComponent extends
   textSaveOrUpdate: string;
   hasChild = (_: number, node: NodeAreaTematica) => node.childs.length > 0;
 
+  title: string;
+  msgParamEntity = {};
+
   constructor(
     private readonly logger: NGXLogger,
     protected snackBarService: SnackBarService,
     public matDialogRef: MatDialogRef<SolicitudAreaTematicaModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: AreaTematicaSolicitudData,
-    private areaTematicaService: AreaTematicaService
+    private areaTematicaService: AreaTematicaService,
+    private readonly translate: TranslateService
   ) {
     super(snackBarService, matDialogRef, data);
-    this.fxFlexProperties = new FxFlexProperties();
-    this.fxFlexProperties.sm = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.md = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.gtMd = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.order = '2';
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row';
@@ -91,7 +93,37 @@ export class SolicitudAreaTematicaModalComponent extends
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.loadAreasTematicas(this.data.areaTematicaConvocatoria.id);
+  }
+
+
+  private setupI18N(): void {
+
+    this.translate.get(
+      AREA_TEMATICA_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    if (this.data?.rootTree) {
+      this.translate.get(
+        AREA_TEMATICA_KEY,
+        MSG_PARAMS.CARDINALIRY.SINGULAR
+      ).subscribe((value) => this.title = value);
+    } else {
+      this.translate.get(
+        AREA_TEMATICA_KEY,
+        MSG_PARAMS.CARDINALIRY.SINGULAR
+      ).pipe(
+        switchMap((value) => {
+          return this.translate.get(
+            TITLE_NEW_ENTITY,
+            { entity: value, ...MSG_PARAMS.GENDER.MALE }
+          );
+        })
+      ).subscribe((value) => this.title = value);
+
+    }
   }
 
   protected getFormGroup(): FormGroup {

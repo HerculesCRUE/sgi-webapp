@@ -1,9 +1,9 @@
 <section class="plan-investigacion-programa">
-  <h2>{{'csp.plan.investigacion.programa' | translate}} {{actionService.getPrograma.nombre}}</h2>
+  <h2>{{'csp.plan-investigacion.programa' | translate}} {{actionService.getPrograma.nombre}}</h2>
 
   <!-- Validacion si no tiene programa -->
   <div *ngIf="dataSource.data.length === 0" class="vacio">
-    <p>{{'csp.plan.investigacion.programa.no.padre' | translate}}</p>
+    <p>{{'info.csp.plan-investigacion.programa.no-padre' | translate}}</p>
   </div>
 
   <div class="programa" fxLayout="row" fxLayout.xs="column" fxLayoutGap="10px">
@@ -67,20 +67,20 @@
 
     <!-- Visualizacion crear/editar/detalle -->
     <form [formGroup]="formGroup" class="visualizacion" fxFlex="50%" fxFlex.xs="100%" *ngIf="viewMode !== ''">
-      <h3 *ngIf="viewMode === 'new'">{{'csp.plan.investigador.programa.añadir' | translate}}</h3>
+      <h3 *ngIf="viewMode === 'new'">{{'btn.add.entity' | translate:msgParamEntity}}</h3>
       <h3 *ngIf="viewMode === 'edit'">{{'csp.plan.investigador.programa.actualizar' | translate}}</h3>
       <h3 *ngIf="viewMode === 'view'">{{'csp.plan.investigador.programa.datos' | translate}}</h3>
       <div fxLayout="row" fxLayout.xs="column" fxLayoutGap="10px">
         <div fxFlex="50%" fxFlex.xs="100%">
           <mat-form-field class="input-form">
-            <mat-label>{{'csp.plan.investigacion.programa.nombre' | translate}}</mat-label>
-            <input matInput type="text" placeholder="{{'csp.plan.investigacion.programa.nombre' | translate}}"
+            <mat-label>{{'csp.plan-investigacion-programa.nombre' | translate}}</mat-label>
+            <input matInput type="text" placeholder="{{'csp.plan-investigacion.programa.nombre' | translate}}"
               formControlName="nombre" required>
             <mat-error *ngIf="formGroup.get('nombre').errors?.required">
-              {{'csp.plan.investigacion.programa.nombre.error' | translate}}
+              {{'error.required.entity' | translate:msgParamNombreEntity}}
             </mat-error>
             <mat-error *ngIf="formGroup.get('nombre').errors?.maxlength">
-              {{'csp.plan.investigacion.programa.maximo.error' | translate}}
+              {{'error.maxlength.entity' | translate:msgParamNombreEntity}}
             </mat-error>
           </mat-form-field>
         </div>
@@ -88,25 +88,25 @@
       <div fxLayout="row" fxLayout.xs="column" fxLayoutGap="10px">
         <div fxFlex="50%" fxFlex.xs="100%">
           <mat-form-field class="input-form">
-            <mat-label>{{'csp.plan.investigacion.programa.descripcion' | translate}}</mat-label>
-            <textarea matInput type="text" placeholder="{{'csp.plan.investigacion.programa.descripcion' | translate}}"
+            <mat-label>{{'csp.plan-investigacion-programa.descripcion' | translate}}</mat-label>
+            <textarea matInput type="text" placeholder="{{'csp.plan-investigacion-programa.descripcion' | translate}}"
               formControlName="descripcion"></textarea>
             <mat-error *ngIf="formGroup.get('descripcion').errors?.maxlength">
-              {{'csp.plan.investigacion.programa.maximo.error' | translate}}
+              {{'error.maxlength.entity' | translate:msgParamDescripcionEntity}}
             </mat-error>
           </mat-form-field>
         </div>
       </div>
       <div class="separation-button">
-        <button *ngIf="viewMode === 'new' || viewMode === 'edit'" color="accent" md-button mat-raised-button
-          (click)="acceptDetail()">{{'botones.aceptar' | translate}}</button>
+        <button *ngIf="viewMode === 'new' || viewMode === 'edit'" color="accent" mat-raised-button
+          (click)="acceptDetail()">{{'btn.ok' | translate}}</button>
         <button *ngIf="viewMode === 'new' || viewMode === 'edit'" class="link-cancelar" mat-button><span
-            class="underline" (click)="cancelDetail()">{{'botones.cancelar' | translate}}</span></button>
-        <button *ngIf="viewMode === 'view'" color="accent" md-button mat-raised-button
-          (click)="switchToEdit()">{{'csp.plan.investigacion.programa.editar'| translate}}</button>
-        <button *ngIf="viewMode === 'view'" color="warn" aria-label="Center Align" md-button mat-raised-button
+            class="underline" (click)="cancelDetail()">{{'btn.cancel' | translate}}</span></button>
+        <button *ngIf="viewMode === 'view'" color="accent" mat-raised-button
+          (click)="switchToEdit()">{{'btn.edit.entity'| translate:msgParamEntity}}</button>
+        <button *ngIf="viewMode === 'view'" color="warn" aria-label="Center Align" mat-raised-button
           (click)="deleteDetail()">
-          {{'csp.plan.investigacion.programa.eliminar'| translate}}
+          {{'btn.delete.entity' | translate:msgParamEntity}}
         </button>
       </div>
     </form>
@@ -116,9 +116,9 @@
   </div>
 
   <div class="separation-button">
-    <button color="three" aria-label="Center Align" md-button mat-raised-button (click)="switchToNew()">
+    <button color="three" aria-label="Center Align" mat-raised-button (click)="switchToNew()">
       <mat-icon color="accent">add_circle</mat-icon>
-      {{'csp.plan.investigacion.programa.anadir'| translate}}
+      {{ 'btn.add.entity' | translate:msgParamEntity }}
     </button>
   </div>
 

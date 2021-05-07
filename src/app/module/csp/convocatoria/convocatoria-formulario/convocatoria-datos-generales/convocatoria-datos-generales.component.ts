@@ -6,33 +6,37 @@ import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
 import { CLASIFICACION_CVN_MAP } from '@core/enums/clasificacion-cvn';
-import { DESTINATARIOS_MAP, ESTADO_MAP, IConvocatoria } from '@core/models/csp/convocatoria';
+import { MSG_PARAMS } from '@core/i18n';
+import { IConvocatoria } from '@core/models/csp/convocatoria';
 import { IConvocatoriaAreaTematica } from '@core/models/csp/convocatoria-area-tematica';
-import { ITipoAmbitoGeografico } from '@core/models/csp/tipo-ambito-geografico';
 import { ITipoRegimenConcurrencia } from '@core/models/csp/tipo-regimen-concurrencia';
-import { IModeloEjecucion, ITipoFinalidad } from '@core/models/csp/tipos-configuracion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { IUnidadGestion } from '@core/models/usr/unidad-gestion';
-import { ModeloEjecucionService } from '@core/services/csp/modelo-ejecucion.service';
-import { ModeloUnidadService } from '@core/services/csp/modelo-unidad.service';
-import { TipoAmbitoGeograficoService } from '@core/services/csp/tipo-ambito-geografico.service';
 import { TipoRegimenConcurrenciaService } from '@core/services/csp/tipo-regimen-concurrencia.service';
-import { UnidadGestionService } from '@core/services/csp/unidad-gestion.service';
 import { DialogService } from '@core/services/dialog.service';
-import { SnackBarService } from '@core/services/snack-bar.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { RSQLSgiRestFilter, SgiRestFilterOperator, SgiRestFindOptions } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
-import { Observable, of, Subscription } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
+import { Observable, Subscription } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { ConvocatoriaActionService } from '../../convocatoria.action.service';
 import { ConvocatoriaAreaTematicaModalComponent } from '../../modals/convocatoria-area-tematica-modal/convocatoria-area-tematica-modal.component';
 import { AreaTematicaData, ConvocatoriaDatosGeneralesFragment } from './convocatoria-datos-generales.fragment';
 
-const MSG_ERROR_INIT = marker('csp.convocatoria.datos.generales.error.cargar');
-const MSG_DELETE = marker('csp.convocatoria.area.tematica.listado.borrar');
+const MSG_DELETE_AREA_TEMATICA = marker('msg.delete.entity');
+const AREA_KEY = marker('csp.area');
+const AREA_TEMATICA_KEY = marker('csp.area-tematica');
+const CONVOCATORIA_FECHA_PUBLICACION_KEY = marker('csp.convocatoria.fecha-publicacion');
+const CONVOCATORIA_FECHA_PROVISIONAL_KEY = marker('csp.convocatoria.fecha-provisional');
+const CONVOCATORIA_FECHA_CONCESION_KEY = marker('csp.convocatoria.fecha-concesion');
+const CONVOCATORIA_AMBITO_GEOGRAFICO_KEY = marker('csp.convocatoria.ambito-geografico');
+const CONVOCATORIA_CODIGO_REFERENCIA_KEY = marker('csp.convocatoria.codigo-referencia');
+const CONVOCATORIA_DESCRIPCION_KEY = marker('csp.convocatoria.descripcion');
+const CONVOCATORIA_DURACION_KEY = marker('csp.convocatoria.duracion');
+const CONVOCATORIA_FINALIDAD_KEY = marker('csp.convocatoria.finalidad');
+const CONVOCATORIA_MODELO_EJECUCION_KEY = marker('csp.convocatoria.modelo-ejecucion');
+const CONVOCATORIA_OBSERVACIONES_KEY = marker('csp.convocatoria.observaciones');
+const CONVOCATORIA_TITULO_KEY = marker('csp.convocatoria.titulo');
+const CONVOCATORIA_UNIDAD_GESTION_KEY = marker('csp.convocatoria.unidad-gestion');
 
 @Component({
   selector: 'sgi-convocatoria-datos-generales',
@@ -42,57 +46,48 @@ const MSG_DELETE = marker('csp.convocatoria.area.tematica.listado.borrar');
 export class ConvocatoriaDatosGeneralesComponent extends FormFragmentComponent<IConvocatoria> implements OnInit {
   formPart: ConvocatoriaDatosGeneralesFragment;
 
+  regimenesConcurrencia$: Observable<ITipoRegimenConcurrencia[]>;
+
   fxFlexProperties: FxFlexProperties;
   fxFlexPropertiesOne: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
   fxFlexPropertiesInline: FxFlexProperties;
   fxFlexPropertiesEntidad: FxFlexProperties;
 
-  private tipoAmbitoGeograficoFiltered = [] as ITipoAmbitoGeografico[];
-  tipoAmbitosGeograficos$: Observable<ITipoAmbitoGeografico[]>;
-
-  private finalidadFiltered = [] as ITipoFinalidad[];
-  finalidades$: Observable<ITipoFinalidad[]>;
-
-  private modelosEjecucionFiltered = [] as IModeloEjecucion[];
-  modelosEjecucion$: Observable<IModeloEjecucion[]>;
-
-  private tipoRegimenConcurrenciaFiltered = [] as ITipoRegimenConcurrencia[];
-  tipoRegimenesConcurrencia$: Observable<ITipoRegimenConcurrencia[]>;
-
-  private unidadGestionFiltered = [] as IUnidadGestion[];
-  unidadesGestion$: Observable<IUnidadGestion[]>;
-
   private subscriptions = [] as Subscription[];
+
+  msgParamAmbitoGeograficoEntity = {};
+  msgParamAreaEntities = {};
+  msgParamAreaTematicaEntity = {};
+  msgParamAreaTematicaEntities = {};
+  msgParamCodigoReferenciaEntity = {};
+  msgParamDescripcionEntity = {};
+  msgParamDuracionEntity = {};
+  msgParamFinalidadEntity = {};
+  msgParamModeloEjecucionEntity = {};
+  msgParamObservacionesEntity = {};
+  msgParamFechaConcesionEntity = {};
+  msgParamFechaProvisionalEntity = {};
+  msgParamFechaPublicacionEntity = {};
+  msgParamTituloEntity = {};
+  msgParamUnidadGestionEntity = {};
+  textoDeleteAreaTematica: string;
 
   convocatoriaAreaTematicas = new MatTableDataSource<AreaTematicaData>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   columns = ['padre', 'nombre', 'observaciones', 'acciones'];
 
-  get DESTINATARIOS_MAP() {
-    return DESTINATARIOS_MAP;
-  }
-
-  get ESTADO_MAP() {
-    return ESTADO_MAP;
-  }
-
   get CLASIFICACION_CVN_MAP() {
     return CLASIFICACION_CVN_MAP;
   }
 
   constructor(
-    private readonly logger: NGXLogger,
     protected actionService: ConvocatoriaActionService,
-    private snackBarService: SnackBarService,
-    private modeloEjecucionService: ModeloEjecucionService,
-    private unidadGestionService: UnidadGestionService,
-    private regimenConcurrenciaService: TipoRegimenConcurrenciaService,
-    private tipoAmbitoGeograficoService: TipoAmbitoGeograficoService,
-    private unidadModeloService: ModeloUnidadService,
     private matDialog: MatDialog,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private readonly translate: TranslateService,
+    tipoRegimenConcurrenciaService: TipoRegimenConcurrenciaService
   ) {
     super(actionService.FRAGMENT.DATOS_GENERALES, actionService);
     this.formPart = this.fragment as ConvocatoriaDatosGeneralesFragment;
@@ -125,267 +120,136 @@ export class ConvocatoriaDatosGeneralesComponent extends FormFragmentComponent<I
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
+
+    this.regimenesConcurrencia$ = tipoRegimenConcurrenciaService.findAll().pipe(
+      map(response => response.items)
+    );
   }
 
   ngOnInit() {
     super.ngOnInit();
+    this.setupI18N();
     if (!this.formPart.readonly) {
-      this.loadUnidadesGestion();
-      this.loadTipoRegimenConcurrencia();
-      this.loadAmbitosGeograficos();
-      this.loadAreaTematicas();
-      if (this.formPart.isEdit()) {
-        this.loadModelosEjecucion();
-      }
+      this.convocatoriaAreaTematicas.paginator = this.paginator;
+      this.convocatoriaAreaTematicas.sort = this.sort;
+      this.subscriptions.push(this.formPart.areasTematicas$.subscribe(
+        data => this.convocatoriaAreaTematicas.data = data
+      ));
     }
   }
 
-  private loadUnidadesGestion(): void {
-    this.subscriptions.push(
-      this.unidadGestionService.findAllRestringidos().subscribe(
-        res => {
-          this.unidadGestionFiltered = res.items;
-          this.unidadesGestion$ = this.formGroup.controls.unidadGestion.valueChanges
-            .pipe(
-              startWith(''),
-              map(value => this.filtroUnidadGestion(value))
-            );
-        },
-        (error) => {
-          this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_INIT);
-        }
-      )
-    );
-  }
+  private setupI18N(): void {
+    this.translate.get(
+      AREA_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamAreaEntities = { entity: value });
 
-  loadModelosEjecucion(): void {
-    const options: SgiRestFindOptions = {
-      filter: new RSQLSgiRestFilter('unidadGestionRef', SgiRestFilterOperator.EQUALS, this.formGroup.controls.unidadGestion.value.acronimo)
-    };
-    const subcription = this.unidadModeloService.findAll(options).subscribe(
-      res => {
-        this.modelosEjecucionFiltered = res.items.map(item => item.modeloEjecucion);
-        this.modelosEjecucion$ = this.formGroup.controls.modeloEjecucion.valueChanges
-          .pipe(
-            startWith(''),
-            map(value => this.filtroModeloEjecucion(value))
-          );
-      },
-      (error) => {
-        this.logger.error(error);
-        this.snackBarService.showError(MSG_ERROR_INIT);
-      }
-    );
-    this.subscriptions.push(subcription);
-  }
+    this.translate.get(
+      AREA_TEMATICA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamAreaTematicaEntity = { entity: value });
 
-  loadFinalidades(): void {
-    const modeloEjecucion = this.formGroup.get('modeloEjecucion').value;
-    if (modeloEjecucion) {
-      const id = modeloEjecucion.id;
-      if (id && !isNaN(id)) {
-        const options: SgiRestFindOptions = {
-          filter: new RSQLSgiRestFilter('tipoFinalidad.activo', SgiRestFilterOperator.EQUALS, 'true')
-        };
-        this.subscriptions.push(
-          this.modeloEjecucionService.findModeloTipoFinalidad(id, options).pipe(
-            map(res => {
-              return res.items.map(modeloTipoFinalidad => modeloTipoFinalidad.tipoFinalidad);
-            })
-          ).subscribe(
-            tipoFinalidades => {
-              this.finalidadFiltered = tipoFinalidades;
-              this.finalidades$ = this.formGroup.controls.finalidad.valueChanges
-                .pipe(
-                  startWith(''),
-                  map(value => this.filtroFinalidades(value))
-                );
-            },
-            (error) => {
-              this.logger.error(error);
-              this.snackBarService.showError(MSG_ERROR_INIT);
-            }
-          )
+    this.translate.get(
+      AREA_TEMATICA_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamAreaTematicaEntities = { entity: value });
+
+    this.translate.get(
+      CONVOCATORIA_CODIGO_REFERENCIA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe(
+      (value) => this.msgParamCodigoReferenciaEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR }
+    );
+
+    this.translate.get(
+      CONVOCATORIA_UNIDAD_GESTION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamUnidadGestionEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      CONVOCATORIA_FECHA_PUBLICACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaPublicacionEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      CONVOCATORIA_FECHA_PROVISIONAL_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaProvisionalEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      CONVOCATORIA_FECHA_CONCESION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaConcesionEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      CONVOCATORIA_TITULO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamTituloEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR });
+
+    this.translate.get(
+      CONVOCATORIA_MODELO_EJECUCION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamModeloEjecucionEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      CONVOCATORIA_MODELO_EJECUCION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamModeloEjecucionEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      CONVOCATORIA_FINALIDAD_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFinalidadEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      CONVOCATORIA_DURACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamDuracionEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      CONVOCATORIA_AMBITO_GEOGRAFICO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamAmbitoGeograficoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      CONVOCATORIA_DESCRIPCION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamDescripcionEntity = {
+      entity: value,
+      ...MSG_PARAMS.GENDER.MALE,
+      ...MSG_PARAMS.CARDINALIRY.SINGULAR
+    });
+
+    this.translate.get(
+      CONVOCATORIA_OBSERVACIONES_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamObservacionesEntity = {
+      entity: value,
+      ...MSG_PARAMS.GENDER.FEMALE,
+      ...MSG_PARAMS.CARDINALIRY.PLURAL
+    });
+
+    this.translate.get(
+      AREA_TEMATICA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE_AREA_TEMATICA,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
         );
-      }
-    }
-  }
-
-  clearModeloEjecuccion(): void {
-    this.formGroup.get('modeloEjecucion').setValue('');
-    this.modelosEjecucionFiltered = [];
-    this.modelosEjecucion$ = of();
-    this.clearFinalidad();
-  }
-
-  clearFinalidad(): void {
-    this.formGroup.get('finalidad').setValue('');
-    this.finalidadFiltered = [];
-    this.finalidades$ = of();
-  }
-
-  private loadTipoRegimenConcurrencia(): void {
-    this.subscriptions.push(
-      this.regimenConcurrenciaService.findAll().subscribe(
-        res => {
-          this.tipoRegimenConcurrenciaFiltered = res.items;
-          this.tipoRegimenesConcurrencia$ = this.formGroup.controls.regimenConcurrencia.valueChanges
-            .pipe(
-              startWith(''),
-              map(value => this.filtroRegimenConcurrencia(value))
-            );
-        },
-        (error) => {
-          this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_INIT);
-        }
-      )
-    );
-  }
-
-  private loadAmbitosGeograficos(): void {
-    this.subscriptions.push(
-      this.tipoAmbitoGeograficoService.findAll().subscribe(
-        res => {
-          this.tipoAmbitoGeograficoFiltered = res.items;
-          this.tipoAmbitosGeograficos$ = this.formGroup.controls.ambitoGeografico.valueChanges
-            .pipe(
-              startWith(''),
-              map(value => this.filtroTipoAmbitoGeografico(value))
-            );
-        },
-        (error) => {
-          this.logger.error(error);
-          this.snackBarService.showError(MSG_ERROR_INIT);
-        }
-      )
-    );
-  }
-
-  private loadAreaTematicas(): void {
-    const subscription = this.formPart.areasTematicas$.subscribe(
-      data => this.convocatoriaAreaTematicas.data = data
-    );
-    this.subscriptions.push(subscription);
-    this.convocatoriaAreaTematicas.paginator = this.paginator;
-    this.convocatoriaAreaTematicas.sort = this.sort;
-  }
-
-  /**
-   * Devuelve el nombre de un modelo de ejecución.
-   * @param modeloEjecucion modelo de ejecución.
-   * @returns nombre de un modelo de ejecución.
-   */
-  getModeloEjecucion(modeloEjecucion?: IModeloEjecucion): string | undefined {
-    return typeof modeloEjecucion === 'string' ? modeloEjecucion : modeloEjecucion?.nombre;
-  }
-
-  /**
-   * Filtra la lista devuelta por el servicio
-   *
-   * @param value del input para autocompletar
-   */
-  private filtroModeloEjecucion(value: string): IModeloEjecucion[] {
-    const filterValue = value.toString().toLowerCase();
-    return this.modelosEjecucionFiltered.filter(modeloEjecucion => modeloEjecucion.nombre.toLowerCase().includes(filterValue));
-  }
-
-  /**
-   * Devuelve el nombre de una finalidad.
-   * @param finalidad finalidad.
-   * @returns nombre de una finalidad.
-   */
-  getFinalidad(finalidad?: ITipoFinalidad): string | undefined {
-    return typeof finalidad === 'string' ? finalidad : finalidad?.nombre;
-  }
-
-  /**
-   * Filtra la lista devuelta por el servicio
-   *
-   * @param value del input para autocompletar
-   */
-  private filtroFinalidades(value: string): ITipoFinalidad[] {
-    const filterValue = value.toString().toLowerCase();
-    return this.finalidadFiltered.filter(finalidad => finalidad.nombre.toLowerCase().includes(filterValue));
-  }
-
-  /**
-   * Devuelve el nombre de una gestión unidad.
-   * @param unidadGestion gestión unidad.
-   * @returns nombre de una gestión unidad.
-   */
-  getUnidadGestion(unidadGestion?: IUnidadGestion): string | undefined {
-    return typeof unidadGestion === 'string' ? unidadGestion : unidadGestion?.nombre;
-  }
-
-  /**
-   * Filtra la lista devuelta por el servicio
-   *
-   * @param value del input para autocompletar
-   */
-  private filtroUnidadGestion(value: string | IUnidadGestion): IUnidadGestion[] {
-    const filterValue = (typeof value === 'string') ? value?.toString()?.toLowerCase() : value?.nombre?.toLocaleLowerCase();
-    return this.unidadGestionFiltered.filter(unidadGestion => unidadGestion.nombre.toLowerCase().includes(filterValue));
-  }
-
-  /**
-   * Devuelve el nombre de un régimen ocurrencia.
-   * @param regimenConcurrencia régimen ocurrencia.
-   * @returns nombre de un régimen ocurrencia..
-   */
-  getTipoRegimenConcurrencia(regimenConcurrencia?: ITipoRegimenConcurrencia): string | undefined {
-    return typeof regimenConcurrencia === 'string' ? regimenConcurrencia : regimenConcurrencia?.nombre;
-  }
-
-  /**
-   * Filtra la lista devuelta por el servicio
-   *
-   * @param value del input para autocompletar
-   */
-  private filtroRegimenConcurrencia(value: string): ITipoRegimenConcurrencia[] {
-    const filterValue = value?.toString()?.toLowerCase();
-    return this.tipoRegimenConcurrenciaFiltered.filter(
-      regimenConcurrencia => regimenConcurrencia.nombre.toLowerCase().includes(filterValue)
-    );
-  }
-
-  /**
-   * Devuelve el nombre de un ámbito geográfico.
-   * @param tipoAmbitoGeografico ámbito geográfico.
-   * @returns nombre de un ámbito geográfico.
-   */
-  getTipoAmbitoGeografico(tipoAmbitoGeografico?: ITipoAmbitoGeografico): string | undefined {
-    return typeof tipoAmbitoGeografico === 'string' ? tipoAmbitoGeografico : tipoAmbitoGeografico?.nombre;
-  }
-
-  /**
-   * Filtra la lista devuelta por el servicio
-   *
-   * @param value del input para autocompletar
-   */
-  private filtroTipoAmbitoGeografico(value: string): ITipoAmbitoGeografico[] {
-    const filterValue = value?.toString()?.toLowerCase();
-    return this.tipoAmbitoGeograficoFiltered.filter(
-      ambitoGeografico => ambitoGeografico.nombre.toLowerCase().includes(filterValue)
-    );
+      })
+    ).subscribe((value) => this.textoDeleteAreaTematica = value);
   }
 
   openModal(data?: AreaTematicaData): void {
-    const convocatoriaAreaTematica: IConvocatoriaAreaTematica = {
-      areaTematica: undefined,
-      convocatoria: undefined,
-      id: undefined,
-      observaciones: undefined
-    };
     const newData: AreaTematicaData = {
       padre: undefined,
       observaciones: '',
-      convocatoriaAreaTematica: new StatusWrapper<IConvocatoriaAreaTematica>(convocatoriaAreaTematica)
+      convocatoriaAreaTematica: new StatusWrapper<IConvocatoriaAreaTematica>({} as IConvocatoriaAreaTematica)
     };
     const config = {
-      width: GLOBAL_CONSTANTS.widthModalCSP,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
+      panelClass: 'sgi-dialog-container',
       data: data ? data : newData
     };
     const dialogRef = this.matDialog.open(ConvocatoriaAreaTematicaModalComponent, config);
@@ -404,7 +268,7 @@ export class ConvocatoriaDatosGeneralesComponent extends FormFragmentComponent<I
 
   deleteAreaTematica(data: AreaTematicaData): void {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDeleteAreaTematica).subscribe(
         (aceptado) => {
           if (aceptado) {
             this.formPart.deleteConvocatoriaAreaTematica(data);

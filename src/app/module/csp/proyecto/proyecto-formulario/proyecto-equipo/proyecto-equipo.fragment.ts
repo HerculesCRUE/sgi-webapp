@@ -2,7 +2,7 @@ import { IProyectoEquipo } from '@core/models/csp/proyecto-equipo';
 import { Fragment } from '@core/services/action-service';
 import { ProyectoEquipoService } from '@core/services/csp/proyecto-equipo.service';
 import { ProyectoService } from '@core/services/csp/proyecto.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject, from, Observable } from 'rxjs';
@@ -16,7 +16,7 @@ export class ProyectoEquipoFragment extends Fragment {
     key: number,
     private proyectoService: ProyectoService,
     private proyectoEquipoService: ProyectoEquipoService,
-    private personaFisicaService: PersonaFisicaService
+    private personaService: PersonaService
   ) {
     super(key);
     this.setComplete(true);
@@ -30,8 +30,7 @@ export class ProyectoEquipoFragment extends Fragment {
           switchMap(result => {
             return from(result.items).pipe(
               mergeMap(element => {
-                const personaRef = element.persona.personaRef;
-                return this.personaFisicaService.getInformacionBasica(personaRef).pipe(
+                return this.personaService.findById(element.persona.id).pipe(
                   map(persona => {
                     element.persona = persona;
                     return element;
@@ -65,6 +64,16 @@ export class ProyectoEquipoFragment extends Fragment {
     current.push(wrapped);
     this.equipos$.next(current);
     this.setChanges(true);
+  }
+
+  updateProyectoEquipo(wrapper: StatusWrapper<IProyectoEquipo>): void {
+    const current = this.equipos$.value;
+    const index = current.findIndex(value => value.value.id === wrapper.value.id);
+    if (index >= 0) {
+      wrapper.setEdited();
+      this.equipos$.value[index] = wrapper;
+      this.setChanges(true);
+    }
   }
 
   deleteProyectoEquipo(wrapper: StatusWrapper<IProyectoEquipo>) {

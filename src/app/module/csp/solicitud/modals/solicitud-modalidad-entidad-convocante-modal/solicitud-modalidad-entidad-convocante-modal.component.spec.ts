@@ -14,7 +14,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { SolicitudModalidadEntidadConvocanteModalComponent, SolicitudModalidadEntidadConvocanteModalData } from './solicitud-modalidad-entidad-convocante-modal.component';
 import { IPrograma } from '@core/models/csp/programa';
 import { ISolicitudModalidad } from '@core/models/csp/solicitud-modalidad';
-import { IEmpresaEconomica } from '@core/models/sgp/empresa-economica';
+import { IEmpresa } from '@core/models/sgemp/empresa';
 
 describe('SolicitudModalidadEntidadConvocanteComponent', () => {
   let component: SolicitudModalidadEntidadConvocanteModalComponent;
@@ -39,7 +39,7 @@ describe('SolicitudModalidadEntidadConvocanteComponent', () => {
         { provide: MatDialogRef, useValue: {} as SolicitudModalidadEntidadConvocanteModalData },
         {
           provide: MAT_DIALOG_DATA, useValue: {
-            entidad: {} as IEmpresaEconomica,
+            entidad: {} as IEmpresa,
             plan: {} as IPrograma,
             programa: { id: 1 } as IPrograma,
             modalidad: {} as ISolicitudModalidad

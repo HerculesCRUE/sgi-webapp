@@ -5,23 +5,26 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
-import { IMemoria } from '@core/models/eti/memoria';
+import { IMemoriaPeticionEvaluacion } from '@core/models/eti/memoria-peticion-evaluacion';
 import { ITarea } from '@core/models/eti/tarea';
+import { ITareaWithIsEliminable } from '@core/models/eti/tarea-with-is-eliminable';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { DialogService } from '@core/services/dialog.service';
 import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { PeticionEvaluacionActionService } from '../../../peticion-evaluacion.action.service';
-import { PeticionEvaluacionTareasModalComponent } from '../peticion-evaluacion-tareas-modal/peticion-evaluacion-tareas-modal.component';
+import { PeticionEvaluacionTareasModalComponent, PeticionEvaluacionTareasModalComponentData } from '../peticion-evaluacion-tareas-modal/peticion-evaluacion-tareas-modal.component';
 import { PeticionEvaluacionTareasFragment } from './peticion-evaluacion-tareas-listado.fragment';
 
-const MSG_CONFIRM_DELETE = marker('eti.peticionEvaluacion.tareas.listado.eliminar');
+const MSG_CONFIRM_DELETE = marker('msg.delete.entity');
+const TAREA_KEY = marker('eti.peticion-evaluacion.tarea');
 
 @Component({
   selector: 'sgi-peticion-evaluacion-tareas',
@@ -35,34 +38,42 @@ export class PeticionEvaluacionTareasListadoComponent extends FragmentComponent 
 
   displayedColumns: string[];
 
-  tareas$: BehaviorSubject<StatusWrapper<ITarea>[]>;
+  tareas$: BehaviorSubject<StatusWrapper<ITareaWithIsEliminable>[]>;
   private listadoFragment: PeticionEvaluacionTareasFragment;
   private subscriptions: Subscription[] = [];
   elementosPagina: number[] = [5, 10, 25, 100];
-  datasource: MatTableDataSource<StatusWrapper<ITarea>> = new MatTableDataSource<StatusWrapper<ITarea>>();
+  datasource: MatTableDataSource<StatusWrapper<ITareaWithIsEliminable>> = new MatTableDataSource<StatusWrapper<ITareaWithIsEliminable>>();
 
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
+  msgParamEntity = {};
+  textoDelete: string;
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
+
   constructor(
     protected readonly dialogService: DialogService,
     protected readonly convocatoriaReunionService: ConvocatoriaReunionService,
-    protected readonly personaFisicaService: PersonaFisicaService,
     protected matDialog: MatDialog,
     protected readonly snackBarService: SnackBarService,
-    actionService: PeticionEvaluacionActionService
+    actionService: PeticionEvaluacionActionService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.TAREAS, actionService);
     this.tareas$ = (this.fragment as PeticionEvaluacionTareasFragment).tareas$;
     this.listadoFragment = this.fragment as PeticionEvaluacionTareasFragment;
 
     this.displayedColumns = ['nombreCompleto', 'numReferencia', 'tarea',
-      'formacionEspecifica', 'organismo', 'acciones'];
+      'formacionEspecifica', 'organismo', 'anio', 'acciones'];
 
   }
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.datasource.paginator = this.paginator;
     this.datasource.sort = this.sort;
     this.listadoFragment.tareas$.subscribe((tarea) => {
@@ -70,11 +81,11 @@ export class PeticionEvaluacionTareasListadoComponent extends FragmentComponent 
     });
 
     this.datasource.sortingDataAccessor =
-      (wrapper: StatusWrapper<ITarea>, property: string) => {
+      (wrapper: StatusWrapper<ITareaWithIsEliminable>, property: string) => {
         switch (property) {
           case 'nombreCompleto':
-            return wrapper.value.equipoTrabajo?.nombre + ' ' + wrapper.value.equipoTrabajo?.primerApellido + ' ' +
-              wrapper.value.equipoTrabajo?.segundoApellido;
+            return wrapper.value.equipoTrabajo?.persona.nombre
+              + ' ' + wrapper.value.equipoTrabajo?.persona.apellidos;
           case 'numReferencia':
             return wrapper.value.memoria?.numReferencia;
           case 'tarea':
@@ -87,32 +98,51 @@ export class PeticionEvaluacionTareasListadoComponent extends FragmentComponent 
       };
   }
 
+  private setupI18N(): void {
+    this.translate.get(
+      TAREA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      TAREA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_CONFIRM_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+  }
+
   /**
    * Abre la ventana modal para añadir una nueva tarea
    */
   openModalAddTarea(): void {
-    const tarea: ITarea = {
+    const tarea: ITareaWithIsEliminable = {
       eliminable: true
-    } as ITarea;
+    } as ITareaWithIsEliminable;
 
     const equiposTrabajo: IEquipoTrabajo[] = this.listadoFragment.equiposTrabajo;
-    const memorias: IMemoria[] = this.listadoFragment.memorias;
+    const memorias: IMemoriaPeticionEvaluacion[] = this.listadoFragment.memorias;
+
+    const data: PeticionEvaluacionTareasModalComponentData = {
+      tarea, equiposTrabajo, memorias
+    };
 
     const config = {
-      width: GLOBAL_CONSTANTS.minWidthModal,
-      maxHeight: GLOBAL_CONSTANTS.minHeightModal,
-      data: {
-        tarea, equiposTrabajo, memorias
-      },
-      autoFocus: false
+      panelClass: 'sgi-dialog-container',
+      data
     };
 
     const dialogRef = this.matDialog.open(PeticionEvaluacionTareasModalComponent, config);
 
     dialogRef.afterClosed().subscribe(
-      (tareaAniadida: ITarea) => {
-        if (tareaAniadida) {
-          this.listadoFragment.addTarea(tareaAniadida);
+      (modalData: PeticionEvaluacionTareasModalComponentData) => {
+        if (modalData && modalData.tarea) {
+          this.listadoFragment.addTarea(modalData.tarea);
         }
       });
   }
@@ -122,22 +152,22 @@ export class PeticionEvaluacionTareasListadoComponent extends FragmentComponent 
    *
    * @param tarea tarea a modificar
    */
-  openUpdateModal(tarea: StatusWrapper<ITarea>): void {
+  openUpdateModal(tarea: StatusWrapper<ITareaWithIsEliminable>): void {
     const equiposTrabajo: IEquipoTrabajo[] = this.listadoFragment.equiposTrabajo;
-    const memorias: IMemoria[] = this.listadoFragment.memorias;
+    const memorias: IMemoriaPeticionEvaluacion[] = this.listadoFragment.memorias;
+
+    const data: PeticionEvaluacionTareasModalComponentData = {
+      tarea: tarea.value, equiposTrabajo, memorias
+    };
 
     const config = {
-      width: GLOBAL_CONSTANTS.minWidthModal,
-      maxHeight: GLOBAL_CONSTANTS.minHeightModal,
-      data: {
-        tarea: tarea.value, equiposTrabajo, memorias
-      },
-      autoFocus: false
+      panelClass: 'sgi-dialog-container',
+      data
     };
     const dialogRef = this.matDialog.open(PeticionEvaluacionTareasModalComponent, config);
     dialogRef.afterClosed().subscribe(
-      (resultado: ITarea) => {
-        if (resultado) {
+      (modalData: PeticionEvaluacionTareasModalComponentData) => {
+        if (modalData && modalData.tarea) {
           tarea.setEdited();
           this.fragment.setChanges(true);
           this.fragment.setComplete(true);
@@ -151,9 +181,9 @@ export class PeticionEvaluacionTareasListadoComponent extends FragmentComponent 
    *
    * @param wrappedTarea equipo de trabajo a eliminar.
    */
-  delete(wrappedTarea: StatusWrapper<ITarea>): void {
+  delete(wrappedTarea: StatusWrapper<ITareaWithIsEliminable>): void {
     const dialogSubscription = this.dialogService.showConfirmation(
-      MSG_CONFIRM_DELETE
+      this.textoDelete
     ).subscribe((aceptado) => {
       if (aceptado) {
         this.listadoFragment.deleteTarea(wrappedTarea);

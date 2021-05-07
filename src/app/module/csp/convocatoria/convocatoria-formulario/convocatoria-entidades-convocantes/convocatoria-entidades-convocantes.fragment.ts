@@ -1,18 +1,17 @@
-import { IConvocatoria } from '@core/models/csp/convocatoria';
 import { IConvocatoriaEntidadConvocante } from '@core/models/csp/convocatoria-entidad-convocante';
 import { IPrograma } from '@core/models/csp/programa';
-import { IEmpresaEconomica } from '@core/models/sgp/empresa-economica';
+import { IEmpresa } from '@core/models/sgemp/empresa';
 import { Fragment } from '@core/services/action-service';
 import { ConvocatoriaEntidadConvocanteService } from '@core/services/csp/convocatoria-entidad-convocante.service';
 import { ConvocatoriaService } from '@core/services/csp/convocatoria.service';
-import { EmpresaEconomicaService } from '@core/services/sgp/empresa-economica.service';
+import { EmpresaService } from '@core/services/sgemp/empresa.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
 import { catchError, map, mergeMap, takeLast, tap } from 'rxjs/operators';
 
 export interface ConvocatoriaEntidadConvocanteData {
-  empresaEconomica: IEmpresaEconomica;
+  empresa: IEmpresa;
   entidadConvocante: StatusWrapper<IConvocatoriaEntidadConvocante>;
   plan: IPrograma;
   programa: IPrograma;
@@ -28,7 +27,7 @@ export class ConvocatoriaEntidadesConvocantesFragment extends Fragment {
     key: number,
     private convocatoriaService: ConvocatoriaService,
     private convocatoriaEntidadConvocanteService: ConvocatoriaEntidadConvocanteService,
-    private empresaEconomicaService: EmpresaEconomicaService,
+    private empresaService: EmpresaService,
     public readonly: boolean
   ) {
     super(key);
@@ -42,7 +41,7 @@ export class ConvocatoriaEntidadesConvocantesFragment extends Fragment {
         map(convocatoriaEntidadConvocantes => {
           return convocatoriaEntidadConvocantes.map(entidadConvocante => {
             const element: ConvocatoriaEntidadConvocanteData = {
-              empresaEconomica: {} as IEmpresaEconomica,
+              empresa: {} as IEmpresa,
               entidadConvocante: new StatusWrapper<IConvocatoriaEntidadConvocante>(entidadConvocante),
               modalidad: undefined,
               programa: undefined,
@@ -55,7 +54,7 @@ export class ConvocatoriaEntidadesConvocantesFragment extends Fragment {
         mergeMap(entidadConvocanteData => {
           return from(entidadConvocanteData).pipe(
             mergeMap((data) => {
-              return this.loadEmpresaEconomica(data);
+              return this.loadEmpresa(data);
             })
           );
         }),
@@ -68,11 +67,10 @@ export class ConvocatoriaEntidadesConvocantesFragment extends Fragment {
     }
   }
 
-  private loadEmpresaEconomica(data: ConvocatoriaEntidadConvocanteData): Observable<ConvocatoriaEntidadConvocanteData> {
-    const entidadRef = data.entidadConvocante.value.entidad.personaRef;
-    return this.empresaEconomicaService.findById(entidadRef).pipe(
-      map(empresaEconomica => {
-        data.empresaEconomica = empresaEconomica;
+  private loadEmpresa(data: ConvocatoriaEntidadConvocanteData): Observable<ConvocatoriaEntidadConvocanteData> {
+    return this.empresaService.findById(data.entidadConvocante.value.entidad.id).pipe(
+      map(empresa => {
+        data.empresa = empresa;
         return data;
       }),
       catchError((error) => {
@@ -152,13 +150,12 @@ export class ConvocatoriaEntidadesConvocantesFragment extends Fragment {
     }
     return from(this.entidadesConvocantesEliminadas).pipe(
       mergeMap((data) => {
-        return this.convocatoriaEntidadConvocanteService.deleteById(data.entidadConvocante.value.id)
-          .pipe(
-            tap(() => {
-              this.entidadesConvocantesEliminadas = this.entidadesConvocantesEliminadas.filter(deleted =>
-                deleted === data);
-            })
-          );
+        return this.convocatoriaEntidadConvocanteService.deleteById(data.entidadConvocante.value.id).pipe(
+          tap(() => {
+            this.entidadesConvocantesEliminadas = this.entidadesConvocantesEliminadas.filter(deleted =>
+              deleted === data);
+          })
+        );
       })
     );
   }
@@ -188,9 +185,7 @@ export class ConvocatoriaEntidadesConvocantesFragment extends Fragment {
       return of(void 0);
     }
     createdEntidades.forEach(
-      (wrapper) => wrapper.entidadConvocante.value.convocatoria = {
-        id: this.getKey(),
-      } as IConvocatoria
+      (wrapper) => wrapper.entidadConvocante.value.convocatoriaId = this.getKey() as number
     );
     return from(createdEntidades).pipe(
       mergeMap((data) => {

@@ -1,26 +1,27 @@
 import { IEquipoTrabajo } from '@core/models/eti/equipo-trabajo';
-import { IMemoria } from '@core/models/eti/memoria';
-import { ITarea } from '@core/models/eti/tarea';
+import { IMemoriaPeticionEvaluacion } from '@core/models/eti/memoria-peticion-evaluacion';
+import { ITareaWithIsEliminable } from '@core/models/eti/tarea-with-is-eliminable';
 import { Fragment } from '@core/services/action-service';
 import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
 import { TareaService } from '@core/services/eti/tarea.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
 import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
 import { EquipoInvestigadorListadoFragment } from '../../equipo-investigador/equipo-investigador-listado/equipo-investigador-listado.fragment';
 import { MemoriasListadoFragment } from '../../memorias-listado/memorias-listado.fragment';
+
 export class PeticionEvaluacionTareasFragment extends Fragment {
 
-  tareas$: BehaviorSubject<StatusWrapper<ITarea>[]> = new BehaviorSubject<StatusWrapper<ITarea>[]>([]);
+  tareas$: BehaviorSubject<StatusWrapper<ITareaWithIsEliminable>[]> = new BehaviorSubject<StatusWrapper<ITareaWithIsEliminable>[]>([]);
 
-  private deletedTareas: StatusWrapper<ITarea>[] = [];
+  private deletedTareas: StatusWrapper<ITareaWithIsEliminable>[] = [];
   equiposTrabajo: IEquipoTrabajo[] = [];
-  memorias: IMemoria[] = [];
+  memorias: IMemoriaPeticionEvaluacion[] = [];
 
   constructor(
     key: number,
-    private personaFisicaService: PersonaFisicaService,
+    private personaService: PersonaService,
     private tareaService: TareaService,
     private peticionEvaluacionService: PeticionEvaluacionService,
     private equipoInvestigadorFragment: EquipoInvestigadorListadoFragment,
@@ -41,7 +42,7 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
     this.equiposTrabajo = equiposTrabajo;
   }
 
-  setMemorias(memorias: IMemoria[]) {
+  setMemorias(memorias: IMemoriaPeticionEvaluacion[]) {
     this.memorias = memorias;
   }
 
@@ -50,16 +51,13 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
       map((response) => {
         if (response.items) {
           response.items.forEach((tarea) => {
-            this.personaFisicaService.getInformacionBasica(tarea.equipoTrabajo.personaRef).pipe(
+            this.personaService.findById(tarea.equipoTrabajo.persona.id).pipe(
               map((usuarioInfo) => {
-                tarea.equipoTrabajo.identificadorNumero = usuarioInfo.identificadorNumero;
-                tarea.equipoTrabajo.nombre = usuarioInfo.nombre;
-                tarea.equipoTrabajo.primerApellido = usuarioInfo.primerApellido;
-                tarea.equipoTrabajo.segundoApellido = usuarioInfo.segundoApellido;
+                tarea.equipoTrabajo.persona = usuarioInfo;
               })
             ).subscribe();
           });
-          return response.items.map((tarea) => new StatusWrapper<ITarea>(tarea));
+          return response.items.map((tarea) => new StatusWrapper<ITareaWithIsEliminable>(tarea));
         }
         else {
           return [];
@@ -75,8 +73,8 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
    *
    * @param tarea una tarea
    */
-  addTarea(tarea: ITarea): void {
-    const wrapped = new StatusWrapper<ITarea>(tarea);
+  addTarea(tarea: ITareaWithIsEliminable): void {
+    const wrapped = new StatusWrapper<ITareaWithIsEliminable>(tarea);
     wrapped.setCreated();
     const current = this.tareas$.value;
     current.push(wrapped);
@@ -90,7 +88,7 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
    *
    * @param tarea una tarea
    */
-  deleteTarea(tarea: StatusWrapper<ITarea>): void {
+  deleteTarea(tarea: StatusWrapper<ITareaWithIsEliminable>): void {
     const current = this.tareas$.value;
     const index = current.findIndex((value) => value === tarea);
     if (index >= 0) {
@@ -128,7 +126,7 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
     const current = this.tareas$.value;
 
     const currentWithoutTareasEquipoTrabajo = current.filter((wrapper) =>
-      wrapper.value.equipoTrabajo.personaRef !== wrapperEquipoTrabajo.value.personaRef
+      wrapper.value.equipoTrabajo.persona.id !== wrapperEquipoTrabajo.value.persona.id
     );
 
     if (currentWithoutTareasEquipoTrabajo.length !== current.length) {
@@ -165,9 +163,10 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
     return from(editedTareas).pipe(
       mergeMap((wrappedTarea) => {
         return this.tareaService.update(wrappedTarea.value.id, wrappedTarea.value).pipe(
-          map((updatedTarea) => {
+          // TODO: Eliminar casteo ya que realmente el atributo de eliminable el backend no lo está retornando
+          map((updatedTarea: ITareaWithIsEliminable) => {
             const index = this.tareas$.value.findIndex((currentTarea) => currentTarea === wrappedTarea);
-            this.tareas$[index] = new StatusWrapper<ITarea>(updatedTarea);
+            this.tareas$[index] = new StatusWrapper<ITareaWithIsEliminable>(updatedTarea);
           })
         );
       }));
@@ -182,15 +181,16 @@ export class PeticionEvaluacionTareasFragment extends Fragment {
     return from(createdTareas).pipe(
       mergeMap((wrappedTarea) => {
         wrappedTarea.value.equipoTrabajo = this.equiposTrabajo.find(
-          equipo => equipo.personaRef === wrappedTarea.value.equipoTrabajo.personaRef);
+          equipo => equipo.persona.id === wrappedTarea.value.equipoTrabajo.persona.id);
 
         const idEquipoTrabajo = wrappedTarea.value.equipoTrabajo.id;
 
         return this.peticionEvaluacionService.createTarea(this.getKey() as number,
           idEquipoTrabajo, wrappedTarea.value).pipe(
-            map((savedTarea) => {
+            // TODO: Eliminar casteo ya que el back no está devolviendo el atributo eliminable
+            map((savedTarea: ITareaWithIsEliminable) => {
               const index = this.tareas$.value.findIndex((currentTarea) => currentTarea === wrappedTarea);
-              this.tareas$[index] = new StatusWrapper<ITarea>(savedTarea);
+              this.tareas$[index] = new StatusWrapper<ITareaWithIsEliminable>(savedTarea);
             })
           );
       }));

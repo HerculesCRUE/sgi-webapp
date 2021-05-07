@@ -1,26 +1,15 @@
+import { IDatosAcademicos } from './datos-academicos';
+import { ISexo } from './sexo';
+import { ITipoDocumento } from './tipo-documento';
+import { IVinculacion } from './vinculacion';
+
 export interface IPersona {
-
-  /** ID */
-  personaRef: string;
-
-  /** Nombre */
+  id: string;
   nombre: string;
-
-  /** Primer apellido */
-  primerApellido: string;
-
-  /** Segundo apellido */
-  segundoApellido: string;
-
-  /** Identificador número */
-  identificadorNumero: string;
-
-  /** Identificador letra */
-  identificadorLetra: string;
-
-  /** Vinculación */
-  vinculacion: string;
-
-  /** Nivel académico */
-  nivelAcademico: string;
+  apellidos: string;
+  sexo: ISexo;
+  tipoDocumento: ITipoDocumento;
+  numeroDocumento: string;
+  vinculacion: IVinculacion;
+  datosAcademicos: IDatosAcademicos;
 }

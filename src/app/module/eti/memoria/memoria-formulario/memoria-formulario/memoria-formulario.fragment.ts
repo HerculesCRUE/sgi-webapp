@@ -54,8 +54,7 @@ export class MemoriaFormularioFragment extends Fragment {
   private memoria: IMemoria;
   private comite: IComite;
   private comentarios: Map<number, IComentario>;
-
-  private readonly = false;
+  private readonly: boolean;
 
   isReadonly(): boolean {
     return this.readonly;
@@ -63,6 +62,7 @@ export class MemoriaFormularioFragment extends Fragment {
 
   constructor(
     private readonly logger: NGXLogger,
+    readonly: boolean,
     key: number,
     comite: IComite,
     private formularioService: FormularioService,
@@ -73,6 +73,7 @@ export class MemoriaFormularioFragment extends Fragment {
     private evaluacionService: EvaluacionService
   ) {
     super(key);
+    this.readonly = readonly;
     this.memoria = {} as IMemoria;
     this.comite = comite;
     this.subscriptions.push(this.selectedIndex$.subscribe(
@@ -115,7 +116,7 @@ export class MemoriaFormularioFragment extends Fragment {
         this.memoriaService.findById(this.getKey() as number).pipe(
           map((memoria) => {
             this.memoria = memoria;
-            if (!isFormularioEditable(this.memoria)) {
+            if (!isFormularioEditable(this.memoria) && !this.readonly) {
               this.readonly = true;
             }
             return memoria;

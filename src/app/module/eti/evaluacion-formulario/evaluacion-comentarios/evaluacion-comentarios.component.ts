@@ -4,21 +4,22 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IComentario } from '@core/models/eti/comentario';
 import { TipoComentario } from '@core/models/eti/tipo-comentario';
 import { DialogService } from '@core/services/dialog.service';
 import { TipoComentarioService } from '@core/services/eti/tipo-comentario.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { Subscription, Observable } from 'rxjs';
-import { EvaluacionComentarioFragment } from './evaluacion-comentarios.fragment';
-
+import { TranslateService } from '@ngx-translate/core';
+import { Observable, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ComentarioModalComponent, ComentarioModalData } from '../../comentario/comentario-modal/comentario-modal.component';
 import { EvaluacionFormularioActionService, Gestion } from '../evaluacion-formulario.action.service';
-import { FragmentComponent } from '@core/component/fragment.component';
+import { EvaluacionComentarioFragment } from './evaluacion-comentarios.fragment';
 
-const MSG_DELETE = marker('eti.comentario.listado.borrar.titulo');
-
+const MSG_DELETE = marker('msg.delete.entity');
+const COMENTARIO_KEY = marker('eti.comentario');
 @Component({
   selector: 'sgi-evaluacion-comentarios',
   templateUrl: './evaluacion-comentarios.component.html',
@@ -37,13 +38,19 @@ export class EvaluacionComentariosComponent extends FragmentComponent implements
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
+  textoDelete: string;
+  msgParamComentarioEntity = {};
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
 
   constructor(
     private readonly dialogService: DialogService,
     private tipoComentarioService: TipoComentarioService,
     private matDialog: MatDialog,
-    private actionService: EvaluacionFormularioActionService
-
+    private actionService: EvaluacionFormularioActionService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.COMENTARIOS, actionService);
     this.formPart = this.fragment as EvaluacionComentarioFragment;
@@ -54,6 +61,7 @@ export class EvaluacionComentariosComponent extends FragmentComponent implements
 
   ngOnInit() {
     super.ngOnInit();
+    this.setupI18N();
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     this.subscriptions.push(this.formPart.comentarios$.subscribe(elements => {
@@ -73,6 +81,25 @@ export class EvaluacionComentariosComponent extends FragmentComponent implements
             return wrapper.value[property];
         }
       };
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      COMENTARIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamComentarioEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      COMENTARIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
   }
 
   ngOnDestroy(): void {
@@ -100,16 +127,14 @@ export class EvaluacionComentariosComponent extends FragmentComponent implements
     };
 
     const config = {
-      width: GLOBAL_CONSTANTS.maxWidthModal,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-      data: evaluacionData,
-      autoFocus: false
+      panelClass: 'sgi-dialog-container',
+      data: evaluacionData
     };
     const dialogRef = this.matDialog.open(ComentarioModalComponent, config);
     dialogRef.afterClosed().subscribe(
-      (comentario: IComentario) => {
-        if (comentario) {
-          this.formPart.addComentario(comentario);
+      (modalData: ComentarioModalData) => {
+        if (modalData && modalData.comentario) {
+          this.formPart.addComentario(modalData.comentario);
         }
       }
     );
@@ -129,18 +154,16 @@ export class EvaluacionComentariosComponent extends FragmentComponent implements
     };
 
     const config = {
-      width: GLOBAL_CONSTANTS.maxWidthModal,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-      data: evaluacionData,
-      autoFocus: false
+      panelClass: 'sgi-dialog-container',
+      data: evaluacionData
     };
     const dialogRef = this.matDialog.open(ComentarioModalComponent, config);
     dialogRef.afterClosed().subscribe(
-      (resultado: IComentario) => {
-        if (resultado) {
+      (modalData: ComentarioModalData) => {
+        if (modalData && modalData.comentario) {
           this.subscriptions.push(this.getTipoComentario().subscribe(
             (tipoComentario) => {
-              resultado.tipoComentario = tipoComentario;
+              modalData.comentario.tipoComentario = tipoComentario;
             }
           ));
           if (!wrapperRef.created) {
@@ -159,7 +182,7 @@ export class EvaluacionComentariosComponent extends FragmentComponent implements
    */
   deleteComentario(comentario: StatusWrapper<IComentario>) {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado: boolean) => {
           if (aceptado) {
             this.formPart.deleteComentario(comentario);

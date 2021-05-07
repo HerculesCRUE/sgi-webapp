@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon';
 import { IActa } from './acta';
 import { TipoEstadoActa } from './tipo-estado-acta';
 
@@ -9,5 +10,5 @@ export interface IEstadoActa {
   /** Tipo estado acta */
   tipoEstadoActa: TipoEstadoActa;
   /** Fecha Estado */
-  fechaEstado: Date;
+  fechaEstado: DateTime;
 }

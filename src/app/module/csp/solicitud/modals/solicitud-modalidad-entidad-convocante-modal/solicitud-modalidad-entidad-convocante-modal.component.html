@@ -1,102 +1,78 @@
-<div class="modal-solicitud-modalidad">
-  <header mat-dialog-title class="modal-header-material">
-    <h3>
-      {{ (isEdit ? 'csp.solicitud.solicitudModalidad.modal.titulo.editar' :
-      'csp.solicitud.solicitudModalidad.modal.titulo.aniadir') | translate}}
-    </h3>
-  </header>
-  <mat-dialog-content>
-
-    <form [formGroup]="formGroup">
-
-      <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
-        [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
-
-        <!-- Entidad convocante -->
-        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
-          [fxFlexOrder]="fxFlexProperties.order">
-
-          <mat-form-field fxFill>
-            <mat-label>{{'csp.solicitud.solicitudModalidad.modal.entidadConvocante' | translate}}</mat-label>
-            <input matInput formControlName="entidadConvocante" type="text" id="entidadConvocante"
-              placeholder="{{'csp.solicitud.solicitudModalidad.modal.entidadConvocante' | translate}}" maxlength="100">
-          </mat-form-field>
-
-        </div>
-
-        <!-- Plan-->
-        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
-          [fxFlexOrder]="fxFlexProperties.order">
-
-          <mat-form-field fxFill>
-            <mat-label>{{'csp.solicitud.solicitudModalidad.modal.plan' | translate}}</mat-label>
-            <input matInput formControlName="plan" type="text" id="plan"
-              placeholder="{{'csp.solicitud.solicitudModalidad.modal.plan' | translate}}" maxlength="100">
-          </mat-form-field>
-
-        </div>
-
-        <!-- Modalidad -->
-
-        <div class="programa" [fxFlex.sm]="fxFlexPropertiesTree.sm" [fxFlex.md]="fxFlexPropertiesTree.md"
-          [fxFlex.gt-md]="fxFlexPropertiesTree.gtMd" [fxFlexOrder]="fxFlexPropertiesTree.order">
-
-          <div class="arbol" [fxFlex.sm]="fxFlexPropertiesTree.sm" [fxFlex.md]="fxFlexPropertiesTree.md"
-            [fxFlex.gt-md]="fxFlexPropertiesTree.gtMd" [fxFlexOrder]="fxFlexPropertiesTree.order">
-            <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="arbol-tree">
-              <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
-                <li class="mat-tree-node">
-                  <button mat-icon-button disabled></button>
-
-                  <mat-label *ngIf="node === rootNode">
-                    {{node.programa.nombre}}
-                  </mat-label>
-
-                  <mat-checkbox *ngIf="node !== rootNode" class="checkbox" color="primary"
-                    [checked]="node === checkedNode" (change)="onCheckNode(node, $event)"
-                    [disabled]="this.data.readonly">
-                    {{node.programa.nombre}}
-                  </mat-checkbox>
-                </li>
-              </mat-tree-node>
-              <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
-                <li>
-                  <div class="mat-tree-node">
-                    <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'Toggle ' + node.programa.nombre">
-                      <mat-icon color="primary" class="mat-icon-rtl-mirror">
-                        {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
-                      </mat-icon>
-                    </button>
-
-                    <mat-label *ngIf="node === rootNode">
-                      {{node.programa.nombre}}
-                    </mat-label>
-
-                    <mat-checkbox *ngIf="node !== rootNode" class="checkbox" color="primary"
-                      [checked]="node === checkedNode" (change)="onCheckNode(node, $event)"
-                      [disabled]="this.data.readonly">
-                      {{node.programa.nombre}}
-                    </mat-checkbox>
-                  </div>
-                  <ul [class.arbol-invisible]="!treeControl.isExpanded(node)">
-                    <ng-container matTreeNodeOutlet></ng-container>
-                  </ul>
-                </li>
-              </mat-nested-tree-node>
-            </mat-tree>
-          </div>
-        </div>
-
-
-      </div>
-
-    </form>
-  </mat-dialog-content>
-  <div id="modals-buttons" class="float-right" mat-dialog-actions>
-    <button color="accent" md-button mat-raised-button type="submit" (click)="saveOrUpdate()"
-      *ngIf="!this.data.readonly">
-      {{'botones.aceptar' | translate}}</button>
-    <button class="link-cancelar" mat-button (click)="closeModal()">{{'botones.cancelar' |
-      translate}}</button>
-  </div>
+<div class="sgi-dialog-header" fxLayout="row" fxLayoutGap="20px">
+  <span fxFlexAlign="center" mat-mat-dialog-title role="heading" aria-level="3" fxFlex>{{title}}</span>
+  <button fxFlex="nogrow" mat-icon-button mat-dialog-close>
+    <mat-icon class="close-icon">close</mat-icon>
+  </button>
 </div>
+<mat-dialog-content>
+  <form [formGroup]="formGroup">
+    <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
+      [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+      <!-- Entidad convocante -->
+      <div>
+        <mat-form-field>
+          <mat-label>{{'csp.solicitud-modalidad.entidad-convocante' | translate}}</mat-label>
+          <input matInput formControlName="entidadConvocante" type="text"
+            placeholder="{{'csp.solicitud-modalidad.entidad-convocante' | translate}}" maxlength="100">
+        </mat-form-field>
+      </div>
+      <!-- Plan-->
+      <div>
+        <mat-form-field>
+          <mat-label>{{'csp.solicitud-modalidad.plan' | translate}}</mat-label>
+          <input matInput formControlName="plan" type="text"
+            placeholder="{{'csp.solicitud-modalidad.plan' | translate}}" maxlength="100">
+        </mat-form-field>
+      </div>
+    </div>
+    <!-- Modalidad -->
+    <div class="programa">
+      <div class="arbol">
+        <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="arbol-tree">
+          <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
+            <li class="mat-tree-node">
+              <button mat-icon-button disabled></button>
+              <mat-label *ngIf="node === rootNode">
+                {{node.programa.nombre}}
+              </mat-label>
+              <mat-checkbox *ngIf="node !== rootNode" class="checkbox" color="primary" [checked]="node === checkedNode"
+                (change)="onCheckNode(node, $event)" [disabled]="this.data.readonly">
+                {{node.programa.nombre}}
+              </mat-checkbox>
+            </li>
+          </mat-tree-node>
+          <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
+            <li>
+              <div class="mat-tree-node">
+                <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'Toggle ' + node.programa.nombre">
+                  <mat-icon color="primary" class="mat-icon-rtl-mirror">
+                    {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+                  </mat-icon>
+                </button>
+
+                <mat-label *ngIf="node === rootNode">
+                  {{node.programa.nombre}}
+                </mat-label>
+
+                <mat-checkbox *ngIf="node !== rootNode" class="checkbox" color="primary"
+                  [checked]="node === checkedNode" (change)="onCheckNode(node, $event)" [disabled]="this.data.readonly">
+                  {{node.programa.nombre}}
+                </mat-checkbox>
+              </div>
+              <ul [class.arbol-invisible]="!treeControl.isExpanded(node)">
+                <ng-container matTreeNodeOutlet></ng-container>
+              </ul>
+            </li>
+          </mat-nested-tree-node>
+        </mat-tree>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button color="accent" (click)="saveOrUpdate()" mat-raised-button type="submit" *ngIf="!data.readonly">
+    <mat-icon class="save-icon">save</mat-icon>{{'btn.ok' | translate}}
+  </button>
+  <button class="link-cancelar" mat-button type="button" mat-dialog-close>{{'btn.cancel' |
+    translate}}</button>
+</mat-dialog-actions>

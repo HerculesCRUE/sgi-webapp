@@ -3,6 +3,7 @@ import { RouterModule } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentGuard } from '@core/guards/detail-form.guard';
 import { ActionGuard } from '@core/guards/master-form.guard';
+import { MSG_PARAMS } from '@core/i18n';
 import { SgiRoutes } from '@core/route';
 import { ROUTE_NAMES } from '@core/route.names';
 import { SgiAuthGuard } from '@sgi/framework/auth';
@@ -11,17 +12,16 @@ import { ModeloEjecucionEditarComponent } from './modelo-ejecucion-editar/modelo
 import { ModeloEjecucionDatosGeneralesComponent } from './modelo-ejecucion-formulario/modelo-ejecucion-datos-generales/modelo-ejecucion-datos-generales.component';
 import { ModeloEjecucionTipoDocumentoComponent } from './modelo-ejecucion-formulario/modelo-ejecucion-tipo-documento/modelo-ejecucion-tipo-documento.component';
 import { ModeloEjecucionTipoEnlaceComponent } from './modelo-ejecucion-formulario/modelo-ejecucion-tipo-enlace/modelo-ejecucion-tipo-enlace.component';
-import { ModeloEjecucionTipoFinalidadComponent } from './modelo-ejecucion-formulario/modelo-ejecucion-tipo-finalidad/modelo-ejecucion-tipo-finalidad.component';
 import { ModeloEjecucionTipoFaseComponent } from './modelo-ejecucion-formulario/modelo-ejecucion-tipo-fase/modelo-ejecucion-tipo-fase.component';
+import { ModeloEjecucionTipoFinalidadComponent } from './modelo-ejecucion-formulario/modelo-ejecucion-tipo-finalidad/modelo-ejecucion-tipo-finalidad.component';
+import { ModeloEjecucionTipoHitoComponent } from './modelo-ejecucion-formulario/modelo-ejecucion-tipo-hito/modelo-ejecucion-tipo-hito.component';
+import { ModeloEjecucionTipoUnidadGestionComponent } from './modelo-ejecucion-formulario/modelo-ejecucion-tipo-unidad-gestion/modelo-ejecucion-tipo-unidad-gestion.component';
 import { ModeloEjecucionListadoComponent } from './modelo-ejecucion-listado/modelo-ejecucion-listado.component';
 import { MODELO_EJECUCION_ROUTE_NAMES } from './modelo-ejecucion-route-names';
 import { ModeloEjecucionResolver } from './modelo-ejecucion.resolver';
-import { ModeloEjecucionTipoHitoComponent } from './modelo-ejecucion-formulario/modelo-ejecucion-tipo-hito/modelo-ejecucion-tipo-hito.component';
-import { ModeloEjecucionTipoUnidadGestionComponent } from './modelo-ejecucion-formulario/modelo-ejecucion-tipo-unidad-gestion/modelo-ejecucion-tipo-unidad-gestion.component';
 
-const MSG_LISTADO_TITLE = marker('csp.modelo.ejecucion.listado.titulo');
-const MSG_NEW_TITLE = marker('csp.modelo.ejecucion.crear.titulo');
-const MSG_EDIT_TITLE = marker('csp.modelo.ejecucion.editar.titulo');
+const MSG_NEW_TITLE = marker('title.new.entity');
+const MODELO_EJECUCION_KEY = marker('csp.modelo-ejecucion');
 
 const routes: SgiRoutes = [
   {
@@ -29,7 +29,8 @@ const routes: SgiRoutes = [
     component: ModeloEjecucionListadoComponent,
     canActivate: [SgiAuthGuard],
     data: {
-      title: MSG_LISTADO_TITLE
+      title: MODELO_EJECUCION_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.PLURAL
     },
   },
   {
@@ -39,6 +40,9 @@ const routes: SgiRoutes = [
     canDeactivate: [ActionGuard],
     data: {
       title: MSG_NEW_TITLE,
+      titleParams: {
+        entity: MODELO_EJECUCION_KEY, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR
+      }
     },
     children: [
       {
@@ -92,7 +96,8 @@ const routes: SgiRoutes = [
       modeloEjecucion: ModeloEjecucionResolver
     },
     data: {
-      title: MSG_EDIT_TITLE,
+      title: MODELO_EJECUCION_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.SINGULAR
     },
     children: [
       {

@@ -1,4 +1,3 @@
-import { IProyecto } from '@core/models/csp/proyecto';
 import { IProyectoHito } from '@core/models/csp/proyecto-hito';
 import { Fragment } from '@core/services/action-service';
 import { ProyectoHitoService } from '@core/services/csp/proyecto-hito.service';
@@ -14,8 +13,7 @@ export class ProyectoHitosFragment extends Fragment {
   constructor(
     key: number,
     private proyectoService: ProyectoService,
-    private proyectoHitoService: ProyectoHitoService,
-    public readonly: boolean
+    private proyectoHitoService: ProyectoHitoService
   ) {
     super(key);
     this.setComplete(true);
@@ -95,10 +93,7 @@ export class ProyectoHitosFragment extends Fragment {
       return of(void 0);
     }
     createdHitos.forEach(
-      (wrapper) => wrapper.value.proyecto = {
-        id: this.getKey(),
-        activo: true
-      } as IProyecto
+      (wrapper) => wrapper.value.proyectoId = this.getKey() as number
     );
     return from(createdHitos).pipe(
       mergeMap((wrappedHitos) => {

@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IComite } from '@core/models/eti/comite';
 import { IMemoria } from '@core/models/eti/memoria';
 import { TipoEstadoMemoria } from '@core/models/eti/tipo-estado-memoria';
@@ -12,16 +13,20 @@ import { ComiteService } from '@core/services/eti/comite.service';
 import { TipoMemoriaService } from '@core/services/eti/tipo-memoria.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { NullIdValidador } from '@core/validators/null-id-validador';
+import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, Subscription } from 'rxjs';
 import { map, startWith, tap } from 'rxjs/operators';
 import { MemoriaActionService } from '../../memoria.action.service';
 import { MemoriaDatosGeneralesFragment } from './memoria-datos-generales.fragment';
 
-const MSG_ERROR_INIT_ = marker('eti.memoria.datosGenerales.error.init');
-const TEXT_USER_TITLE = marker('eti.memoria.datosGenerales.buscador.solicitante');
-const TEXT_USER_BUTTON = marker('eti.memoria.datosGenerales.buscador.buscar.solicitante');
-
+const MSG_ERROR_INIT_ = marker('error.load');
+const TEXT_USER_TITLE = marker('eti.solicitante');
+const TEXT_USER_BUTTON = marker('btn.eti.search.solicitante');
+const MEMORIA_COMITE_KEY = marker('label.eti.comite');
+const MEMORIA_ORIGINAL_KEY = marker('eti.memoria.original');
+const MEMORIA_TIPO_KEY = marker('eti.memoria.tipo');
+const MEMORIA_CODIGO_ORGANO_COMPETENTE = marker('eti.memoria.codigo-organo-compentente');
 @Component({
   selector: 'sgi-memoria-datos-generales',
   templateUrl: './memoria-datos-generales.component.html',
@@ -45,6 +50,10 @@ export class MemoriaDatosGeneralesComponent extends FormFragmentComponent<IMemor
   textoUsuarioLabel = TEXT_USER_TITLE;
   textoUsuarioInput = TEXT_USER_TITLE;
   textoUsuarioButton = TEXT_USER_BUTTON;
+  msgParamComiteEntity = {};
+  msgParamTipoMemoriaEntity = {};
+  msgParamOrginalEntity = {};
+  msgParamCodigoOrganoCompenteteEntity = {};
 
   private subscriptions: Subscription[] = [];
 
@@ -53,7 +62,8 @@ export class MemoriaDatosGeneralesComponent extends FormFragmentComponent<IMemor
     private readonly comiteService: ComiteService,
     private readonly snackBarService: SnackBarService,
     private readonly tipoMemoriaService: TipoMemoriaService,
-    private actionService: MemoriaActionService
+    private actionService: MemoriaActionService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.DATOS_GENERALES, actionService);
     this.datosGeneralesFragment = this.fragment as MemoriaDatosGeneralesFragment;
@@ -72,7 +82,30 @@ export class MemoriaDatosGeneralesComponent extends FormFragmentComponent<IMemor
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.loadComites();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      MEMORIA_COMITE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamComiteEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      MEMORIA_TIPO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamTipoMemoriaEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      MEMORIA_ORIGINAL_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamOrginalEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      MEMORIA_CODIGO_ORGANO_COMPETENTE,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamCodigoOrganoCompenteteEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
   }
 
   loadComites() {
@@ -165,13 +198,8 @@ export class MemoriaDatosGeneralesComponent extends FormFragmentComponent<IMemor
 
   getPersonaResponsable(persona: IPersona): string {
     if (persona) {
-      return persona?.nombre + ' ' + persona?.primerApellido + ' ' +
-        persona?.segundoApellido + '(' + persona?.identificadorNumero + persona?.identificadorLetra + ')';
+      return persona?.nombre + ' ' + persona?.apellidos + ' (' + persona?.numeroDocumento + ')';
     }
-  }
-
-  getPersonaRef(persona: IPersona): string {
-    return persona.personaRef;
   }
 
   /**

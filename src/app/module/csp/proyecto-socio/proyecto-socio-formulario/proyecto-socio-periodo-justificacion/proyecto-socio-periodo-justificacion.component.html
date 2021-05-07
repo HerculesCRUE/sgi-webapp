@@ -1,11 +1,12 @@
 <section class="proyecto-socio-periodo-justificacion">
+  <h2>{{'menu.csp.proyectos.socios.periodos-justificacion' | translate}}</h2>
   <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSource" matSort matSortActive="numPeriodo"
     matSortDirection="asc" matSortDisableClear>
 
     <!-- numPeriodo Column -->
     <ng-container matColumnDef="numPeriodo">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto-socio.periodo-justificacion.listado.numPeriodo' | translate}}
+        {{'csp.proyecto-socio-periodo-justificacion.numero-periodo' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">{{wrapper.value.numPeriodo}}</td>
     </ng-container>
@@ -13,43 +14,43 @@
     <!-- fechaInicio Column -->
     <ng-container matColumnDef="fechaInicio">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto-socio.periodo-justificacion.listado.fechaInicio' |
+        {{'csp.proyecto-socio-periodo-justificacion.fecha-inicio' |
         translate}}
       </th>
-      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.fechaInicio | date: 'dd/MM/yyyy'}}</td>
+      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.fechaInicio | luxon: 'short'}}</td>
     </ng-container>
 
     <!-- fechaFin Column -->
     <ng-container matColumnDef="fechaFin">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto-socio.periodo-justificacion.listado.fechaFin' |
+        {{'csp.proyecto-socio-periodo-justificacion.fecha-fin' |
         translate}}
       </th>
-      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.fechaFin | date: 'dd/MM/yyyy'}}</td>
+      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.fechaFin | luxon: 'short'}}</td>
     </ng-container>
 
     <!-- fechaInicioPresentacion Column -->
     <ng-container matColumnDef="fechaInicioPresentacion">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto-socio.periodo-justificacion.listado.fechaInicioPresentacion' |
+        {{'csp.proyecto-socio-periodo-justificacion.fecha-inicio-presentacion' |
         translate}}
       </th>
-      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.fechaInicioPresentacion | date: 'dd/MM/yyyy'}}</td>
+      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.fechaInicioPresentacion | luxon: 'short'}}</td>
     </ng-container>
 
     <!-- fechaFinPresentacion Column -->
     <ng-container matColumnDef="fechaFinPresentacion">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto-socio.periodo-justificacion.listado.fechaFinPresentacion' |
+        {{'csp.proyecto-socio-periodo-justificacion.fecha-fin-presentacion' |
         translate}}
       </th>
-      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.fechaFinPresentacion | date: 'dd/MM/yyyy'}}</td>
+      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.fechaFinPresentacion | luxon: 'short'}}</td>
     </ng-container>
 
     <!-- documentacionRecibida Column -->
     <ng-container matColumnDef="documentacionRecibida">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto-socio.periodo-justificacion.listado.documentacionRecibida' |
+        {{'csp.proyecto-socio-periodo-justificacion.documentacion-recibida' |
         translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">{{ (wrapper.value.documentacionRecibida ? 'label.si' : 'label.no') |
@@ -60,28 +61,25 @@
     <!-- fechaRecepcion Column -->
     <ng-container matColumnDef="fechaRecepcion">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto-socio.periodo-justificacion.listado.fechaRecepcion' |
+        {{'csp.proyecto-socio-periodo-justificacion.fecha-recepcion' |
         translate}}
       </th>
-      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.fechaRecepcion | date: 'dd/MM/yyyy'}}</td>
+      <td mat-cell *matCellDef="let wrapper">{{wrapper.value.fechaRecepcion | luxon: 'short'}}</td>
     </ng-container>
 
     <!-- Acciones Column -->
     <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef> {{'csp.proyecto-socio.periodo-justificacion.listado.acciones' |
+      <th mat-header-cell *matHeaderCellDef> {{'label.actions' |
         translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         <ng-container>
-          <button mat-button matTooltip="{{'botones.editar' | translate}}"
-            [routerLink]="['../../..', PROYECTO_SOCIO_PERIODO_JUSTIFICACION_ROUTE, wrapper.value.id]"
-            [state]="createState(wrapper)">
+          <button mat-button matTooltip="{{'btn.edit' | translate}}" [routerLink]="[wrapper.value.id]">
             <mat-icon color="primary">border_color</mat-icon>
           </button>
         </ng-container>
         <ng-container>
-          <button mat-button matTooltip="{{'botones.borrar' | translate}}"
-            (click)="deletePeriodoJustificacion(wrapper)">
+          <button mat-button matTooltip="{{'btn.delete' | translate}}" (click)="deletePeriodoJustificacion(wrapper)">
             <mat-icon color="warn">highlight_off</mat-icon>
           </button>
         </ng-container>
@@ -91,10 +89,9 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
   <div class="separation-button">
-    <button color="three" mat-button mat-raised-button
-      [routerLink]="['../../..', PROYECTO_SOCIO_PERIODO_JUSTIFICACION_ROUTE, ROUTE_NAMES.NEW]" [state]="createState()">
+    <button color="three" mat-button mat-raised-button [routerLink]="[ROUTE_NAMES.NEW]">
       <mat-icon color="accent">add_circle</mat-icon>
-      {{'csp.proyecto-socio.periodo-justificacion.añadir' | translate}}
+      {{ 'btn.add.entity' | translate:msgParamEntity }}
     </button>
   </div>
 </section>

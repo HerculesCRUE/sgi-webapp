@@ -4,6 +4,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoProrrogaDocumento } from '@core/models/csp/proyecto-prorroga-documento';
 import { ITipoDocumento, ITipoFase } from '@core/models/csp/tipos-configuracion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
@@ -15,16 +16,22 @@ import { DocumentoService, triggerDownloadToUser } from '@core/services/sgdoc/do
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { IsEntityValidator } from '@core/validators/is-entity-validador';
+import { TranslateService } from '@ngx-translate/core';
 import { SgiFileUploadComponent, UploadEvent } from '@shared/file-upload/file-upload.component';
 import { Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ProyectoProrrogaActionService } from '../../proyecto-prorroga.action.service';
 import { NodeDocumento, ProyectoProrrogaDocumentosFragment } from './proyecto-prorroga-documentos.fragment';
 
-const MSG_DELETE = marker('csp.proyecto-prorroga.documentos.documento.eliminar.msg');
-const MSG_UPLOAD_SUCCES = marker('file.upload.success');
-const MSG_UPLOAD_ERROR = marker('file.upload.error');
-const MSG_DOWNLOAD_ERROR = marker('file.download.error');
-const MSG_FILE_NOT_FOUND_ERROR = marker('file.info.error');
+const MSG_DELETE = marker('msg.delete.entity');
+const MSG_UPLOAD_SUCCES = marker('msg.file.upload.success');
+const MSG_UPLOAD_ERROR = marker('error.file.upload');
+const MSG_DOWNLOAD_ERROR = marker('error.file.download');
+const MSG_FILE_NOT_FOUND_ERROR = marker('error.file.info');
+const PRORROGA_DOCUMENTO_NOMBRE_KEY = marker('csp.documento.nombre');
+const PRORROGA_DOCUMENTO_FICHERO_KEY = marker('csp.prorroga.documento.fichero');
+const PRORROGA_DOCUMENTO_VISIBLE_KEY = marker('csp.prorroga.documento.visible');
+const DOCUMENTO_KEY = marker('csp.documento');
 
 enum VIEW_MODE {
   NONE = '',
@@ -62,6 +69,13 @@ export class ProyectoProrrogaDocumentosComponent extends FragmentComponent imple
 
   tiposDocumento: ITipoDocumento[] = [];
 
+  msgParamEntity = {};
+  msgParamFicheroEntity = {};
+  msgParamNombreEntity = {};
+  msgParamVisibleEntity = {};
+  msgParamEntities = {};
+  textoDelete: string;
+
   private getLevel = (node: NodeDocumento) => node.level;
   private isExpandable = (node: NodeDocumento) => node.childs.length > 0;
   private getChildren = (node: NodeDocumento): NodeDocumento[] => node.childs;
@@ -77,7 +91,8 @@ export class ProyectoProrrogaDocumentosComponent extends FragmentComponent imple
     public actionService: ProyectoProrrogaActionService,
     private modeloEjecucionService: ModeloEjecucionService,
     private documentoService: DocumentoService,
-    private snackBar: SnackBarService
+    private snackBar: SnackBarService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.DOCUMENTOS, actionService);
     this.fxFlexProperties = new FxFlexProperties();
@@ -100,6 +115,7 @@ export class ProyectoProrrogaDocumentosComponent extends FragmentComponent imple
 
   ngOnInit() {
     super.ngOnInit();
+    this.setupI18N();
     this.subscriptions.push(this.formPart.documentos$.subscribe((documentos) => {
       this.dataSource.data = documentos;
     }));
@@ -111,7 +127,7 @@ export class ProyectoProrrogaDocumentosComponent extends FragmentComponent imple
       comentario: new FormControl('')
     }));
     this.group.initialize();
-    const id = this.formPart.proyecto?.modeloEjecucion?.id;
+    const id = this.formPart.proyectoModeloEjecucionId;
     this.subscriptions.push(
       this.modeloEjecucionService.findModeloTipoDocumento(id).subscribe(
         (tipos) => {
@@ -120,8 +136,46 @@ export class ProyectoProrrogaDocumentosComponent extends FragmentComponent imple
       )
     );
 
-
     this.switchToNone();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      PRORROGA_DOCUMENTO_NOMBRE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamNombreEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PRORROGA_DOCUMENTO_FICHERO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFicheroEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PRORROGA_DOCUMENTO_VISIBLE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamVisibleEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+
+    this.translate.get(
+      DOCUMENTO_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamEntities = { entity: value });
   }
 
   ngOnDestroy() {
@@ -258,7 +312,7 @@ export class ProyectoProrrogaDocumentosComponent extends FragmentComponent imple
 
   deleteDetail() {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado: boolean) => {
           if (aceptado) {
             this.formPart.deleteNode(this.viewingNode);

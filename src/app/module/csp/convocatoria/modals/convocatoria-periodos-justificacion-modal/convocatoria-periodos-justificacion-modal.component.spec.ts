@@ -9,8 +9,8 @@ import { SnackBarService } from '@core/services/snack-bar.service';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
 import { SgiAuthModule, SgiAuthService } from '@sgi/framework/auth';
+import { SharedModule } from '@shared/shared.module';
 import { LoggerTestingModule } from 'ngx-logger/testing';
-
 import { ConvocatoriaPeriodosJustificacionModalComponent, IConvocatoriaPeriodoJustificacionModalData } from './convocatoria-periodos-justificacion-modal.component';
 
 describe('ConvocatoriaPeriodosJustificacionModalComponent', () => {
@@ -29,7 +29,8 @@ describe('ConvocatoriaPeriodosJustificacionModalComponent', () => {
         RouterTestingModule,
         FormsModule,
         ReactiveFormsModule,
-        SgiAuthModule
+        SgiAuthModule,
+        SharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },

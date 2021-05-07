@@ -1,22 +1,22 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { EvaluadorListadoComponent } from './evaluador-listado/evaluador-listado.component';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { FragmentGuard } from '@core/guards/detail-form.guard';
+import { ActionGuard } from '@core/guards/master-form.guard';
+import { MSG_PARAMS } from '@core/i18n';
+import { SgiRoutes } from '@core/route';
+import { ROUTE_NAMES } from '@core/route.names';
+import { SgiAuthGuard } from '@sgi/framework/auth';
 import { EvaluadorCrearComponent } from './evaluador-crear/evaluador-crear.component';
 import { EvaluadorEditarComponent } from './evaluador-editar/evaluador-editar.component';
-import { SgiAuthGuard } from '@sgi/framework/auth';
-import { ROUTE_NAMES } from '@core/route.names';
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { SgiRoutes } from '@core/route';
-import { ActionGuard } from '@core/guards/master-form.guard';
-import { EVALUADOR_ROUTE_NAMES } from './evaluador-route-names';
-import { FragmentGuard } from '@core/guards/detail-form.guard';
-import { EvaluadorDatosGeneralesComponent } from './evaluador-formulario/evaluador-datos-generales/evaluador-datos-generales.component';
-import { EvaluadorResolver } from './evaluador.resolver';
 import { EvaluadorConflictosInteresListadoComponent } from './evaluador-formulario/evaluador-conflictos-interes/evaluador-conflictos-interes-listado/evaluador-conflictos-interes-listado.component';
+import { EvaluadorDatosGeneralesComponent } from './evaluador-formulario/evaluador-datos-generales/evaluador-datos-generales.component';
+import { EvaluadorListadoComponent } from './evaluador-listado/evaluador-listado.component';
+import { EVALUADOR_ROUTE_NAMES } from './evaluador-route-names';
+import { EvaluadorResolver } from './evaluador.resolver';
 
-const MSG_LISTADO_TITLE = marker('eti.evaluador.listado.titulo');
-const MSG_NEW_TITLE = marker('eti.evaluador.crear.titulo');
-const MSG_EDIT_TITLE = marker('eti.evaluador.actualizar.titulo');
+const EVALUADOR_KEY = marker('eti.evaluador');
+const MSG_NEW_TITLE = marker('title.new.entity');
 
 const routes: SgiRoutes = [
   {
@@ -24,7 +24,8 @@ const routes: SgiRoutes = [
     component: EvaluadorListadoComponent,
     canActivate: [SgiAuthGuard],
     data: {
-      title: MSG_LISTADO_TITLE,
+      title: EVALUADOR_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.PLURAL,
       hasAuthorityForAnyUO: 'ETI-EVR-V'
     }
   },
@@ -35,6 +36,9 @@ const routes: SgiRoutes = [
     canDeactivate: [ActionGuard],
     data: {
       title: MSG_NEW_TITLE,
+      titleParams: {
+        entity: EVALUADOR_KEY, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR
+      },
       hasAuthorityForAnyUO: 'ETI-EVR-C'
     },
     children: [
@@ -64,7 +68,8 @@ const routes: SgiRoutes = [
       evaluador: EvaluadorResolver
     },
     data: {
-      title: MSG_EDIT_TITLE,
+      title: EVALUADOR_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.SINGULAR,
       hasAuthorityForAnyUO: 'ETI-EVR-E'
     },
     children: [

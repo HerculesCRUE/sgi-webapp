@@ -1,13 +1,9 @@
 import { AbstractControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { DateTime } from 'luxon';
 
 export interface IRange {
-  inicio: number | Date;
-  fin: number | Date;
-}
-
-export interface IRangeDates {
-  inicio: Date;
-  fin: Date;
+  inicio: number | DateTime;
+  fin: number | DateTime;
 }
 
 export class RangeValidator {

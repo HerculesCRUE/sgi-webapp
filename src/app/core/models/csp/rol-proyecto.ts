@@ -9,7 +9,6 @@ export interface IRolProyecto {
   rolPrincipal: boolean;
   responsableEconomico: boolean;
   equipo: Equipo;
-  colectivoRef: string;
   activo: boolean;
 }
 

@@ -5,16 +5,19 @@ import { MatSort, MatSortable } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IConvocatoriaPeriodoJustificacion } from '@core/models/csp/convocatoria-periodo-justificacion';
 import { DialogService } from '@core/services/dialog.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ConvocatoriaActionService } from '../../convocatoria.action.service';
 import { ConvocatoriaPeriodosJustificacionModalComponent, IConvocatoriaPeriodoJustificacionModalData } from '../../modals/convocatoria-periodos-justificacion-modal/convocatoria-periodos-justificacion-modal.component';
-import { ConvocatoriaPeriodosJustificacionFragment } from './convocatoria-periodo-justificacion.fragment';
+import { ConvocatoriaPeriodosJustificacionFragment } from './convocatoria-periodos-justificacion.fragment';
 
-const MSG_DELETE = marker('csp.convocatoria.periodoJustificacion.listado.borrar');
+const MSG_DELETE = marker('msg.delete.entity');
+const CONVOCATORIA_PERIODO_JUSTIFICACION_KEY = marker('csp.convocatoria-periodo-justificacion');
 
 @Component({
   selector: 'sgi-convocatoria-periodos-justificacion',
@@ -25,17 +28,21 @@ export class ConvocatoriaPeriodosJustificacionComponent extends FragmentComponen
   formPart: ConvocatoriaPeriodosJustificacionFragment;
   private subscriptions: Subscription[] = [];
 
-  displayedColumns = ['numPeriodo', 'mesInicial', 'mesFinal', 'fechaInicio', 'fechaFin', 'observaciones', 'acciones'];
+  displayedColumns = ['numPeriodo', 'mesInicial', 'mesFinal', 'fechaInicioPresentacion', 'fechaFinPresentacion', 'tipo', 'observaciones', 'acciones'];
   elementosPagina = [5, 10, 25, 100];
 
   dataSource: MatTableDataSource<StatusWrapper<IConvocatoriaPeriodoJustificacion>>;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
+  msgParamEntity = {};
+  textoDelete: string;
+
   constructor(
     private dialogService: DialogService,
     protected actionService: ConvocatoriaActionService,
-    private matDialog: MatDialog
+    private matDialog: MatDialog,
+    private readonly translate: TranslateService,
   ) {
     super(actionService.FRAGMENT.PERIODO_JUSTIFICACION, actionService);
     this.formPart = this.fragment as ConvocatoriaPeriodosJustificacionFragment;
@@ -43,15 +50,12 @@ export class ConvocatoriaPeriodosJustificacionComponent extends FragmentComponen
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.dataSource = new MatTableDataSource<StatusWrapper<IConvocatoriaPeriodoJustificacion>>();
     this.dataSource.paginator = this.paginator;
     this.dataSource.sortingDataAccessor =
       (wrapper: StatusWrapper<IConvocatoriaPeriodoJustificacion>, property: string) => {
         switch (property) {
-          case 'fechaInicio':
-            return wrapper.value.fechaInicioPresentacion ? new Date(wrapper.value.fechaInicioPresentacion).getTime() : 0;
-          case 'fechaFin':
-            return wrapper.value.fechaFinPresentacion ? new Date(wrapper.value.fechaFinPresentacion).getTime() : 0;
           default:
             return wrapper.value[property];
         }
@@ -64,6 +68,26 @@ export class ConvocatoriaPeriodosJustificacionComponent extends FragmentComponen
     }));
   }
 
+
+  private setupI18N(): void {
+    this.translate.get(
+      CONVOCATORIA_PERIODO_JUSTIFICACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      CONVOCATORIA_PERIODO_JUSTIFICACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+
+  }
 
   /**
    * Apertura de modal de periodos justificacion (edición/creación)
@@ -80,8 +104,7 @@ export class ConvocatoriaPeriodosJustificacionComponent extends FragmentComponen
     };
 
     const config = {
-      width: GLOBAL_CONSTANTS.widthModalCSP,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
+      panelClass: 'sgi-dialog-container',
       data,
     };
 
@@ -112,7 +135,7 @@ export class ConvocatoriaPeriodosJustificacionComponent extends FragmentComponen
    */
   deletePeriodoJustificacion(periodoJustificacion?: StatusWrapper<IConvocatoriaPeriodoJustificacion>): void {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado) => {
           if (aceptado) {
             this.formPart.deletePeriodoJustificacion(periodoJustificacion);
@@ -140,6 +163,10 @@ export class ConvocatoriaPeriodosJustificacionComponent extends FragmentComponen
     });
 
     this.formPart.periodosJustificacion$.next(this.dataSource.data);
+  }
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
   }
 
 }

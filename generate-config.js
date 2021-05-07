@@ -1,12 +1,12 @@
 const fs = require('fs');
-const moment = require('moment-timezone');
+const { DateTime } = require('luxon');
 const handlebars = require('handlebars');
 
 const inFile = 'src/assets/config/config.json.tmpl';
 const outFile = 'src/assets/config/config.json';
 
 try {
-  var timeStamp = moment(new Date()).tz('Europe/Madrid').format("YYYYMMDDHHmm");
+  var timeStamp = DateTime.now().setZone('Europe/Madrid').toFormat('yyyyLLddHHmmss');
   const source = fs.readFileSync(inFile, 'utf8');
   const template = handlebars.compile(source, {
     strict: true

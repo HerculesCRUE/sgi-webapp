@@ -4,11 +4,11 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IComite } from '@core/models/eti/comite';
 import { IMemoria } from '@core/models/eti/memoria';
-import { IMemoriaPeticionEvaluacion } from '@core/models/eti/memoriaPeticionEvaluacion';
+import { IMemoriaPeticionEvaluacion } from '@core/models/eti/memoria-peticion-evaluacion';
 import { TipoEstadoMemoria } from '@core/models/eti/tipo-estado-memoria';
-import { IPersona } from '@core/models/sgp/persona';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ROUTE_NAMES } from '@core/route.names';
@@ -17,19 +17,19 @@ import { ComiteService } from '@core/services/eti/comite.service';
 import { MemoriaService } from '@core/services/eti/memoria.service';
 import { TipoEstadoMemoriaService } from '@core/services/eti/tipo-estado-memoria.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
-import { BuscarPersonaComponent } from '@shared/buscar-persona/buscar-persona.component';
+import { TipoColectivo } from '@shared/select-persona/select-persona.component';
 import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { map, startWith, switchMap } from 'rxjs/operators';
 import { MEMORIAS_ROUTE } from '../memoria-route-names';
 
-const MSG_BUTTON_SAVE = marker('footer.eti.peticionEvaluacion.crear');
-const MSG_ERROR = marker('eti.memoria.listado.error');
-const TEXT_USER_TITLE = marker('eti.peticionEvaluacion.listado.buscador.solicitante');
-const TEXT_USER_BUTTON = marker('eti.peticionEvaluacion.listado.buscador.buscar.solicitante');
-const MSG_ESTADO_ANTERIOR_OK = marker('eti.memoria.listado.volverEstadoAnterior.ok');
-const MSG_ESTADO_ANTERIOR_ERROR = marker('eti.memoria.listado.volverEstadoAnterior.error');
-const MSG_RECUPERAR_ESTADO = marker('eti.memoria.listado.volverEstadoAnterior.confirmacion');
+const MSG_BUTTON_SAVE = marker('btn.add.entity');
+const MSG_ERROR = marker('error.load');
+const MSG_ESTADO_ANTERIOR_OK = marker('msg.eti.memoria.estado-anterior.success');
+const MSG_ESTADO_ANTERIOR_ERROR = marker('error.eti.memoria.estado-anterior');
+const MSG_RECUPERAR_ESTADO = marker('msg.eti.memoria.estado-anterior');
+const PETICION_EVALUACION_KEY = marker('eti.peticion-evaluacion');
 
 @Component({
   selector: 'sgi-memoria-listado-ges',
@@ -46,12 +46,10 @@ export class MemoriaListadoGesComponent extends AbstractTablePaginationComponent
   displayedColumns: string[];
   totalElementos: number;
 
-  textoCrear = MSG_BUTTON_SAVE;
+  textoCrear: string;
 
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   @ViewChild(MatPaginator, { static: false }) paginator: MatPaginator;
-  @ViewChild(BuscarPersonaComponent, { static: false }) private buscarPersona: BuscarPersonaComponent;
-
 
   memorias$: Observable<IMemoriaPeticionEvaluacion[]>;
 
@@ -61,17 +59,17 @@ export class MemoriaListadoGesComponent extends AbstractTablePaginationComponent
   estadoMemoriaListado: TipoEstadoMemoria[];
   filteredEstadosMemoria: Observable<TipoEstadoMemoria[]>;
 
-
-  textoUsuarioLabel = TEXT_USER_TITLE;
-  textoUsuarioInput = TEXT_USER_TITLE;
-  textoUsuarioButton = TEXT_USER_BUTTON;
+  get tipoColectivoSolicitante() {
+    return TipoColectivo.SOLICITANTE_ETICA;
+  }
 
   constructor(
     protected readonly snackBarService: SnackBarService,
     private readonly comiteService: ComiteService,
     private readonly tipoEstadoMemoriaService: TipoEstadoMemoriaService,
     private readonly dialogService: DialogService,
-    private readonly memoriaService: MemoriaService
+    private readonly memoriaService: MemoriaService,
+    private readonly translate: TranslateService
   ) {
 
     super(snackBarService, MSG_ERROR);
@@ -95,6 +93,7 @@ export class MemoriaListadoGesComponent extends AbstractTablePaginationComponent
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
 
     this.formGroup = new FormGroup({
       comite: new FormControl('', []),
@@ -108,9 +107,24 @@ export class MemoriaListadoGesComponent extends AbstractTablePaginationComponent
     this.loadEstadosMemoria();
   }
 
+  private setupI18N(): void {
+    this.translate.get(
+      PETICION_EVALUACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_BUTTON_SAVE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoCrear = value);
+  }
+
   protected createObservable(): Observable<SgiRestListResult<IMemoriaPeticionEvaluacion>> {
     const observable$ = this.memoriaService.findAll(this.getFindOptions());
-    return observable$;
+    // TODO: Eliminar casteo cuando se solucion la respuesta del back
+    return observable$ as unknown as Observable<SgiRestListResult<IMemoriaPeticionEvaluacion>>;
   }
   protected initColumns(): void {
     this.displayedColumns = ['numReferencia', 'comite', 'estadoActual', 'fechaEvaluacion', 'fechaLimite', 'acciones'];
@@ -122,7 +136,7 @@ export class MemoriaListadoGesComponent extends AbstractTablePaginationComponent
       .and('peticionEvaluacion.titulo', SgiRestFilterOperator.LIKE_ICASE, controls.titulo.value)
       .and('numReferencia', SgiRestFilterOperator.LIKE_ICASE, controls.numReferencia.value)
       .and('estadoActual.id', SgiRestFilterOperator.EQUALS, controls.tipoEstadoMemoria.value?.id?.toString())
-      .and('personaRef', SgiRestFilterOperator.EQUALS, controls.solicitante.value);
+      .and('personaRef', SgiRestFilterOperator.EQUALS, controls.solicitante.value.id);
   }
 
   protected loadTable(reset?: boolean) {
@@ -137,7 +151,6 @@ export class MemoriaListadoGesComponent extends AbstractTablePaginationComponent
   getComite(comite: IComite): string {
     return comite?.comite;
   }
-
 
   /**
    * Devuelve el nombre de un estado memoria.
@@ -223,15 +236,6 @@ export class MemoriaListadoGesComponent extends AbstractTablePaginationComponent
   }
 
   /**
-   * Setea el persona seleccionado a través del componente
-   * @param solicitante persona seleccionada
-   */
-  public setUsuario(solicitante: IPersona) {
-    this.formGroup.controls.solicitante.setValue(solicitante?.personaRef);
-  }
-
-
-  /**
    * Se recupera el estado anterior de la memoria
    * @param memoria la memoria a reestablecer el estado
    */
@@ -267,13 +271,4 @@ export class MemoriaListadoGesComponent extends AbstractTablePaginationComponent
 
     this.suscripciones.push(dialogServiceSubscription);
   }
-
-  /**
-   * Clean filters an reload the table
-   */
-  onClearFilters(): void {
-    super.onClearFilters();
-    this.buscarPersona.clear();
-  }
-
 }

@@ -9,8 +9,8 @@ import { ITipoFase } from '@core/models/csp/tipos-configuracion';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
+import { SharedModule } from '@shared/shared.module';
 import { LoggerTestingModule } from 'ngx-logger/testing';
-
 import { ModeloEjecucionTipoFaseModalComponent } from './modelo-ejecucion-tipo-fase-modal.component';
 
 describe('ModeloEjecucionTipoFaseModalComponent', () => {
@@ -35,7 +35,8 @@ describe('ModeloEjecucionTipoFaseModalComponent', () => {
         TestUtils.getIdiomas(),
         RouterTestingModule,
         FormsModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        SharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },
@@ -56,4 +57,3 @@ describe('ModeloEjecucionTipoFaseModalComponent', () => {
     expect(component).toBeTruthy();
   });
 });
-

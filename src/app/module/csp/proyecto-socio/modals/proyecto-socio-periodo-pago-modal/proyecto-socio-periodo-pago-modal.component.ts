@@ -3,20 +3,27 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { BaseModalComponent } from '@core/component/base-modal.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoSocioPeriodoPago } from '@core/models/csp/proyecto-socio-periodo-pago';
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { DateValidator } from '@core/validators/date-validator';
+import { TranslateService } from '@ngx-translate/core';
+import { DateTime } from 'luxon';
+import { switchMap } from 'rxjs/operators';
 
-const MSG_ANADIR = marker('botones.aniadir');
-const MSG_ACEPTAR = marker('botones.aceptar');
+const MSG_ANADIR = marker('btn.add');
+const MSG_ACEPTAR = marker('btn.ok');
+
+const PROYECTO_SOCIO_PERIODO_PAGO_FECHA_PREVISTA_KEY = marker('csp.proyecto-socio.periodo-pago.fecha-prevista');
+const PROYECTO_SOCIO_PERIODO_PAGO_IMPORTE = marker('csp.proyecto-socio.periodo-pago.importe');
+const PROYECTO_SOCIO_PERIODO_PAGO_KEY = marker('csp.proyecto-socio.periodo-pago');
+const TITLE_NEW_ENTITY = marker('title.new.entity');
 
 export interface ProyectoSocioPeriodoPagoModalData {
   proyectoSocioPeriodoPago: IProyectoSocioPeriodoPago;
-  selectedFechaPrevistas: Date[];
-  fechaInicioProyectoSocio: Date;
-  fechaFinProyectoSocio: Date;
+  fechaInicioProyectoSocio: DateTime;
+  fechaFinProyectoSocio: DateTime;
   isEdit: boolean;
 }
 
@@ -29,22 +36,58 @@ export class ProyectoSocioPeriodoPagoModalComponent extends
   implements OnInit {
   textSaveOrUpdate: string;
 
+  msgParamImporteEntity = {};
+  msgParamFechaPrevistaEntity = {};
+  title: string;
+
   constructor(
     protected snackBarService: SnackBarService,
     public matDialogRef: MatDialogRef<ProyectoSocioPeriodoPagoModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ProyectoSocioPeriodoPagoModalData,
+    private readonly translate: TranslateService
   ) {
     super(snackBarService, matDialogRef, data);
-    this.fxFlexProperties = new FxFlexProperties();
-    this.fxFlexProperties.sm = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.md = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.gtMd = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.order = '2';
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row';
     this.fxLayoutProperties.xs = 'row';
     this.textSaveOrUpdate = this.data.isEdit ? MSG_ACEPTAR : MSG_ANADIR;
+  }
+
+  ngOnInit(): void {
+    super.ngOnInit();
+    this.setupI18N();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_PAGO_FECHA_PREVISTA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaPrevistaEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_PAGO_IMPORTE,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamImporteEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    if (this.data.isEdit) {
+      this.translate.get(
+        PROYECTO_SOCIO_PERIODO_PAGO_KEY,
+        MSG_PARAMS.CARDINALIRY.SINGULAR
+      ).subscribe((value) => this.title = value);
+    } else {
+      this.translate.get(
+        PROYECTO_SOCIO_PERIODO_PAGO_KEY,
+        MSG_PARAMS.CARDINALIRY.SINGULAR
+      ).pipe(
+        switchMap((value) => {
+          return this.translate.get(
+            TITLE_NEW_ENTITY,
+            { entity: value, ...MSG_PARAMS.GENDER.MALE }
+          );
+        })
+      ).subscribe((value) => this.title = value);
+    }
   }
 
   protected getDatosForm(): ProyectoSocioPeriodoPagoModalData {

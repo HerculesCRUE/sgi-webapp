@@ -1,34 +1,30 @@
-
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { IProyecto } from '@core/models/csp/proyecto';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoDocumento } from '@core/models/csp/proyecto-documento';
-import { IProyectoPeriodoSeguimiento } from '@core/models/csp/proyecto-periodo-seguimiento';
-import { IProyectoPeriodoSeguimientoDocumento } from '@core/models/csp/proyecto-periodo-seguimiento-documento';
-import { IProyectoProrroga } from '@core/models/csp/proyecto-prorroga';
-import { IProyectoProrrogaDocumento } from '@core/models/csp/proyecto-prorroga-documento';
-import { IProyectoSocioPeriodoJustificacion } from '@core/models/csp/proyecto-socio-periodo-justificacion';
-import { ISocioPeriodoJustificacionDocumento } from '@core/models/csp/socio-periodo-justificacion-documento';
 import { ITipoDocumento, ITipoFase } from '@core/models/csp/tipos-configuracion';
 import { IDocumento } from '@core/models/sgdoc/documento';
 import { Fragment } from '@core/services/action-service';
 import { ProyectoDocumentoService } from '@core/services/csp/proyecto-documento.service';
+import { ProyectoPeriodoSeguimientoService } from '@core/services/csp/proyecto-periodo-seguimiento.service';
+import { ProyectoProrrogaService } from '@core/services/csp/proyecto-prorroga.service';
+import { ProyectoSocioPeriodoJustificacionService } from '@core/services/csp/proyecto-socio-periodo-justificacion.service';
+import { ProyectoSocioService } from '@core/services/csp/proyecto-socio.service';
 import { ProyectoService } from '@core/services/csp/proyecto.service';
+import { EmpresaService } from '@core/services/sgemp/empresa.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { TranslateService } from '@ngx-translate/core';
-import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
 import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
 
-const SIN_TIPO_FASE = marker('csp.proyecto.documentos.sinTipoFase.title');
-const SIN_TIPO_DOCUMENTO = marker('csp.proyecto.documentos.sinTipoDocumento.title');
+const SIN_TIPO_FASE = marker('label.csp.documentos.sin-fase');
+const SIN_TIPO_DOCUMENTO = marker('label.csp.documentos.sin-tipo-documento');
 
-const PERIODO_JUSTIFICACION_PERIODO_TITLE = marker('csp.proyecto.documentos.periodoJustificacion.periodo.title');
-const PRORROGA_PERIODO_TITLE = marker('csp.proyecto.documentos.prorroga.periodo.title');
-const SEGUIMIENTO_PERIODO_TITLE = marker('csp.proyecto.documentos.seguimiento.periodo.title');
+const PERIODO_JUSTIFICACION_PERIODO_TITLE = marker('label.csp.documentos.periodo-justificacion.periodo');
+const PRORROGA_PERIODO_TITLE = marker('label.csp.documentos.prorroga');
+const SEGUIMIENTO_PERIODO_TITLE = marker('label.csp.documentos.periodo-seguimiento.periodo');
 
-const PERIODO_JUSTIFICACION_TITLE = marker('csp.proyecto.documentos.periodoJustificacion.title');
-const PRORROGA_TITLE = marker('csp.proyecto.documentos.prorroga.title');
-const SEGUIMIENTO_TITLE = marker('csp.proyecto.documentos.seguimiento.title');
+const PERIODO_JUSTIFICACION_TITLE = marker('label.csp.documentos.periodo-justificacion.socios');
+const SEGUIMIENTO_TITLE = marker('label.csp.documentos.periodo-seguimiento');
 
 enum TIPO_DOCUMENTO {
   PROYECTO = '0',
@@ -40,16 +36,12 @@ enum TIPO_DOCUMENTO {
 interface IDocumentoData {
   id: number;
   nombre: string;
-  documentoRef: string;
-  tipoFase: ITipoFase;
+  tipoFase?: ITipoFase;
   tipoDocumento: ITipoDocumento;
-  proyectoProrroga?: IProyectoProrroga;
-  proyectoSocioPeriodoJustificacion?: IProyectoSocioPeriodoJustificacion;
-  proyectoPeriodoSeguimiento?: IProyectoPeriodoSeguimiento;
   comentario: string;
+  documentoRef: string;
   visible: boolean;
-  proyecto: IProyecto;
-
+  proyectoId?: number;
 }
 
 export class NodeDocumento {
@@ -81,7 +73,7 @@ export class NodeDocumento {
     this._level = level;
     if (level === 0 && !title) {
       this.title = SIN_TIPO_FASE;
-    } else if ((level === 1 || level === 2) && !title) {
+    } else if ((level === 1 || level === 2 || level === 3) && !title) {
       this.title = SIN_TIPO_DOCUMENTO;
     }
     if (documento) {
@@ -158,213 +150,242 @@ export class ProyectoDocumentosFragment extends Fragment {
 
   msgParamSeguimientoTitle: string;
   msgParamPeriodoJustificacionTitle: string;
+  msgParamProrrogaPeriodoTitle: string;
   msgParamProrrogaTitle: string;
 
   constructor(
-    private readonly logger: NGXLogger,
-    private proyectoId: number,
+    proyectoId: number,
     private proyectoService: ProyectoService,
+    private proyectoPeriodoSeguimientoService: ProyectoPeriodoSeguimientoService,
+    private proyectoSocioService: ProyectoSocioService,
+    private proyectoSocioPeriodoJustificacionService: ProyectoSocioPeriodoJustificacionService,
+    private proyectoProrrogaService: ProyectoProrrogaService,
     private proyectoDocumentoService: ProyectoDocumentoService,
+    private empresaService: EmpresaService,
     private readonly translate: TranslateService,
   ) {
     super(proyectoId);
     this.setComplete(true);
   }
 
-
   protected onInitialize(): void {
-
     this.setupI18N();
-    this.proyectoService.findAllDocumentos(this.proyectoId).pipe(
-      map((documentos) => {
-        let nodes: NodeDocumento[] = [];
-        if (documentos) {
-          nodes = nodes.concat(this.buildNodeProyecto(documentos.proyectoDocumentos));
-          nodes = nodes.concat(this.buildNodeSeguimiento(documentos.proyectoPeriodoSeguimientoDocumentos));
-          nodes = nodes.concat(this.buildNodePeriodoJustificacion(documentos.socioPeriodoJustificacionDocumentos));
-          nodes = nodes.concat(this.buildNodeProrroga(documentos.prorrogaDocumentos));
+    this.subscriptions.push(
+      merge(
+        this.loadProyectoDocumentos(),
+        this.loadProyectoPeriodoSeguimientoDocumentos(),
+        this.loadProyectoSocioPeriodoJustificacionDocumentos(),
+        this.loadProyectoProrrogaDocumentos()
+      ).subscribe(
+        (nodes) => {
+          const current = this.documentos$.value;
+          this.publishNodes(current.concat(nodes))
         }
+      )
+    );
+  }
+
+  private loadProyectoDocumentos(): Observable<NodeDocumento[]> {
+    return this.proyectoService.findAllProyectoDocumentos(this.getKey() as number).pipe(
+      map(documentos => {
+        const keyTipo = TIPO_DOCUMENTO.PROYECTO;
+        const nodes: NodeDocumento[] = [];
+        documentos.items.forEach((documento) => {
+          const keyTipoFase = `${keyTipo}-${documento.tipoFase ? documento.tipoFase.id : 0}`;
+          let faseNode = this.nodeLookup.get(keyTipoFase);
+          if (!faseNode) {
+            faseNode = new NodeDocumento(keyTipoFase, documento.tipoFase?.nombre, 0);
+            this.nodeLookup.set(keyTipoFase, faseNode);
+            nodes.push(faseNode);
+          }
+
+          const keyTipoDocumento = `${keyTipoFase}-${documento.tipoDocumento ? documento.tipoDocumento.id : 0}`;
+          let tipoDococumentoNode = this.nodeLookup.get(keyTipoDocumento);
+          if (!tipoDococumentoNode) {
+            tipoDococumentoNode = new NodeDocumento(keyTipoDocumento, documento.tipoDocumento?.nombre, 1);
+            this.nodeLookup.set(keyTipoDocumento, tipoDococumentoNode);
+            faseNode.addChild(tipoDococumentoNode);
+          }
+
+          const documentoNode = new NodeDocumento(null, documento.nombre, 2, new StatusWrapper<IDocumentoData>(documento), false);
+          tipoDococumentoNode.addChild(documentoNode);
+        });
         return nodes;
       })
-    ).subscribe((nodes) => {
-      this.publishNodes(nodes);
-    });
+    );
   }
 
+  private loadProyectoPeriodoSeguimientoDocumentos(): Observable<NodeDocumento[]> {
+    return this.proyectoService.findAllProyectoPeriodoSeguimientoProyecto(this.getKey() as number).pipe(
+      mergeMap(periodos => {
+        const nodes: NodeDocumento[] = [];
+        return from(periodos.items).pipe(
+          mergeMap(periodo => {
+            return this.proyectoPeriodoSeguimientoService.findDocumentos(periodo.id).pipe(
+              map(documentos => {
+                const keyTipo = TIPO_DOCUMENTO.SEGUIMIENTO;
+                documentos.items.forEach((documento) => {
+                  let tipoNode = this.nodeLookup.get(keyTipo);
+                  if (!tipoNode) {
+                    tipoNode = new NodeDocumento(keyTipo, SEGUIMIENTO_TITLE, 0);
+                    this.nodeLookup.set(keyTipo, tipoNode);
+                    nodes.push(tipoNode);
+                  }
 
+                  const keyPeriodo = `${keyTipo}-${periodo.id}`;
+                  let periodoNode = this.nodeLookup.get(keyPeriodo);
+                  if (!periodoNode) {
+                    periodoNode = new NodeDocumento(keyPeriodo, this.msgParamPeriodoJustificacionTitle + ' ' + periodo.numPeriodo, 1);
+                    this.nodeLookup.set(keyPeriodo, periodoNode);
+                    tipoNode.addChild(periodoNode);
+                  }
 
-  private buildNodeProyecto(documentos: IProyectoDocumento[]): NodeDocumento[] {
-    const nodes: NodeDocumento[] = [];
-    if (documentos) {
-      documentos.forEach((documento) => {
+                  const keyTipoDocumento = `${keyPeriodo}-${documento.tipoDocumento ? documento.tipoDocumento.id : 0}`;
+                  let tipoDocumentoNode = this.nodeLookup.get(keyTipoDocumento);
+                  if (!tipoDocumentoNode) {
+                    tipoDocumentoNode = new NodeDocumento(keyTipoDocumento, documento.tipoDocumento?.nombre, 2);
+                    this.nodeLookup.set(keyTipoDocumento, tipoDocumentoNode);
+                    periodoNode.addChild(tipoDocumentoNode);
+                  }
 
-        const keyTipoFase = `${TIPO_DOCUMENTO.PROYECTO}-${documento.tipoFase ? documento.tipoFase.id : 0}`;
-        const keyTipoDocumento = `${TIPO_DOCUMENTO.PROYECTO}-${keyTipoFase}-${documento.tipoDocumento ? documento.tipoDocumento.id : 0}`;
-        let faseNode = this.nodeLookup.get(keyTipoFase);
-        if (!faseNode) {
-          faseNode = new NodeDocumento(keyTipoFase, documento.tipoFase?.nombre, 0);
-          this.nodeLookup.set(keyTipoFase, faseNode);
-          nodes.push(faseNode);
-        }
-
-        let tipoDocNode = this.nodeLookup.get(keyTipoDocumento);
-        if (!tipoDocNode) {
-          tipoDocNode = new NodeDocumento(keyTipoDocumento, documento.tipoDocumento?.nombre, 1);
-          faseNode.addChild(tipoDocNode);
-          this.nodeLookup.set(keyTipoDocumento, tipoDocNode);
-        }
-        const docNode = new NodeDocumento(null, documento.nombre, 2, new StatusWrapper<IDocumentoData>(documento), false);
-        tipoDocNode.addChild(docNode);
-      });
-    }
-
-    return nodes;
+                  const documentoNode = new NodeDocumento(
+                    null, documento.nombre, 3, new StatusWrapper<IDocumentoData>(documento as IDocumentoData), true
+                  );
+                  tipoDocumentoNode.addChild(documentoNode);
+                });
+                return nodes;
+              })
+            );
+          }),
+        );
+      }),
+      takeLast(1)
+    );
   }
 
+  private loadProyectoSocioPeriodoJustificacionDocumentos(): Observable<NodeDocumento[]> {
+    return this.proyectoService.findAllProyectoSocioProyecto(this.getKey() as number).pipe(
+      mergeMap(socios => {
+        const nodes: NodeDocumento[] = [];
+        return from(socios.items).pipe(
+          mergeMap(socio => {
+            return this.empresaService.findById(socio.empresa.id).pipe(
+              map(empresa => {
+                socio.empresa = empresa;
+                return socio;
+              })
+            );
+          }),
+          mergeMap(socio => {
+            return this.proyectoSocioService.findAllProyectoSocioPeriodoJustificacion(socio.id).pipe(
+              mergeMap(periodos => {
+                return from(periodos.items).pipe(
+                  mergeMap(periodo => {
+                    return this.proyectoSocioPeriodoJustificacionService.findAllProyectoSocioPeriodoJustificacionDocumento(periodo.id).pipe(
+                      map(documentos => {
+                        const keyTipo = TIPO_DOCUMENTO.PERIODO_JUSTIFICACION;
+                        documentos.items.forEach((documento) => {
+                          let tipoNode = this.nodeLookup.get(keyTipo);
+                          if (!tipoNode) {
+                            tipoNode = new NodeDocumento(keyTipo, PERIODO_JUSTIFICACION_TITLE, 0);
+                            this.nodeLookup.set(keyTipo, tipoNode);
+                            nodes.push(tipoNode);
+                          }
 
-  private buildNodeProrroga(documentos: IProyectoProrrogaDocumento[]): NodeDocumento[] {
-    const nodes: NodeDocumento[] = [];
+                          const keySocio = `${keyTipo}-${periodo.proyectoSocioId}`;
+                          let socioNode = this.nodeLookup.get(keySocio);
+                          if (!socioNode) {
+                            socioNode = new NodeDocumento(
+                              keySocio, socio.empresa.nombre + ' (' + socio.empresa.numeroIdentificacion + ')', 1
+                            );
+                            this.nodeLookup.set(keySocio, socioNode);
+                            tipoNode.addChild(socioNode);
+                          }
 
-    const tipoDocumento = TIPO_DOCUMENTO.PRORROGA;
+                          const keyPeriodo = `${keySocio}-${periodo.numPeriodo}`;
+                          let periodoNode = this.nodeLookup.get(keyPeriodo);
+                          if (!periodoNode) {
+                            periodoNode = new NodeDocumento(
+                              keyPeriodo, this.msgParamPeriodoJustificacionTitle + ' ' + periodo.numPeriodo, 2
+                            );
+                            this.nodeLookup.set(keyPeriodo, periodoNode);
+                            socioNode.addChild(periodoNode);
+                          }
 
-    if (documentos) {
-      documentos.forEach((documento) => {
+                          const keyTipoDocumento = `${keyPeriodo}-${documento.tipoDocumento ? documento.tipoDocumento.id : 0}`;
+                          let tipoDocumentoNode = this.nodeLookup.get(keyTipoDocumento);
+                          if (!tipoDocumentoNode) {
+                            tipoDocumentoNode = new NodeDocumento(keyTipoDocumento, documento.tipoDocumento?.nombre, 3);
+                            this.nodeLookup.set(keyTipoDocumento, tipoDocumentoNode);
+                            periodoNode.addChild(tipoDocumentoNode);
+                          }
 
-        const keyDocumento = `${tipoDocumento}`;
-        const keyDocumentoTipoDocumento = `${tipoDocumento}-${documento.proyectoProrroga ? documento.proyectoProrroga.numProrroga : 0}-${documento.tipoDocumento ? documento.tipoDocumento.id : 0}`;
-        let faseNode = this.nodeLookup.get(keyDocumento);
-        let periodoNode: NodeDocumento;
-        let keyTipoDocumento: string;
-
-
-        if (!faseNode) {
-          faseNode = new NodeDocumento(keyDocumento, PRORROGA_TITLE, 0);
-          this.nodeLookup.set(keyDocumento, faseNode);
-          nodes.push(faseNode);
-        }
-
-        keyTipoDocumento = `${tipoDocumento}-${documento.proyectoProrroga ? documento.proyectoProrroga.numProrroga : 0}`;
-        periodoNode = this.nodeLookup.get(keyTipoDocumento);
-        if (!periodoNode) {
-          periodoNode = new NodeDocumento(keyTipoDocumento, this.msgParamProrrogaTitle + ' ' + documento.proyectoProrroga.numProrroga, 1);
-
-        }
-
-
-        faseNode.addChild(periodoNode);
-        this.nodeLookup.set(keyTipoDocumento, periodoNode);
-
-        let tipoDocNode = this.nodeLookup.get(keyDocumentoTipoDocumento);
-        if (!tipoDocNode) {
-          tipoDocNode = new NodeDocumento(keyDocumentoTipoDocumento, documento.tipoDocumento?.nombre, 2);
-          periodoNode.addChild(tipoDocNode);
-          this.nodeLookup.set(keyDocumentoTipoDocumento, tipoDocNode);
-        }
-        const docNode = new NodeDocumento(null, documento.nombre, 3, new StatusWrapper<IDocumentoData>(documento as IDocumentoData), true);
-        tipoDocNode.addChild(docNode);
-
-      });
-    }
-
-
-
-    return nodes;
+                          const documentoNode = new NodeDocumento(
+                            null, documento.nombre, 4, new StatusWrapper<IDocumentoData>(documento as IDocumentoData), true
+                          );
+                          tipoDocumentoNode.addChild(documentoNode);
+                        });
+                        return nodes;
+                      })
+                    );
+                  })
+                );
+              })
+            );
+          }),
+        );
+      }),
+      takeLast(1)
+    );
   }
 
+  private loadProyectoProrrogaDocumentos(): Observable<NodeDocumento[]> {
+    return this.proyectoService.findAllProyectoProrrogaProyecto(this.getKey() as number).pipe(
+      mergeMap(prorrogas => {
+        const nodes: NodeDocumento[] = [];
+        return from(prorrogas.items).pipe(
+          mergeMap(prorroga => {
+            return this.proyectoProrrogaService.findDocumentos(prorroga.id).pipe(
+              map(documentos => {
+                const keyTipo = TIPO_DOCUMENTO.PRORROGA;
+                documentos.items.forEach((documento) => {
+                  let tipoNode = this.nodeLookup.get(keyTipo);
+                  if (!tipoNode) {
+                    tipoNode = new NodeDocumento(keyTipo, this.msgParamProrrogaTitle, 0);
+                    this.nodeLookup.set(keyTipo, tipoNode);
+                    nodes.push(tipoNode);
+                  }
 
-  private buildNodeSeguimiento(documentos: IProyectoPeriodoSeguimientoDocumento[]): NodeDocumento[] {
-    const nodes: NodeDocumento[] = [];
+                  const keyProrroga = `${keyTipo}-${prorroga.numProrroga}`;
+                  let prorrogaNode = this.nodeLookup.get(keyProrroga);
+                  if (!prorrogaNode) {
+                    prorrogaNode = new NodeDocumento(keyProrroga, this.msgParamProrrogaPeriodoTitle + ' ' + prorroga.numProrroga, 1);
+                    this.nodeLookup.set(keyProrroga, prorrogaNode);
+                    tipoNode.addChild(prorrogaNode);
+                  }
 
-    const tipoDocumento = TIPO_DOCUMENTO.SEGUIMIENTO;
+                  const keyTipoDocumento = `${keyProrroga}-${documento.tipoDocumento ? documento.tipoDocumento.id : 0}`;
+                  let tipoDocumentoNode = this.nodeLookup.get(keyTipoDocumento);
+                  if (!tipoDocumentoNode) {
+                    tipoDocumentoNode = new NodeDocumento(keyTipoDocumento, documento.tipoDocumento?.nombre, 2);
+                    this.nodeLookup.set(keyTipoDocumento, tipoDocumentoNode);
+                    prorrogaNode.addChild(tipoDocumentoNode);
+                  }
 
-    if (documentos) {
-      documentos.forEach((documento) => {
-
-        const keyDocumento = `${tipoDocumento}`;
-        let keyDocumentoTipoDocumento = `${tipoDocumento}-${documento.proyectoPeriodoSeguimiento ? documento.proyectoPeriodoSeguimiento.numPeriodo : 0}-${documento.tipoDocumento ? documento.tipoDocumento.id : 0}`;
-        let faseNode = this.nodeLookup.get(keyDocumento);
-        let periodoNode: NodeDocumento;
-        let keyTipoDocumento: string;
-
-        if (!faseNode) {
-          faseNode = new NodeDocumento(keyDocumento, SEGUIMIENTO_TITLE, 0);
-          this.nodeLookup.set(keyDocumento, faseNode);
-          nodes.push(faseNode);
-        }
-
-        keyTipoDocumento = `${tipoDocumento}-${documento.proyectoPeriodoSeguimiento ? documento.proyectoPeriodoSeguimiento.numPeriodo : 0}`;
-        periodoNode = this.nodeLookup.get(keyTipoDocumento);
-        if (!periodoNode) {
-          periodoNode = new NodeDocumento(keyTipoDocumento, this.msgParamSeguimientoTitle + ' ' + documento.proyectoPeriodoSeguimiento.numPeriodo, 1);
-
-        }
-
-
-        faseNode.addChild(periodoNode);
-        this.nodeLookup.set(keyTipoDocumento, periodoNode);
-
-        let tipoDocNode = this.nodeLookup.get(keyDocumentoTipoDocumento);
-        if (!tipoDocNode) {
-          tipoDocNode = new NodeDocumento(keyDocumentoTipoDocumento, documento.tipoDocumento?.nombre, 2);
-          periodoNode.addChild(tipoDocNode);
-          this.nodeLookup.set(keyDocumentoTipoDocumento, tipoDocNode);
-        }
-        const docNode = new NodeDocumento(null, documento.nombre, 3, new StatusWrapper<IDocumentoData>(documento as IDocumentoData), true);
-        tipoDocNode.addChild(docNode);
-
-      });
-    }
-
-    return nodes;
-
+                  const documentoNode = new NodeDocumento(
+                    null, documento.nombre, 3, new StatusWrapper<IDocumentoData>(documento as IDocumentoData), true
+                  );
+                  tipoDocumentoNode.addChild(documentoNode);
+                });
+                return nodes;
+              })
+            );
+          })
+        );
+      }),
+      takeLast(1)
+    );
   }
-
-  private buildNodePeriodoJustificacion(documentos: ISocioPeriodoJustificacionDocumento[]): NodeDocumento[] {
-    const nodes: NodeDocumento[] = [];
-    const tipoDocumento = TIPO_DOCUMENTO.PERIODO_JUSTIFICACION;
-
-    if (documentos) {
-      documentos.forEach((documento) => {
-
-
-        const keyDocumento = `${tipoDocumento}`;
-        let keyDocumentoTipoDocumento = `${tipoDocumento}-${documento.proyectoSocioPeriodoJustificacion ? documento.proyectoSocioPeriodoJustificacion.numPeriodo : 0}-${documento.tipoDocumento ? documento.tipoDocumento.id : 0}`;
-        let faseNode = this.nodeLookup.get(keyDocumento);
-        let periodoNode: NodeDocumento;
-        let keyTipoDocumento: string;
-
-
-        if (!faseNode) {
-          faseNode = new NodeDocumento(keyDocumento, PERIODO_JUSTIFICACION_TITLE, 0);
-          this.nodeLookup.set(keyDocumento, faseNode);
-          nodes.push(faseNode);
-        }
-
-        keyTipoDocumento = `${tipoDocumento}-${documento.proyectoSocioPeriodoJustificacion ? documento.proyectoSocioPeriodoJustificacion.numPeriodo : 0}`;
-        periodoNode = this.nodeLookup.get(keyTipoDocumento);
-        if (!periodoNode) {
-          periodoNode = new NodeDocumento(keyTipoDocumento, this.msgParamPeriodoJustificacionTitle + ' ' + documento.proyectoSocioPeriodoJustificacion.numPeriodo, 1);
-
-        }
-
-        faseNode.addChild(periodoNode);
-        this.nodeLookup.set(keyTipoDocumento, periodoNode);
-
-        let tipoDocNode = this.nodeLookup.get(keyDocumentoTipoDocumento);
-        if (!tipoDocNode) {
-          tipoDocNode = new NodeDocumento(keyDocumentoTipoDocumento, documento.tipoDocumento?.nombre, 2);
-          periodoNode.addChild(tipoDocNode);
-          this.nodeLookup.set(keyDocumentoTipoDocumento, tipoDocNode);
-        }
-        const docNode = new NodeDocumento(null, documento.nombre, 3, new StatusWrapper<IDocumentoData>(documento as IDocumentoData), true);
-        tipoDocNode.addChild(docNode);
-
-      });
-    }
-
-    return nodes;
-  }
-
 
   private setupI18N(): void {
     this.translate.get(
@@ -374,7 +395,12 @@ export class ProyectoDocumentosFragment extends Fragment {
       SEGUIMIENTO_PERIODO_TITLE
     ).subscribe((value) => this.msgParamSeguimientoTitle = value);
     this.translate.get(
-      PRORROGA_PERIODO_TITLE
+      PRORROGA_PERIODO_TITLE,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamProrrogaPeriodoTitle = value);
+    this.translate.get(
+      PRORROGA_PERIODO_TITLE,
+      MSG_PARAMS.CARDINALIRY.PLURAL
     ).subscribe((value) => this.msgParamProrrogaTitle = value);
   }
 
@@ -549,7 +575,8 @@ export class ProyectoDocumentosFragment extends Fragment {
                 deleted.id !== documento.id);
             })
           );
-      }));
+      })
+    );
   }
 
   private updateDocumentos(nodes: NodeDocumento[]): Observable<void> {
@@ -565,7 +592,8 @@ export class ProyectoDocumentosFragment extends Fragment {
             })
           );
         }
-      }));
+      })
+    );
   }
 
   private createDocumentos(nodes: NodeDocumento[]): Observable<void> {
@@ -575,16 +603,15 @@ export class ProyectoDocumentosFragment extends Fragment {
     return from(nodes).pipe(
       mergeMap(node => {
         if (node.tipo === TIPO_DOCUMENTO.PROYECTO) {
-          node.documento.value.proyecto = {
-            id: this.getKey() as number
-          } as IProyecto;
+          node.documento.value.proyectoId = this.getKey() as number;
           return this.proyectoDocumentoService.create(node.documento.value as IProyectoDocumento).pipe(
             map(created => {
               node.documento = new StatusWrapper<IDocumentoData>(created);
             })
           );
         }
-      }));
+      })
+    );
   }
 
   private isSaveOrUpdateComplete(nodes: NodeDocumento[]): boolean {

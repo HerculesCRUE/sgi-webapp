@@ -1,11 +1,11 @@
-import { Fragment } from '@core/services/action-service';
-import { Observable, of, BehaviorSubject, from } from 'rxjs';
-import { map, mergeMap, endWith } from 'rxjs/operators';
 import { IAsistente } from '@core/models/eti/asistente';
-import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { Fragment } from '@core/services/action-service';
 import { AsistenteService } from '@core/services/eti/asistente.service';
+import { ConvocatoriaReunionService } from '@core/services/eti/convocatoria-reunion.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { BehaviorSubject, from, Observable, of } from 'rxjs';
+import { endWith, map, mergeMap } from 'rxjs/operators';
 
 export class ActaAsistentesFragment extends Fragment {
 
@@ -16,7 +16,7 @@ export class ActaAsistentesFragment extends Fragment {
   constructor(
     key: number,
     private service: ConvocatoriaReunionService,
-    private personaService: PersonaFisicaService,
+    private personaService: PersonaService,
     private asistenteService: AsistenteService
   ) {
     super(key);
@@ -36,12 +36,9 @@ export class ActaAsistentesFragment extends Fragment {
         map((response) => {
           if (response.items) {
             response.items.forEach((asistente) => {
-              this.personaService.getInformacionBasica(asistente.evaluador.personaRef).pipe(
+              this.personaService.findById(asistente.evaluador.persona.id).pipe(
                 map((usuarioInfo) => {
-                  asistente.evaluador.identificadorNumero = usuarioInfo.identificadorNumero;
-                  asistente.evaluador.nombre = usuarioInfo.nombre;
-                  asistente.evaluador.primerApellido = usuarioInfo.primerApellido;
-                  asistente.evaluador.segundoApellido = usuarioInfo.segundoApellido;
+                  asistente.evaluador.persona = usuarioInfo;
                 })
               ).subscribe();
             });

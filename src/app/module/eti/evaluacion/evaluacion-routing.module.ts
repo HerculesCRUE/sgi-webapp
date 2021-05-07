@@ -1,20 +1,19 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { SgiAuthGuard, SgiAuthRoutes } from '@sgi/framework/auth';
-
-import { EvaluacionEvaluarComponent } from './evaluacion-evaluar/evaluacion-evaluar.component';
-import { EvaluacionListadoComponent } from './evaluacion-listado/evaluacion-listado.component';
-import { ActionGuard } from '@core/guards/master-form.guard';
-import { EVALUACION_ROUTE_NAMES } from './evaluacion-route-names';
 import { FragmentGuard } from '@core/guards/detail-form.guard';
-import { EvaluacionResolver } from './evaluacion.resolver';
-import { EvaluacionEvaluacionComponent } from '../evaluacion-formulario/evaluacion-evaluacion/evaluacion-evaluacion.component';
+import { ActionGuard } from '@core/guards/master-form.guard';
+import { MSG_PARAMS } from '@core/i18n';
+import { SgiAuthGuard, SgiAuthRoutes } from '@sgi/framework/auth';
 import { EvaluacionComentariosComponent } from '../evaluacion-formulario/evaluacion-comentarios/evaluacion-comentarios.component';
 import { EvaluacionDocumentacionComponent } from '../evaluacion-formulario/evaluacion-documentacion/evaluacion-documentacion.component';
+import { EvaluacionEvaluacionComponent } from '../evaluacion-formulario/evaluacion-evaluacion/evaluacion-evaluacion.component';
+import { EvaluacionEvaluarComponent } from './evaluacion-evaluar/evaluacion-evaluar.component';
+import { EvaluacionListadoComponent } from './evaluacion-listado/evaluacion-listado.component';
+import { EVALUACION_ROUTE_NAMES } from './evaluacion-route-names';
+import { EvaluacionResolver } from './evaluacion.resolver';
 
-const MSG_EVALUACION_LISTADO_TITLE = marker('eti.evaluacion.listado.titulo');
-const MSG_EVALUACION_EVALUAR_TITLE = marker('eti.evaluacion.evaluar.titulo');
+const MSG_EVALUACION_TITLE = marker('eti.evaluacion');
 
 const routes: SgiAuthRoutes = [
   {
@@ -22,7 +21,8 @@ const routes: SgiAuthRoutes = [
     component: EvaluacionListadoComponent,
     canActivate: [SgiAuthGuard],
     data: {
-      title: MSG_EVALUACION_LISTADO_TITLE,
+      title: MSG_EVALUACION_TITLE,
+      titleParams: MSG_PARAMS.CARDINALIRY.PLURAL,
       hasAnyAuthorityForAnyUO: ['ETI-EVC-V']
     }
   },
@@ -35,7 +35,8 @@ const routes: SgiAuthRoutes = [
       evaluacion: EvaluacionResolver
     },
     data: {
-      title: MSG_EVALUACION_EVALUAR_TITLE,
+      title: MSG_EVALUACION_TITLE,
+      titleParams: MSG_PARAMS.CARDINALIRY.SINGULAR,
       hasAnyAuthorityForAnyUO: ['ETI-EVC-EVAL']
     },
     children: [

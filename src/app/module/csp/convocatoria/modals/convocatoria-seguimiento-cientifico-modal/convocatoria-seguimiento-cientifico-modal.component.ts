@@ -3,8 +3,8 @@ import { FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } fro
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { BaseModalComponent } from '@core/component/base-modal.component';
-import { IConvocatoriaSeguimientoCientifico } from '@core/models/csp/convocatoria-seguimiento-cientifico';
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
+import { MSG_PARAMS } from '@core/i18n';
+import { IConvocatoriaPeriodoSeguimientoCientifico } from '@core/models/csp/convocatoria-periodo-seguimiento-cientifico';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { FormGroupUtil } from '@core/utils/form-group-util';
@@ -12,48 +12,49 @@ import { StatusWrapper } from '@core/utils/status-wrapper';
 import { DateValidator } from '@core/validators/date-validator';
 import { NumberValidator } from '@core/validators/number-validator';
 import { RangeValidator } from '@core/validators/range-validator';
+import { TranslateService } from '@ngx-translate/core';
+import { switchMap } from 'rxjs/operators';
 
 export interface IConvocatoriaSeguimientoCientificoModalData {
   duracion: number;
-  convocatoriaSeguimientoCientifico: IConvocatoriaSeguimientoCientifico;
-  convocatoriaSeguimientoCientificoList: StatusWrapper<IConvocatoriaSeguimientoCientifico>[];
+  convocatoriaSeguimientoCientifico: IConvocatoriaPeriodoSeguimientoCientifico;
+  convocatoriaSeguimientoCientificoList: StatusWrapper<IConvocatoriaPeriodoSeguimientoCientifico>[];
   readonly: boolean;
 }
 
-const MSG_ANADIR = marker('botones.aniadir');
-const MSG_ACEPTAR = marker('botones.aceptar');
+const MSG_ANADIR = marker('btn.add');
+const MSG_ACEPTAR = marker('btn.ok');
+const CONVOCATORIA_PERIODO_SEGUIMIENTO_CIENTIFICO_KEY = marker('csp.convocatoria-periodo-seguimiento-cientifico');
+const CONVOCATORIA_SEGUIMIENTO_CIENTIFICO_MES_FIN_KEY = marker('csp.convocatoria-seguimiento-cientifico.mes-final');
+const CONVOCATORIA_SEGUIMIENTO_CIENTIFICO_MES_INICIO_KEY = marker('csp.convocatoria-seguimiento-cientifico.mes-inicial');
+const CONVOCATORIA_SEGUIMIENTO_CIENTIFICO_NUMERO_PERIODO_KEY = marker('csp.convocatoria-seguimiento-cientifico.numero-periodo');
+const TITLE_NEW_ENTITY = marker('title.new.entity');
 
 @Component({
   templateUrl: './convocatoria-seguimiento-cientifico-modal.component.html',
   styleUrls: ['./convocatoria-seguimiento-cientifico-modal.component.scss']
 })
 export class ConvocatoriaSeguimientoCientificoModalComponent
-  extends BaseModalComponent<IConvocatoriaSeguimientoCientifico, ConvocatoriaSeguimientoCientificoModalComponent> implements OnInit {
+  extends BaseModalComponent<IConvocatoriaPeriodoSeguimientoCientifico, ConvocatoriaSeguimientoCientificoModalComponent> implements OnInit {
 
-  fxFlexProperties2: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
 
   FormGroupUtil = FormGroupUtil;
   textSaveOrUpdate: string;
+  title: string;
+
+  msgParamNumeroPeriodoEntity = {};
+  msgParamMesFinEntity = {};
+  msgParamMesInicioEntity = {};
+  msgParamObservacionesEntity = {};
 
   constructor(
     protected snackBarService: SnackBarService,
     @Inject(MAT_DIALOG_DATA) public data: IConvocatoriaSeguimientoCientificoModalData,
-    public matDialogRef: MatDialogRef<ConvocatoriaSeguimientoCientificoModalComponent>
+    public matDialogRef: MatDialogRef<ConvocatoriaSeguimientoCientificoModalComponent>,
+    private readonly translate: TranslateService
   ) {
     super(snackBarService, matDialogRef, data.convocatoriaSeguimientoCientifico);
-
-    this.fxFlexProperties = new FxFlexProperties();
-    this.fxFlexProperties.sm = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.md = '0 1 calc(33%-10px)';
-    this.fxFlexProperties.gtMd = '0 1 calc(20%-10px)';
-    this.fxFlexProperties.order = '2';
-
-    this.fxFlexProperties2 = new FxFlexProperties();
-    this.fxFlexProperties2.sm = '0 1 calc(100%-10px)';
-    this.fxFlexProperties2.md = '0 1 calc(100%-10px)';
-    this.fxFlexProperties2.gtMd = '0 1 calc(100%-10px)';
-    this.fxFlexProperties2.order = '3';
 
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.gap = '20px';
@@ -63,7 +64,49 @@ export class ConvocatoriaSeguimientoCientificoModalComponent
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.textSaveOrUpdate = this.data?.convocatoriaSeguimientoCientifico?.mesInicial ? MSG_ACEPTAR : MSG_ANADIR;
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      CONVOCATORIA_SEGUIMIENTO_CIENTIFICO_NUMERO_PERIODO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamNumeroPeriodoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      CONVOCATORIA_SEGUIMIENTO_CIENTIFICO_MES_INICIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamMesInicioEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      CONVOCATORIA_SEGUIMIENTO_CIENTIFICO_MES_FIN_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamMesFinEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      CONVOCATORIA_SEGUIMIENTO_CIENTIFICO_MES_INICIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamMesInicioEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR });
+
+    if (this.data.convocatoriaSeguimientoCientifico?.numPeriodo) {
+      this.translate.get(
+        CONVOCATORIA_PERIODO_SEGUIMIENTO_CIENTIFICO_KEY,
+        MSG_PARAMS.CARDINALIRY.SINGULAR
+      ).subscribe((value) => this.title = value);
+    } else {
+      this.translate.get(
+        CONVOCATORIA_PERIODO_SEGUIMIENTO_CIENTIFICO_KEY,
+        MSG_PARAMS.CARDINALIRY.SINGULAR
+      ).pipe(
+        switchMap((value) => {
+          return this.translate.get(
+            TITLE_NEW_ENTITY,
+            { entity: value, ...MSG_PARAMS.GENDER.MALE }
+          );
+        })
+      ).subscribe((value) => this.title = value);
+    }
   }
 
   protected getFormGroup(): FormGroup {
@@ -112,7 +155,7 @@ export class ConvocatoriaSeguimientoCientificoModalComponent
     return formGroup;
   }
 
-  protected getDatosForm(): IConvocatoriaSeguimientoCientifico {
+  protected getDatosForm(): IConvocatoriaPeriodoSeguimientoCientifico {
     const convocatoriaSeguimientoCientifico = this.data.convocatoriaSeguimientoCientifico;
     convocatoriaSeguimientoCientifico.numPeriodo = this.formGroup.get('numPeriodo').value;
     convocatoriaSeguimientoCientifico.mesInicial = this.formGroup.get('desdeMes').value;
@@ -146,13 +189,10 @@ export class ConvocatoriaSeguimientoCientificoModalComponent
    */
   private isFinalUltimoPeriodo(mesFinUltimoPeriodoNoFinal: number): ValidatorFn {
     return (formGroup: FormGroup): ValidationErrors | null => {
-
       const mesInicioControl = formGroup.controls.desdeMes;
-
       if (!mesFinUltimoPeriodoNoFinal || (mesInicioControl.errors && !mesInicioControl.errors.finalNotLast)) {
         return;
       }
-
     };
   }
 

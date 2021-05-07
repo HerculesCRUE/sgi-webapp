@@ -1,21 +1,28 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoSocio } from '@core/models/csp/proyecto-socio';
 import { IRolSocio } from '@core/models/csp/rol-socio';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
-import { ProyectoService } from '@core/services/csp/proyecto.service';
 import { RolSocioService } from '@core/services/csp/rol-socio.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { DateUtils } from '@core/utils/date-utils';
+import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
 import { merge, Observable, Subscription } from 'rxjs';
 import { map, startWith, tap } from 'rxjs/operators';
 import { ProyectoSocioActionService } from '../../proyecto-socio.action.service';
 import { ProyectoSocioDatosGeneralesFragment } from './proyecto-socio-datos-generales.fragment';
 
-const MSG_ERROR_INIT = marker('csp.solicitud.equipo.socio.rol.error.cargar');
+const MSG_ERROR_INIT = marker('error.load');
+const PROYECTO_SOCIO_IMPORTE_SOLICITADO_KEY = marker('csp.proyecto-socio.importe-solicitado');
+const PROYECTO_SOCIO_FECHA_FIN_KEY = marker('csp.proyecto-socio.fecha-fin');
+const PROYECTO_SOCIO_FECHA_INICIO_KEY = marker('csp.proyecto-socio.fecha-inicio');
+const PROYECTO_SOCIO_NUMERO_INVESTIGADOR_KEY = marker('csp.proyecto-socio.num-investigadores');
+const PROYECTO_SOCIO_ROL_SOCIO_KEY = marker('csp.proyecto-socio.rol-socio');
+const PROYECTO_SOCIO_SOCIO_KEY = marker('csp.proyecto-socio.socio');
+const PROYECTO_SOCIO_PERIODO_PARTICIPACION_KEY = marker('title.csp.proyecto-socio.periodo-participacion');
 
 @Component({
   selector: 'sgi-solicitud-proyecto-socio-datos-generales',
@@ -30,14 +37,21 @@ export class ProyectoSocioDatosGeneralesComponent extends FormFragmentComponent<
   private subscriptions: Subscription[] = [];
   private rolSocioFiltered: IRolSocio[] = [];
   rolSocios$: Observable<IRolSocio[]>;
-  sociosSelectedProyecto: IProyectoSocio[] = [];
+
+  msgParamEntity = {};
+  msgParamRolSocioEntity = {};
+  msgParamNumInvestigadoresEntity = {};
+  msgParamImporteSolicitadoEntity = {};
+  msgParamFechaInicioEntity = {};
+  msgParamFechaFinEntity = {};
+  msgParamPeriodoParticipacionEntity = {};
 
   constructor(
     private readonly logger: NGXLogger,
     protected actionService: ProyectoSocioActionService,
     private snackBarService: SnackBarService,
     private rolSocioService: RolSocioService,
-    private proyectoService: ProyectoService
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.DATOS_GENERALES, actionService);
     this.formPart = this.fragment as ProyectoSocioDatosGeneralesFragment;
@@ -56,7 +70,9 @@ export class ProyectoSocioDatosGeneralesComponent extends FormFragmentComponent<
   ngOnInit(): void {
     super.ngOnInit();
     this.loadRolProyectos();
-    this.loadSociosSelectedProyecto();
+
+    this.setupI18N();
+
     this.subscriptions.push(
       merge(
         this.formGroup.get('empresa').valueChanges,
@@ -66,6 +82,48 @@ export class ProyectoSocioDatosGeneralesComponent extends FormFragmentComponent<
         tap(() => this.checkOverlapsPeriodosParticipacion())
       ).subscribe()
     );
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      PROYECTO_SOCIO_IMPORTE_SOLICITADO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamImporteSolicitadoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_FECHA_FIN_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaFinEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_FECHA_INICIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaInicioEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_NUMERO_INVESTIGADOR_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamNumInvestigadoresEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_NUMERO_INVESTIGADOR_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamNumInvestigadoresEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_ROL_SOCIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamRolSocioEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_SOCIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_PARTICIPACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamPeriodoParticipacionEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
   }
 
   private loadRolProyectos(): void {
@@ -101,28 +159,24 @@ export class ProyectoSocioDatosGeneralesComponent extends FormFragmentComponent<
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
-  private loadSociosSelectedProyecto(): void {
-    this.sociosSelectedProyecto = this.actionService.getSelectedProyectoSocios();
-  }
-
   private checkOverlapsPeriodosParticipacion(): void {
     const empresaForm = this.formGroup.get('empresa');
     const fechaInicioForm = this.formGroup.get('fechaInicio');
     const fechaFinForm = this.formGroup.get('fechaFin');
 
-    const proyectoSocios = this.sociosSelectedProyecto.filter(
-      element => element.empresa.personaRef === empresaForm.value.personaRef
+    const proyectoSocios = this.actionService.proyectoSocios.filter(
+      element => element.empresa.id === empresaForm.value.id
         && element.id !== this.formPart.proyectoSocio.id);
 
 
-    const fechaInicio = fechaInicioForm.value ? DateUtils.fechaToDate(fechaInicioForm.value).getTime() : Number.MIN_VALUE;
-    const fechaFin = fechaFinForm.value ? DateUtils.fechaToDate(fechaFinForm.value).getTime() : Number.MAX_VALUE;
+    const fechaInicio = fechaInicioForm.value ? fechaInicioForm.value.toMillis() : Number.MIN_VALUE;
+    const fechaFin = fechaFinForm.value ? fechaFinForm.value.toMillis() : Number.MAX_VALUE;
 
 
     const ranges = proyectoSocios.map(proyectoSocio => {
       return {
-        inicio: proyectoSocio.fechaInicio ? DateUtils.fechaToDate(proyectoSocio.fechaInicio).getTime() : Number.MIN_VALUE,
-        fin: proyectoSocio.fechaFin ? DateUtils.fechaToDate(proyectoSocio.fechaFin).getTime() : Number.MAX_VALUE
+        inicio: proyectoSocio.fechaInicio ? proyectoSocio.fechaInicio.toMillis() : Number.MIN_VALUE,
+        fin: proyectoSocio.fechaFin ? proyectoSocio.fechaFin.toMillis() : Number.MAX_VALUE
       };
     });
 

@@ -5,43 +5,47 @@
         [title]="'label.datos-generales' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
       </sgi-action-fragment-menu-item>
-      <sgi-action-fragment-menu-group [title]="'csp.solicitud.menu.proyectoDatos' | translate">
-        <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.PROYECTO_DATOS]" *ngIf="tipoEstandar"
-          [title]="'label.fichaGeneral' | translate"
+      <sgi-action-fragment-menu-group *ngIf="actionService.formularioSolicitud === FormularioSolicitud.ESTANDAR"
+        [title]="'menu.csp.solicitudes.datos-proyecto' | translate">
+        <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.PROYECTO_DATOS]"
+          [title]="'label.ficha-general' | translate"
           [fragment]="actionService.getFragment(actionService.FRAGMENT.PROYECTO_DATOS)">
         </sgi-action-fragment-menu-item>
+        <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.EQUIPO_PROYECTO]"
+          *ngIf="actionService.datosProyectoComplete$ | async"
+          [title]="'menu.csp.solicitudes.equipos-proyecto' | translate"
+          [fragment]="actionService.getFragment(actionService.FRAGMENT.EQUIPO_PROYECTO)">
+        </sgi-action-fragment-menu-item>
+        <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.SOCIOS]"
+          *ngIf="(actionService.datosProyectoComplete$ | async) && (actionService.showSocios$ | async)"
+          [title]="'csp.solicitud-proyecto-socio' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
+          [fragment]="actionService.getFragment(actionService.FRAGMENT.SOCIOS)">
+        </sgi-action-fragment-menu-item>
+        <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.ENTIDADES_FINANCIADORAS]"
+          *ngIf="actionService.datosProyectoComplete$ | async"
+          [title]="'csp.convocatoria-entidad-financiadora' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
+          [fragment]="actionService.getFragment(actionService.FRAGMENT.ENTIDADES_FINANCIADORAS)">
+        </sgi-action-fragment-menu-item>
+        <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_GLOBAL]"
+          *ngIf="(actionService.datosProyectoComplete$ | async) && (actionService.showDesglosePresupuestoGlobal$ | async)"
+          [title]="'menu.csp.solicitudes.desgloses-presupuesto' | translate"
+          [fragment]="actionService.getFragment(actionService.FRAGMENT.DESGLOSE_PRESUPUESTO_GLOBAL)">
+        </sgi-action-fragment-menu-item>
+        <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_ENTIDADES]"
+          *ngIf="(actionService.datosProyectoComplete$ | async) && (actionService.showDesglosePresupuestoEntidad$ | async)"
+          [title]="'menu.csp.solicitudes.desgloses-presupuesto' | translate"
+          [fragment]="actionService.getFragment(actionService.FRAGMENT.DESGLOSE_PRESUPUESTO_ENTIDADES)">
+        </sgi-action-fragment-menu-item>
       </sgi-action-fragment-menu-group>
-      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.EQUIPO_PROYECTO]" *ngIf="tipoEstandar"
-        [title]="'csp.solicitud.menu.equipo.proyecto' | translate"
-        [fragment]="actionService.getFragment(actionService.FRAGMENT.EQUIPO_PROYECTO)">
-      </sgi-action-fragment-menu-item>
-      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.SOCIOS_COLABORADORES]"
-        *ngIf="actionService.isSociosColaboradores" [title]="'csp.solicitud.menu.socios.colaboradores' | translate"
-        [fragment]="actionService.getFragment(actionService.FRAGMENT.SOCIOS_COLABORADORES)">
-      </sgi-action-fragment-menu-item>
-      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.ENTIDADES_FINANCIADORAS]" *ngIf="tipoEstandar"
-        [title]="'csp.solicitud.menu.entidadesFinanciadoras' | translate"
-        [fragment]="actionService.getFragment(actionService.FRAGMENT.ENTIDADES_FINANCIADORAS)">
-      </sgi-action-fragment-menu-item>
-      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_GLOBAL]"
-        *ngIf="!(actionService.isPresupuestoPorEntidades$ | async)"
-        [title]="'csp.solicitud.menu.desglose-presupuesto' | translate"
-        [fragment]="actionService.getFragment(actionService.FRAGMENT.DESGLOSE_PRESUPUESTO_GLOBAL)">
-      </sgi-action-fragment-menu-item>
-      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_ENTIDADES]"
-        *ngIf="actionService.isPresupuestoPorEntidades$ | async"
-        [title]="'csp.solicitud.menu.desglose-presupuesto' | translate"
-        [fragment]="actionService.getFragment(actionService.FRAGMENT.DESGLOSE_PRESUPUESTO_ENTIDADES)">
-      </sgi-action-fragment-menu-item>
-      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.DOCUMENTOS]"
-        [title]="'csp.solicitud.menu.documentos' | translate"
+      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.DOCUMENTOS]" [title]="'csp.documentos' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.DOCUMENTOS)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.HISTORICO_ESTADOS]"
-        [title]="'csp.solicitud.menu.historicoEstados' | translate"
+        [title]="'menu.csp.solicitudes.historicos-estados' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.HISTORICO_ESTADOS)">
       </sgi-action-fragment-menu-item>
-      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.HITOS]" [title]="'csp.solicitud.hitos' | translate"
+      <sgi-action-fragment-menu-item [route]="[SOLICITUD_ROUTE_NAMES.HITOS]"
+        [title]="'csp.hito' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.HITOS)"
         *ngIf="this.actionService.showHitos$ | async">
       </sgi-action-fragment-menu-item>

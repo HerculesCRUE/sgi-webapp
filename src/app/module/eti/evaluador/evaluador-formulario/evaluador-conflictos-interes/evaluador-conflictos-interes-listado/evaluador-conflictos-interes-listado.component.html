@@ -5,29 +5,31 @@
     <!-- Persona identificador -->
     <ng-container matColumnDef="identificador">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'eti.evaluador.conflictosInteres.listado.identificador' | translate}}
+        {{'eti.evaluador.conflicto-interes.identificador' | translate}}
       </th>
-      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.identificadorNumero}}{{wrapper.value.identificadorLetra}}
+      <td mat-cell *matCellDef="let wrapper">
+        {{wrapper.value.personaConflicto?.numeroDocumento}}
       </td>
     </ng-container>
 
     <!-- Persona nombre y apellidos -->
     <ng-container matColumnDef="nombreCompleto">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'eti.evaluador.conflictosInteres.listado.persona' | translate}}
+        {{'eti.evaluador.conflicto-interes.persona' | translate}}
       </th>
-      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.nombre}}
-        {{wrapper.value.primerApellido}}
-        {{wrapper.value.segundoApellido}} </td>
+      <td mat-cell *matCellDef="let wrapper">
+        {{wrapper.value.personaConflicto?.nombre}}
+        {{wrapper.value.personaConflicto?.apellidos}}
+      </td>
     </ng-container>
 
     <!-- Acciones Column -->
     <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef> {{'eti.evaluador.conflictosInteres.listado.acciones' | translate}} </th>
+      <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper;let i=index;">
         <ng-container>
           <button mat-button color="warn" *sgiHasAuthorityForAnyUO="'ETI-EVR-E'"
-            matTooltip="{{'eti.evaluador.conflictosInteres.listado.borrar' | translate}}" (click)="delete(wrapper)">
+            matTooltip="{{'btn.delete' | translate}}" (click)="delete(wrapper)">
             <mat-icon>highlight_off</mat-icon>
           </button>
         </ng-container>
@@ -42,7 +44,7 @@
   <div class="separation-button">
     <button color="three" (click)="openModalAddConflicto()" mat-raised-button>
       <mat-icon>add_box</mat-icon>
-      {{'eti.evaluador.conflictosInteres.formulario.listado.nuevoConflictoInteres' | translate}}
+      {{'btn.add.entity' | translate:msgParamConflictoInteresEntity}}
     </button>
   </div>
 

@@ -1,11 +1,10 @@
-import { IProyecto } from "@core/models/csp/proyecto";
-import { IProyectoPlazos } from "@core/models/csp/proyecto-plazo";
-import { Fragment } from "@core/services/action-service";
-import { ProyectoPlazoService } from "@core/services/csp/proyecto-plazo.service";
-import { ProyectoService } from "@core/services/csp/proyecto.service";
-import { StatusWrapper } from "@core/utils/status-wrapper";
-import { BehaviorSubject, from, merge, Observable, of } from "rxjs";
-import { map, mergeMap, takeLast, tap } from "rxjs/operators";
+import { IProyectoPlazos } from '@core/models/csp/proyecto-plazo';
+import { Fragment } from '@core/services/action-service';
+import { ProyectoPlazoService } from '@core/services/csp/proyecto-plazo.service';
+import { ProyectoService } from '@core/services/csp/proyecto.service';
+import { StatusWrapper } from '@core/utils/status-wrapper';
+import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
+import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
 
 export class ProyectoPlazosFragment extends Fragment {
   plazos$ = new BehaviorSubject<StatusWrapper<IProyectoPlazos>[]>([]);
@@ -14,8 +13,7 @@ export class ProyectoPlazosFragment extends Fragment {
   constructor(
     key: number,
     private proyectoService: ProyectoService,
-    private proyectoPlazoService: ProyectoPlazoService,
-    public readonly: boolean
+    private proyectoPlazoService: ProyectoPlazoService
   ) {
     super(key);
     this.setComplete(true);
@@ -102,10 +100,7 @@ export class ProyectoPlazosFragment extends Fragment {
       return of(void 0);
     }
     createdPlazos.forEach(
-      (wrapper: StatusWrapper<IProyectoPlazos>) => wrapper.value.proyecto = {
-        id: this.getKey(),
-        activo: true
-      } as IProyecto
+      (wrapper) => wrapper.value.proyectoId = this.getKey() as number
     );
     return from(createdPlazos).pipe(
       mergeMap((wrappedPlazos) => {

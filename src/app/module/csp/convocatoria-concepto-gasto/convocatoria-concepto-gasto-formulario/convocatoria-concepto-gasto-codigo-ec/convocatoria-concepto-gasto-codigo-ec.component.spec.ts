@@ -1,44 +1,36 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { ConvocatoriaConceptoGastoCodigoEcComponent } from './convocatoria-concepto-gasto-codigo-ec.component';
-import { MaterialDesignModule } from '@material/material-design.module';
-import TestUtils from '@core/utils/test-utils';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FlexModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute, Data } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { ConvocatoriaConceptoGastoActionService } from '../../convocatoria-concepto-gasto.action.service';
-import { LoggerTestingModule } from 'ngx-logger/testing';
+import TestUtils from '@core/utils/test-utils';
+import { MaterialDesignModule } from '@material/material-design.module';
 import { SgiAuthService } from '@sgi/framework/auth';
-import { IConvocatoriaConceptoGasto } from '@core/models/csp/convocatoria-concepto-gasto';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { SharedModule } from '@shared/shared.module';
+import { LoggerTestingModule } from 'ngx-logger/testing';
+import { CONVOCATORIA_CONCEPTO_GASTO_DATA_KEY } from '../../convocatoria-concepto-gasto-data.resolver';
+import { ConvocatoriaConceptoGastoActionService, IConvocatoriaConceptoGastoData } from '../../convocatoria-concepto-gasto.action.service';
+import { ConvocatoriaConceptoGastoCodigoEcComponent } from './convocatoria-concepto-gasto-codigo-ec.component';
 
 describe('ConvocatoriaConceptoGastoCodigoEcComponent', () => {
   let component: ConvocatoriaConceptoGastoCodigoEcComponent;
   let fixture: ComponentFixture<ConvocatoriaConceptoGastoCodigoEcComponent>;
-
-  const data = {
-    convocatoriaConceptoGasto: {
-      id: 1,
-      permitido: true
-    } as IConvocatoriaConceptoGasto,
-    convocatoriaConceptoGastosTabla:
-      [
-        {
-          id: 1,
-          permitido: true
-        },
-        {
-          id: 2,
-          permitido: true
-        }
-      ] as IConvocatoriaConceptoGasto[]
+  const routeData: Data = {
+    [CONVOCATORIA_CONCEPTO_GASTO_DATA_KEY]: {
+      convocatoria: {
+        id: 1
+      },
+      selectedConvocatoriaConceptoGastos: [],
+      permitido: true,
+      readonly: false
+    } as IConvocatoriaConceptoGastoData
   };
+  const routeMock = TestUtils.buildActivatedRouteMock('1', routeData);
 
-
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ConvocatoriaConceptoGastoCodigoEcComponent],
       imports: [
@@ -51,23 +43,19 @@ describe('ConvocatoriaConceptoGastoCodigoEcComponent', () => {
         ReactiveFormsModule,
         RouterTestingModule,
         LoggerTestingModule,
+        SharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },
-        { provide: MatDialogRef, useValue: data },
-        { provide: MAT_DIALOG_DATA, useValue: data },
         ConvocatoriaConceptoGastoActionService,
-        SgiAuthService
+        SgiAuthService,
+        { provide: ActivatedRoute, useValue: routeMock }
       ],
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    history.pushState(data.convocatoriaConceptoGasto, 'convocatoriaConceptoGasto');
-    history.pushState(data.convocatoriaConceptoGastosTabla, 'convocatoriaConceptoGastosTabla');
-    history.pushState(true, 'permitido');
-    history.pushState(false, 'readonly');
     fixture = TestBed.createComponent(ConvocatoriaConceptoGastoCodigoEcComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

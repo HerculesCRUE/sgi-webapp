@@ -1,54 +1,54 @@
 <section class="convocatoria-hitos">
-  <h2>{{'csp.convocatoria.hitos.title' | translate}}</h2>
+  <h2>{{'csp.hito' | translate: MSG_PARAMS.CARDINALIRY.PLURAL}}</h2>
 
-  <div *ngIf="disableAddHito" class="info-message">
-    {{'csp.convocatoria.tipo.hito.modeloEjecucion' | translate}}
+  <div *ngIf="!(actionService.hasModeloEjecucion$ | async)" class="info-message">
+    {{'info.csp.hito' | translate}}
   </div>
   <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSource" matSort matSortActive="id"
     matSortDirection="asc" matSortDisableClear>
 
     <!-- Fecha inicio Column -->
     <ng-container matColumnDef="fechaInicio">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.convocatoria.hitos.fecha.inicio' | translate}} </th>
-      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.fecha | date:'dd/MM/yyyy'}} </td>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.hito.fecha-inicio' | translate}} </th>
+      <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.fecha | luxon:'short'}} </td>
     </ng-container>
 
     <!-- Tipo hito Column -->
     <ng-container matColumnDef="tipoHito">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.convocatoria.hitos.tipo.hito' | translate}} </th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.hito.tipo' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.tipoHito.nombre}} </td>
     </ng-container>
 
     <!-- Comentario Column -->
     <ng-container matColumnDef="comentario">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.convocatoria.hitos.comentario' | translate}} </th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.hito.comentario' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper"> {{wrapper.value.comentario}} </td>
     </ng-container>
 
 
     <!-- Aviso Column -->
     <ng-container matColumnDef="aviso">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.convocatoria.hitos.aviso' | translate}} </th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> {{'csp.hito.aviso' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.value.generaAviso ? ('label.si' | translate) : 'label.no' | translate}} </td>
     </ng-container>
 
     <!-- Acciones Column -->
     <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef> {{'csp.convocatoria.listado.acciones' | translate}} </th>
+      <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
       <td mat-cell *matCellDef="let hito">
         <ng-container>
-          <button mat-button matTooltip="{{'botones.ver' | translate}}" *ngIf="formPart.readonly"
+          <button mat-button matTooltip="{{'btn.view' | translate}}" *ngIf="formPart.readonly"
             (click)="openModal(hito)">
             <mat-icon color="primary">visibility</mat-icon>
           </button>
-          <button mat-button matTooltip="{{'botones.editar' | translate}}" *ngIf="!formPart.readonly"
+          <button mat-button matTooltip="{{'btn.edit' | translate}}" *ngIf="!formPart.readonly"
             (click)="openModal(hito)">
             <mat-icon color="primary">border_color</mat-icon>
           </button>
         </ng-container>
         <ng-container>
-          <button mat-button matTooltip="{{'botones.borrar' | translate}}" *ngIf="!formPart.readonly"
+          <button mat-button matTooltip="{{'btn.delete' | translate}}" *ngIf="!formPart.readonly"
             (click)="deleteHito(hito)">
             <mat-icon color="warn">highlight_off</mat-icon>
           </button>
@@ -66,9 +66,9 @@
   <div class="separation-button">
     <!-- Botón añadir hitos -->
     <button color="three" mat-button mat-raised-button *ngIf="!formPart.readonly" (click)="openModal()"
-      [disabled]="disableAddHito">
+      [disabled]="!(actionService.hasModeloEjecucion$ | async)">
       <mat-icon color="accent">add_circle</mat-icon>
-      {{'csp.convocatoria.hitos.aniadir' | translate}}
+      {{ 'btn.add.entity' | translate:msgParamEntity }}
     </button>
   </div>
 </section>

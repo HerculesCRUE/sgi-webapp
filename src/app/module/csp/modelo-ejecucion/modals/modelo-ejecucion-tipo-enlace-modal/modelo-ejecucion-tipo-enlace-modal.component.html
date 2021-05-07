@@ -1,31 +1,28 @@
-<div class="modelo-tipo-enlace-modal">
-  <header class="modal-header-material">
-    <h3 mat-dialog-title>{{'csp.modelo.tipo.enlace.modal.titulo' | translate}}</h3>
-  </header>
-  <main>
-    <form [formGroup]="formGroup">
-      <!-- Tipo de enlace -->
-      <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
-        <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
-          [fxFlexOrder]="fxFlexProperties.order">
-          <mat-form-field fxFill>
-            <mat-label>{{'csp.tipo.enlace' | translate}}</mat-label>
-            <mat-select matNativeControl formControlName="tipoEnlace" required>
-              <mat-option *ngFor="let tipoEnlace of tipoEnlaces$ | async" [value]="tipoEnlace">{{tipoEnlace.nombre}}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="formGroup.controls.tipoEnlace.errors?.required">
-              {{'csp.tipo.enlace.error.requerido' | translate}}
-            </mat-error>
-          </mat-form-field>
-        </div>
-      </div>
-    </form>
-  </main>
-  <div id="modals-buttons" class="float-right" mat-dialog-actions>
-    <button color="accent" (click)="saveOrUpdate()" md-button mat-raised-button type="submit">{{'botones.aniadir' |
-      translate}}</button>
-    <button class="link-cancelar" mat-button (click)="closeModal()" type="button">{{'botones.cancelar' |
-      translate}}</button>
-  </div>
+<div class="sgi-dialog-header" fxLayout="row" fxLayoutGap="20px">
+  <span fxFlexAlign="center" mat-mat-dialog-title role="heading" aria-level="3" fxFlex>{{title | translate}}</span>
+  <button fxFlex="nogrow" mat-icon-button mat-dialog-close>
+    <mat-icon class="close-icon">close</mat-icon>
+  </button>
 </div>
+<mat-dialog-content>
+  <form [formGroup]="formGroup">
+    <!-- Tipo de enlace -->
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field>
+        <mat-label>{{'csp.modelo-ejecucion-tipo-enlace.tipo' | translate}}</mat-label>
+        <sgi-select-entity formControlName="tipoEnlace" required [options]="tipoEnlaces$ | async">
+        </sgi-select-entity>
+        <mat-error *ngIf="formGroup.controls.tipoEnlace.errors?.required">
+          {{'error.required.entity' | translate:msgParamTipoEntiy}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button color="accent" (click)="saveOrUpdate()" mat-raised-button type="submit">
+    <mat-icon class="save-icon">save</mat-icon>{{textSaveOrUpdate | translate}}
+  </button>
+  <button class="link-cancelar" mat-button type="button" mat-dialog-close>{{'btn.cancel' |
+    translate}}</button>
+</mat-dialog-actions>

@@ -1,21 +1,24 @@
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { ClasificacionCVN } from '@core/enums/clasificacion-cvn';
+import { DateTime } from 'luxon';
+import { IUnidadGestion } from '../usr/unidad-gestion';
 import { ITipoAmbitoGeografico } from './tipo-ambito-geografico';
 import { ITipoRegimenConcurrencia } from './tipo-regimen-concurrencia';
 import { IModeloEjecucion, ITipoFinalidad } from './tipos-configuracion';
 
 export interface IConvocatoria {
   id: number;
-  unidadGestionRef: string;
+  unidadGestion: IUnidadGestion;
   modeloEjecucion: IModeloEjecucion;
   codigo: string;
-  anio: number;
+  fechaPublicacion: DateTime;
+  fechaProvisional: DateTime;
+  fechaConcesion: DateTime;
   titulo: string;
   objeto: string;
   observaciones: string;
   finalidad: ITipoFinalidad;
   regimenConcurrencia: ITipoRegimenConcurrencia;
-  destinatarios: Destinatarios;
   colaborativos: boolean;
   estado: Estado;
   duracion: number;
@@ -24,18 +27,6 @@ export interface IConvocatoria {
   clasificacionCVN: ClasificacionCVN;
   activo: boolean;
 }
-
-export enum Destinatarios {
-  INDIVIDUAL = 'INDIVIDUAL',
-  EQUIPO_PROYECTO = 'EQUIPO_PROYECTO',
-  GRUPO_INVESTIGACION = 'GRUPO_INVESTIGACION'
-}
-
-export const DESTINATARIOS_MAP: Map<Destinatarios, string> = new Map([
-  [Destinatarios.INDIVIDUAL, marker(`csp.convocatoria.destinatarios.INDIVIDUAL`)],
-  [Destinatarios.EQUIPO_PROYECTO, marker(`csp.convocatoria.destinatarios.EQUIPO_PROYECTO`)],
-  [Destinatarios.GRUPO_INVESTIGACION, marker(`csp.convocatoria.destinatarios.GRUPO_INVESTIGACION`)]
-]);
 
 export enum Estado {
   BORRADOR = 'BORRADOR',

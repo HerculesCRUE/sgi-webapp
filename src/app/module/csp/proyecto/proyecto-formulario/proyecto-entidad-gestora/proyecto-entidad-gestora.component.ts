@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormFragmentComponent } from '@core/component/fragment.component';
 import { IProyectoEntidadGestora } from '@core/models/csp/proyecto-entidad-gestora';
-import { TipoEmpresaEconomica } from '@core/models/sgp/empresa-economica';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ProyectoActionService } from '../../proyecto.action.service';
@@ -21,10 +20,11 @@ export class ProyectoEntidadGestoraComponent extends FormFragmentComponent<IProy
   fxFlexPropertiesInline: FxFlexProperties;
   fxFlexPropertiesEntidad: FxFlexProperties;
 
+  // TODO: Cambiar cuando este definido
   entidades =
     [
-      { label: TipoEmpresaEconomica.ENTIDAD, value: 1 },
-      { label: TipoEmpresaEconomica.SUBENTIDAD, value: 2 }
+      { label: 'Entidad', value: 1 },
+      { label: 'Subentidad', value: 2 }
     ];
 
   constructor(

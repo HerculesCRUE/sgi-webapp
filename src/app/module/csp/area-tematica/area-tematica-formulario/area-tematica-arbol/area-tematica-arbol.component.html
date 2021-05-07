@@ -1,9 +1,9 @@
 <section class="gestion-areas-tematicas">
-  <h2>{{'csp.area.tematica.arbol' | translate}} {{actionService.getArea().nombre}}</h2>
+  <h2>{{'tree.entity' | translate:msgParamEntity}} {{actionService.getArea().nombre}}</h2>
 
   <!-- Validacion si no tiene area -->
   <div *ngIf="dataSource.data.length === 0" class="vacio">
-    <p>{{'csp.area.tematica.arbol.no.padre' | translate}}</p>
+    <p>{{'info.csp.area-tematica-arbol.no.padre' | translate}}</p>
   </div>
 
   <div class="area" fxLayout="row" fxLayout.xs="column" fxLayoutGap="10px">
@@ -67,21 +67,21 @@
 
     <!-- Visualizacion crear/editar/detalle -->
     <form [formGroup]="formGroup" class="visualizacion" fxFlex="50%" fxFlex.xs="100%" *ngIf="viewMode !== ''">
-      <h3 *ngIf="viewMode === 'new'">{{'csp.area.tematica.arbol.añadir' | translate}}</h3>
-      <h3 *ngIf="viewMode === 'edit'">{{'csp.area.tematica.arbol.actualizar' | translate}}</h3>
-      <h3 *ngIf="viewMode === 'view'">{{'csp.area.tematica.arbol.datos' | translate}}</h3>
+      <h3 *ngIf="viewMode === 'new'">{{'btn.add.entity' | translate:msgParamAreaTematicaEntity}}</h3>
+      <h3 *ngIf="viewMode === 'edit'">{{'btn.edit.entity' | translate:msgParamAreaTematicaEntity}}</h3>
+      <h3 *ngIf="viewMode === 'view'">{{'btn.view.entity' | translate:msgParamAreaTematicaEntity}}</h3>
       <div fxLayout="row" fxLayout.xs="column" fxLayoutGap="10px">
         <div fxFlex="50%" fxFlex.xs="100%">
           <mat-form-field class="input-form">
-            <mat-label>{{'csp.area.tematica.arbol.nombre' | translate}}</mat-label>
-            <input #input matInput type="text" placeholder="{{'csp.area.tematica.arbol.nombre' | translate}}"
+            <mat-label>{{'csp.area-tematica-arbol.nombre' | translate}}</mat-label>
+            <input #input matInput type="text" placeholder="{{'csp.area-tematica-arbol.nombre' | translate}}"
               formControlName="nombre" required>
             <mat-hint align="end">{{input.value?.length || 0}}/5</mat-hint>
             <mat-error *ngIf="formGroup.get('nombre').errors?.required">
-              {{'csp.area.tematica.arbol.nombre.error' | translate}}
+              {{'error.required.entity' | translate:msgParamNombreEntity}}
             </mat-error>
             <mat-error *ngIf="formGroup.get('nombre').errors?.maxlength">
-              {{'csp.area.tematica.arbol.maximo' | translate}}
+              {{'error.maxlength.entity' | translate:msgParamNombreEntity}}
             </mat-error>
           </mat-form-field>
         </div>
@@ -89,28 +89,28 @@
       <div fxLayout="row" fxLayout.xs="column" fxLayoutGap="10px">
         <div fxFlex="50%" fxFlex.xs="100%">
           <mat-form-field class="input-form">
-            <mat-label>{{'csp.area.tematica.arbol.descripcion' | translate}}</mat-label>
-            <input matInput type="text" placeholder="{{'csp.area.tematica.arbol.descripcion' | translate}}"
+            <mat-label>{{'csp.area-tematica-arbol.descripcion' | translate}}</mat-label>
+            <input matInput type="text" placeholder="{{'csp.area-tematica-arbol.descripcion' | translate}}"
               formControlName="descripcion" required>
             <mat-error *ngIf="formGroup.get('descripcion').errors?.required">
-              {{'csp.area.tematica.arbol.descripcion.error' | translate}}
+              {{'error.required.entity' | translate:msgParamDescripcionEntity}}
             </mat-error>
             <mat-error *ngIf="formGroup.get('descripcion').errors?.maxlength">
-              {{'csp.area.tematica.arbol.maximo' | translate}}
+              {{'error.maxlength.entity' | translate:msgParamDescripcionEntity}}
             </mat-error>
           </mat-form-field>
         </div>
       </div>
       <div class="separation-button">
-        <button *ngIf="viewMode === 'new' || viewMode === 'edit'" color="accent" md-button mat-raised-button
-          (click)="acceptDetail()">{{'botones.aceptar' | translate}}</button>
+        <button *ngIf="viewMode === 'new' || viewMode === 'edit'" color="accent" mat-raised-button
+          (click)="acceptDetail()">{{'btn.ok' | translate}}</button>
         <button *ngIf="viewMode === 'new' || viewMode === 'edit'" class="link-cancelar" mat-button><span
-            class="underline" (click)="cancelDetail()">{{'botones.cancelar' | translate}}</span></button>
-        <button *ngIf="viewMode === 'view'" color="accent" md-button mat-raised-button
-          (click)="switchToEdit()">{{'csp.area.tematica.arbol.editar'| translate}}</button>
-        <button *ngIf="viewMode === 'view'" color="warn" aria-label="Center Align" md-button mat-raised-button
+            class="underline" (click)="cancelDetail()">{{'btn.cancel' | translate}}</span></button>
+        <button *ngIf="viewMode === 'view'" color="accent" mat-raised-button
+          (click)="switchToEdit()">{{'btn.edit.entity'| translate:msgParamAreaTematicaEntity}}</button>
+        <button *ngIf="viewMode === 'view'" color="warn" aria-label="Center Align" mat-raised-button
           (click)="deleteDetail()">
-          {{'csp.area.tematica.arbol.eliminar'| translate}}
+          {{'btn.delete.entity'| translate:msgParamAreaTematicaEntity}}
         </button>
       </div>
     </form>
@@ -120,9 +120,9 @@
   </div>
 
   <div class="separation-button">
-    <button color="three" aria-label="Center Align" md-button mat-raised-button (click)="switchToNew()">
+    <button color="three" aria-label="Center Align" mat-raised-button (click)="switchToNew()">
       <mat-icon color="accent">add_circle</mat-icon>
-      {{'csp.area.tematica.arbol.añadir'| translate}}
+      {{ 'btn.add.entity' | translate:msgParamAreaTematicaEntity }}
     </button>
   </div>
 

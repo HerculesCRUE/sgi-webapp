@@ -5,19 +5,22 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoHito } from '@core/models/csp/proyecto-hito';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ProyectoService } from '@core/services/csp/proyecto.service';
 import { DialogService } from '@core/services/dialog.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ProyectoHitosModalComponent, ProyectoHitosModalComponentData } from '../../modals/proyecto-hitos-modal/proyecto-hitos-modal.component';
 import { ProyectoActionService } from '../../proyecto.action.service';
 import { ProyectoHitosFragment } from './proyecto-hitos.fragment';
 
-const MSG_DELETE = marker('csp.proyecto.hito.listado.borrar');
+const MSG_DELETE = marker('msg.delete.entity');
+const PROYECTO_HITO_KEY = marker('csp.proyecto-hito')
 
 @Component({
   selector: 'sgi-proyecto-hitos',
@@ -34,15 +37,19 @@ export class ProyectoHitosComponent extends FragmentComponent implements OnInit,
   elementosPagina = [5, 10, 25, 100];
   displayedColumns = ['tipoHito', 'fecha', 'comentario', 'aviso', 'acciones'];
 
+  msgParamEntity = {};
+  textoDelete: string;
+
   dataSource = new MatTableDataSource<StatusWrapper<IProyectoHito>>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
     protected proyectoReunionService: ProyectoService,
-    private actionService: ProyectoActionService,
+    public actionService: ProyectoActionService,
     private matDialog: MatDialog,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.HITOS, actionService);
     this.formPart = this.fragment as ProyectoHitosFragment;
@@ -50,6 +57,9 @@ export class ProyectoHitosComponent extends FragmentComponent implements OnInit,
 
   ngOnInit(): void {
     super.ngOnInit();
+
+    this.setupI18N();
+
     this.dataSource.paginator = this.paginator;
     this.dataSource.sortingDataAccessor =
       (wrapper: StatusWrapper<IProyectoHito>, property: string) => {
@@ -70,6 +80,25 @@ export class ProyectoHitosComponent extends FragmentComponent implements OnInit,
     }));
   }
 
+  private setupI18N(): void {
+    this.translate.get(
+      PROYECTO_HITO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      PROYECTO_HITO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+  }
+
   /**
    * Apertura de modal de hitos (edición/creación)
    * @param idHito Identificador de hito a editar.
@@ -79,7 +108,7 @@ export class ProyectoHitosComponent extends FragmentComponent implements OnInit,
       hitos: this.dataSource.data.map(hito => hito.value),
       hito: wrapper ? wrapper.value : {} as IProyectoHito,
       idModeloEjecucion: this.actionService.modeloEjecucionId,
-      readonly: this.formPart.readonly
+      readonly: this.actionService.readonly
     };
 
     if (wrapper) {
@@ -89,21 +118,20 @@ export class ProyectoHitosComponent extends FragmentComponent implements OnInit,
     }
 
     const config = {
-      width: GLOBAL_CONSTANTS.widthModalCSP,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
+      panelClass: 'sgi-dialog-container',
       data
     };
     const dialogRef = this.matDialog.open(ProyectoHitosModalComponent, config);
     dialogRef.afterClosed().subscribe(
-      (proyectoHito) => {
-        if (proyectoHito) {
+      (modalData: ProyectoHitosModalComponentData) => {
+        if (modalData) {
           if (wrapper) {
             if (!wrapper.created) {
               wrapper.setEdited();
             }
             this.formPart.setChanges(true);
           } else {
-            this.formPart.addHito(proyectoHito);
+            this.formPart.addHito(modalData.hito);
           }
         }
       }
@@ -119,7 +147,7 @@ export class ProyectoHitosComponent extends FragmentComponent implements OnInit,
    */
   deleteHito(wrapper: StatusWrapper<IProyectoHito>) {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado) => {
           if (aceptado) {
             this.formPart.deleteHito(wrapper);
@@ -128,6 +156,5 @@ export class ProyectoHitosComponent extends FragmentComponent implements OnInit,
       )
     );
   }
-
 
 }

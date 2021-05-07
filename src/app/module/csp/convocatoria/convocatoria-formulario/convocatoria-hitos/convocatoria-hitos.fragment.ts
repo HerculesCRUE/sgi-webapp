@@ -1,11 +1,9 @@
-import { Directive, OnDestroy } from '@angular/core';
-import { IConvocatoria } from '@core/models/csp/convocatoria';
 import { IConvocatoriaHito } from '@core/models/csp/convocatoria-hito';
 import { Fragment } from '@core/services/action-service';
 import { ConvocatoriaHitoService } from '@core/services/csp/convocatoria-hito.service';
 import { ConvocatoriaService } from '@core/services/csp/convocatoria.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { BehaviorSubject, from, merge, Observable, of, Subscription } from 'rxjs';
+import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
 import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
 
 export class ConvocatoriaHitosFragment extends Fragment {
@@ -96,10 +94,7 @@ export class ConvocatoriaHitosFragment extends Fragment {
       return of(void 0);
     }
     createdHitos.forEach(
-      (wrapper) => wrapper.value.convocatoria = {
-        id: this.getKey(),
-        activo: true
-      } as IConvocatoria
+      (wrapper) => wrapper.value.convocatoriaId = this.getKey() as number
     );
     return from(createdHitos).pipe(
       mergeMap((wrappedHitos) => {

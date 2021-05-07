@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
 import { CLASIFICACION_CVN_MAP } from '@core/enums/clasificacion-cvn';
+import { MSG_PARAMS } from '@core/i18n';
 import { Estado, ESTADO_MAP } from '@core/models/csp/estado-proyecto';
 import { IProyecto, TIPO_HORAS_ANUALES_MAP } from '@core/models/csp/proyecto';
 import { ITipoAmbitoGeografico } from '@core/models/csp/tipo-ambito-geografico';
@@ -14,6 +15,7 @@ import { ModeloUnidadService } from '@core/services/csp/modelo-unidad.service';
 import { TipoAmbitoGeograficoService } from '@core/services/csp/tipo-ambito-geografico.service';
 import { UnidadGestionService } from '@core/services/csp/unidad-gestion.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestFilter, SgiRestFilterOperator, SgiRestFindOptions } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { merge, Observable, of, Subscription } from 'rxjs';
@@ -21,7 +23,27 @@ import { map, startWith, tap } from 'rxjs/operators';
 import { ProyectoActionService } from '../../proyecto.action.service';
 import { ProyectoFichaGeneralFragment } from './proyecto-ficha-general.fragment';
 
-const MSG_ERROR_INIT = marker('csp.proyecto.datosGenerales.error.cargar');
+const MSG_ERROR_INIT = marker('error.load');
+const PROYECTO_ACRONIMO_KEY = marker('csp.proyecto.acronimo');
+const PROYECTO_AMBITO_GEOGRAFICO_KEY = marker('csp.proyecto.ambito-geografico');
+const PROYECTO_CALCULO_COSTE_KEY = marker('csp.proyecto.calculo-coste-personal');
+const PROYECTO_CODIGO_EXTERNO_KEY = marker('csp.proyecto.codigo-externo');
+const PROYECTO_CONFIDENCIAL_KEY = marker('csp.proyecto.confidencial');
+const PROYECTO_CONTRATACION_KEY = marker('csp.proyecto.contratacion-rrhh');
+const PROYECTO_COORDINADOR_EXTERNO_KEY = marker('csp.proyecto.coordinador-externo');
+const PROYECTO_CONVOCATORIA_EXTERNA_KEY = marker('csp.proyecto.convocatoria-externa');
+const PROYECTO_FACTURACION_KEY = marker('csp.proyecto.facturacion');
+const PROYECTO_FECHA_FIN_KEY = marker('csp.proyecto.fecha-fin');
+const PROYECTO_FECHA_INICIO_KEY = marker('csp.proyecto.fecha-inicio');
+const PROYECTO_FINALIDAD_KEY = marker('csp.proyecto.finalidad');
+const PROYECTO_IVA_KEY = marker('csp.proyecto.iva');
+const PROYECTO_HORAS_ANUALES_KEY = marker('csp.proyecto.horas-anuales');
+const PROYECTO_MODELO_EJECUCION_KEY = marker('csp.proyecto.modelo-ejecucion');
+const PROYECTO_PAQUETE_TRABAJO_KEY = marker('csp.proyecto-paquete-trabajo');
+const PROYECTO_PROYECTO_COLABORATIVO_KEY = marker('csp.proyecto.proyecto-colaborativo');
+const PROYECTO_TIMESHEET_KEY = marker('csp.proyecto.timesheet');
+const PROYECTO_TITULO_KEY = marker('csp.proyecto.titulo');
+const PROYECTO_UNIDAD_GESTION_KEY = marker('csp.proyecto.unidad-gestion');
 
 @Component({
   selector: 'sgi-proyecto-ficha-general',
@@ -52,6 +74,27 @@ export class ProyectoFichaGeneralComponent extends FormFragmentComponent<IProyec
 
   private subscriptions = [] as Subscription[];
 
+  msgParamAmbitoGeograficoEntity = {};
+  msgParamAcronimoEntity = {};
+  msgParamCalculoCosteEntity = {};
+  msgParamCodigoExternoEntity = {};
+  msgParamConfidencialEntity = {};
+  msgParamContratacionEntity = {};
+  msgParamCoordinadorExternoEntity = {};
+  msgParamConvocatoriaExternaEntity = {};
+  msgParamFacturacionEntity = {};
+  msgParamFechaFinEntity = {};
+  msgParamFechaInicioEntity = {};
+  msgParamFinalidadEntity = {};
+  msgParamHorasAnualesEntity = {};
+  msgParamIvaEntity = {};
+  msgParamModeloEjecucionEntity = {};
+  msgParamPaqueteTrabajoEntity = {};
+  msgParamProyectoColaborativoEntity = {};
+  msgParamTituloEntity = {};
+  msgParamTimesheetEntity = {};
+  msgParamUnidadGestionEntity = {};
+
   get CLASIFICACION_CVN_MAP() {
     return CLASIFICACION_CVN_MAP;
   }
@@ -74,7 +117,8 @@ export class ProyectoFichaGeneralComponent extends FormFragmentComponent<IProyec
     private unidadGestionService: UnidadGestionService,
     private modeloEjecucionService: ModeloEjecucionService,
     private unidadModeloService: ModeloUnidadService,
-    private tipoAmbitoGeograficoService: TipoAmbitoGeograficoService
+    private tipoAmbitoGeograficoService: TipoAmbitoGeograficoService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.FICHA_GENERAL, actionService);
     this.formPart = this.fragment as ProyectoFichaGeneralFragment;
@@ -111,6 +155,9 @@ export class ProyectoFichaGeneralComponent extends FormFragmentComponent<IProyec
 
   ngOnInit(): void {
     super.ngOnInit();
+
+    this.setupI18N();
+
     this.loadUnidadesGestion();
     this.loadAmbitosGeograficos();
 
@@ -127,13 +174,6 @@ export class ProyectoFichaGeneralComponent extends FormFragmentComponent<IProyec
     ).subscribe());
 
     this.subscriptions.push(
-      this.formGroup.controls.colaborativo.valueChanges.subscribe(_ => {
-        this.actionService.isProyectoColaborativo = this.formGroup.controls.colaborativo.value ?
-          this.formGroup.controls.colaborativo.value : false;
-      })
-    );
-
-    this.subscriptions.push(
       merge(
         this.formGroup.controls.fechaInicio.valueChanges,
         this.formGroup.controls.fechaFin.valueChanges,
@@ -141,6 +181,111 @@ export class ProyectoFichaGeneralComponent extends FormFragmentComponent<IProyec
       ).subscribe(() => this.formPart.checkFechas())
     );
   }
+
+  private setupI18N(): void {
+
+    this.translate.get(
+      PROYECTO_TITULO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamTituloEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_CODIGO_EXTERNO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamCodigoExternoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_FECHA_INICIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaInicioEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      PROYECTO_FECHA_FIN_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaFinEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      PROYECTO_ACRONIMO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamAcronimoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_CONVOCATORIA_EXTERNA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamConvocatoriaExternaEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      PROYECTO_UNIDAD_GESTION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamUnidadGestionEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      PROYECTO_MODELO_EJECUCION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamModeloEjecucionEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_FINALIDAD_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFinalidadEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_AMBITO_GEOGRAFICO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamAmbitoGeograficoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_CONFIDENCIAL_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamConfidencialEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_PROYECTO_COLABORATIVO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamProyectoColaborativoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_COORDINADOR_EXTERNO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamCoordinadorExternoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_TIMESHEET_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamTimesheetEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_PAQUETE_TRABAJO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamPaqueteTrabajoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_CALCULO_COSTE_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamCalculoCosteEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_HORAS_ANUALES_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamHorasAnualesEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      PROYECTO_CONTRATACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamContratacionEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      PROYECTO_FACTURACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFacturacionEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+
+    this.translate.get(
+      PROYECTO_IVA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamIvaEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+  }
+
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
@@ -418,5 +563,9 @@ export class ProyectoFichaGeneralComponent extends FormFragmentComponent<IProyec
     this.modelosEjecucionFiltered = [];
     this.modelosEjecucion$ = of();
     this.clearFinalidad();
+  }
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
   }
 }

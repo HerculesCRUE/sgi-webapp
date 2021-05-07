@@ -3,7 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
 import { IComite } from '@core/models/eti/comite';
-import { IEvaluacionSolicitante } from '@core/models/eti/evaluacion-solicitante';
+import { IEvaluacion } from '@core/models/eti/evaluacion';
 import { TipoEvaluacion } from '@core/models/eti/tipo-evaluacion';
 import { IPersona } from '@core/models/sgp/persona';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
@@ -11,23 +11,23 @@ import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-pro
 import { ComiteService } from '@core/services/eti/comite.service';
 import { EvaluadorService } from '@core/services/eti/evaluador.service';
 import { TipoEvaluacionService } from '@core/services/eti/tipo-evaluacion.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { DateUtils } from '@core/utils/date-utils';
+import { LuxonUtils } from '@core/utils/luxon-utils';
 import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
 import { NGXLogger } from 'ngx-logger';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
-const MSG_ERROR = marker('eti.seguimiento.listado.error');
+const MSG_ERROR = marker('error.load');
 
 @Component({
   selector: 'sgi-seguimiento-listado',
   templateUrl: './seguimiento-listado.component.html',
   styleUrls: ['./seguimiento-listado.component.scss']
 })
-export class SeguimientoListadoComponent extends AbstractTablePaginationComponent<IEvaluacionSolicitante> implements OnInit {
-  evaluaciones: IEvaluacionSolicitante[];
+export class SeguimientoListadoComponent extends AbstractTablePaginationComponent<IEvaluacion> implements OnInit {
+  evaluaciones: IEvaluacion[];
   fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
   comiteListado: IComite[];
@@ -38,7 +38,7 @@ export class SeguimientoListadoComponent extends AbstractTablePaginationComponen
   constructor(
     private readonly logger: NGXLogger,
     protected readonly snackBarService: SnackBarService,
-    private readonly personaFisicaService: PersonaFisicaService,
+    private readonly personaService: PersonaService,
     private readonly comiteService: ComiteService,
     private readonly tipoEvaluacionService: TipoEvaluacionService,
     private readonly evaluadorService: EvaluadorService
@@ -60,8 +60,8 @@ export class SeguimientoListadoComponent extends AbstractTablePaginationComponen
     super.ngOnInit();
     this.formGroup = new FormGroup({
       comite: new FormControl(''),
-      fechaEvaluacionInicio: new FormControl(''),
-      fechaEvaluacionFin: new FormControl(''),
+      fechaEvaluacionInicio: new FormControl(null),
+      fechaEvaluacionFin: new FormControl(null),
       memoriaNumReferencia: new FormControl(''),
       tipoConvocatoria: new FormControl(''),
       tipoEvaluacion: new FormControl('')
@@ -70,7 +70,13 @@ export class SeguimientoListadoComponent extends AbstractTablePaginationComponen
     this.loadTipoEvaluacion();
   }
 
-  protected createObservable(): Observable<SgiRestListResult<IEvaluacionSolicitante>> {
+  onClearFilters(): void {
+    super.onClearFilters();
+    this.formGroup.controls.fechaEvaluacionInicio.setValue(null);
+    this.formGroup.controls.fechaEvaluacionFin.setValue(null);
+  }
+
+  protected createObservable(): Observable<SgiRestListResult<IEvaluacion>> {
     const observable$ = this.evaluadorService.getSeguimientos(this.getFindOptions());
     return observable$;
   }
@@ -84,7 +90,7 @@ export class SeguimientoListadoComponent extends AbstractTablePaginationComponen
     const evaluaciones$ = this.getObservableLoadTable(reset);
     this.suscripciones.push(
       evaluaciones$.subscribe(
-        (evaluaciones: IEvaluacionSolicitante[]) => {
+        (evaluaciones) => {
           this.evaluaciones = [];
           if (evaluaciones) {
             this.evaluaciones = evaluaciones;
@@ -102,12 +108,12 @@ export class SeguimientoListadoComponent extends AbstractTablePaginationComponen
    * Carga los datos de los solicitantes de las evaluaciones
    */
   private loadSolicitantes(): void {
-    this.evaluaciones.map((evaluacion: IEvaluacionSolicitante) => {
-      const personaRef = evaluacion.memoria?.peticionEvaluacion?.personaRef;
+    this.evaluaciones.map((evaluacion) => {
+      const personaRef = evaluacion.memoria?.peticionEvaluacion?.solicitante?.id;
       if (personaRef) {
         this.suscripciones.push(
-          this.personaFisicaService.getInformacionBasica(personaRef).subscribe(
-            (persona: IPersona) => evaluacion.persona = persona
+          this.personaService.findById(personaRef).subscribe(
+            (persona: IPersona) => evaluacion.memoria.peticionEvaluacion.solicitante = persona
           )
         );
       }
@@ -116,13 +122,16 @@ export class SeguimientoListadoComponent extends AbstractTablePaginationComponen
 
   protected createFilter(): SgiRestFilter {
     const controls = this.formGroup.controls;
-    const filter = new RSQLSgiRestFilter('memoria.comite.id', SgiRestFilterOperator.EQUALS, controls.comite.value?.id?.toString());
-    const inicio = DateUtils.getFechaInicioDia(controls.fechaEvaluacionInicio.value);
-    filter.and('convocatoriaReunion.fechaEvaluacion', SgiRestFilterOperator.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(inicio));
-    const fin = DateUtils.getFechaInicioDia(controls.fechaEvaluacionFin.value);
-    filter
-      .and('convocatoriaReunion.fechaEvaluacion', SgiRestFilterOperator.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fin))
-      .and('memoria.numReferencia', SgiRestFilterOperator.LIKE_ICASE, controls.memoriaNumReferencia.value)
+    const filter = new RSQLSgiRestFilter('memoria.comite.id', SgiRestFilterOperator.EQUALS, controls.comite.value?.id?.toString())
+      .and(
+        'convocatoriaReunion.fechaEvaluacion',
+        SgiRestFilterOperator.GREATHER_OR_EQUAL,
+        LuxonUtils.toBackend(controls.fechaEvaluacionInicio.value)
+      ).and(
+        'convocatoriaReunion.fechaEvaluacion',
+        SgiRestFilterOperator.LOWER_OR_EQUAL,
+        LuxonUtils.toBackend(controls.fechaEvaluacionFin.value)
+      ).and('memoria.numReferencia', SgiRestFilterOperator.LIKE_ICASE, controls.memoriaNumReferencia.value)
       .and('tipoEvaluacion.id', SgiRestFilterOperator.EQUALS, controls.tipoEvaluacion.value?.id?.toString());
 
     return filter;
@@ -193,7 +202,6 @@ export class SeguimientoListadoComponent extends AbstractTablePaginationComponen
    * @return lista de tipo evaluacion filtrados.
    */
   private filterTipoEvaluacion(filtro: string | TipoEvaluacion): TipoEvaluacion[] {
-    const valorLog = filtro instanceof String ? filtro : JSON.stringify(filtro);
     const result = this.tipoEvaluacionListado.filter(
       (tipoEvaluacion: TipoEvaluacion) => tipoEvaluacion.nombre.toLowerCase().includes(
         typeof filtro === 'string' ? filtro.toLowerCase() : filtro.nombre.toLowerCase()

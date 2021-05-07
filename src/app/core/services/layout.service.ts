@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Data } from '@angular/router';
 import { Module } from '@core/module';
+import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs';
 import { Navigation, NavigationService } from './navigation.service';
 
@@ -24,7 +25,8 @@ export class LayoutService {
   breadcrumData$ = new BehaviorSubject<BreadcrumbData[]>([]);
   title$ = new BehaviorSubject<Title>(undefined);
 
-  constructor(private navigationService: NavigationService) {
+  constructor(private navigationService: NavigationService,
+    private readonly translate: TranslateService) {
     this.navigationService.navigation$.subscribe((navigationStack) => {
       if (navigationStack.length > 0) {
         this.parseNavigationStack(navigationStack);
@@ -119,11 +121,23 @@ export class LayoutService {
     let params: { [key: string]: any };
     key = data.title;
     if (data.titleParams) {
-      params = data.titleParams;
+      params = this.resolvedParams(data.titleParams);
     } else {
       params = {};
     }
     return { key, params };
+  }
+
+  resolvedParams(titleParams: any): any {
+    if (titleParams.entity) {
+      this.translate.get(
+        titleParams.entity,
+        { count: titleParams.count }
+      ).subscribe((value) => titleParams.entity = value);
+
+    }
+
+    return titleParams;
   }
 
   openMenu(): void {

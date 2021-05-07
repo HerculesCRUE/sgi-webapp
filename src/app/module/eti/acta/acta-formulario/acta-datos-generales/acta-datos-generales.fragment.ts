@@ -1,13 +1,14 @@
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { IActa } from '@core/models/eti/acta';
 import { FormFragment } from '@core/services/action-service';
-import { FormGroup, FormBuilder, Validators, FormControl, AbstractControl } from '@angular/forms';
-import { NullIdValidador } from '@core/validators/null-id-validador';
+import { ActaService } from '@core/services/eti/acta.service';
+import { LuxonUtils } from '@core/utils/luxon-utils';
+import { DateGreatValidator } from '@core/validators/date-greater-validator';
 import { HoraValidador } from '@core/validators/hora-validator';
 import { MinutoValidador } from '@core/validators/minuto-validator';
-import { ActaService } from '@core/services/eti/acta.service';
-import { Observable, of, EMPTY } from 'rxjs';
-import { switchMap, catchError, map } from 'rxjs/operators';
-import { IActa } from '@core/models/eti/acta';
-import { DateGreatValidator } from '@core/validators/date-greater-validator';
+import { NullIdValidador } from '@core/validators/null-id-validador';
+import { EMPTY, Observable, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 
 export class ActaDatosGeneralesFragment extends FormFragment<IActa> {
 
@@ -29,7 +30,7 @@ export class ActaDatosGeneralesFragment extends FormFragment<IActa> {
       minutoFin: ['', new MinutoValidador().isValid()],
       resumen: ['', Validators.required]
     }, {
-      validator: [DateGreatValidator('horaInicio', 'horaFin', 'minutoInicio', 'minutoFin')]
+      validators: [DateGreatValidator('horaInicio', 'horaFin', 'minutoInicio', 'minutoFin')]
     }
     );
 
@@ -40,8 +41,7 @@ export class ActaDatosGeneralesFragment extends FormFragment<IActa> {
     return this.service.findById(key).pipe(
       switchMap((value) => {
         this.acta = value;
-        this.acta.convocatoriaReunion.convocantes = [];
-        this.acta.convocatoriaReunion.codigo = `ACTA${value.numero}/${value.convocatoriaReunion.anio}/${value.convocatoriaReunion.comite.comite}`;
+        this.acta.convocatoriaReunion.codigo = `ACTA${value.numero}/${value.convocatoriaReunion.fechaEvaluacion.year}/${value.convocatoriaReunion.comite.comite}`;
         return of(this.acta);
       }),
       catchError(() => {
@@ -79,7 +79,7 @@ export class ActaDatosGeneralesFragment extends FormFragment<IActa> {
     return obs.pipe(
       map((value) => {
         this.acta = value;
-        this.acta.convocatoriaReunion.codigo = `ACTA${value.numero}/${value.convocatoriaReunion.anio}/${value.convocatoriaReunion.comite.comite}`;
+        this.acta.convocatoriaReunion.codigo = `ACTA${value.numero}/${value.convocatoriaReunion.fechaEvaluacion.year}/${value.convocatoriaReunion.comite.comite}`;
         return this.acta.id;
       })
     );

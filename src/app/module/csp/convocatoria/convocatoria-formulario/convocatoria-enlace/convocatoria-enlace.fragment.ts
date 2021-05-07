@@ -1,4 +1,3 @@
-import { IConvocatoria } from '@core/models/csp/convocatoria';
 import { IConvocatoriaEnlace } from '@core/models/csp/convocatoria-enlace';
 import { Fragment } from '@core/services/action-service';
 import { ConvocatoriaEnlaceService } from '@core/services/csp/convocatoria-enlace.service';
@@ -94,10 +93,7 @@ export class ConvocatoriaEnlaceFragment extends Fragment {
       return of(void 0);
     }
     createdEnlaces.forEach(
-      (wrapper: StatusWrapper<IConvocatoriaEnlace>) => wrapper.value.convocatoria = {
-        id: this.getKey(),
-        activo: true
-      } as IConvocatoria
+      (wrapper: StatusWrapper<IConvocatoriaEnlace>) => wrapper.value.convocatoriaId = this.getKey() as number
     );
     return from(createdEnlaces).pipe(
       mergeMap((wrappedEnlaces) => {
@@ -107,7 +103,8 @@ export class ConvocatoriaEnlaceFragment extends Fragment {
             this.enlace$.value[index] = new StatusWrapper<IConvocatoriaEnlace>(updatedEnlaces);
           })
         );
-      }));
+      })
+    );
   }
 
   private updateEnlaces(): Observable<void> {
@@ -123,14 +120,14 @@ export class ConvocatoriaEnlaceFragment extends Fragment {
             this.enlace$.value[index] = new StatusWrapper<IConvocatoriaEnlace>(updatedEnlaces);
           })
         );
-      }));
+      })
+    );
   }
 
   private isSaveOrUpdateComplete(): boolean {
     const touched: boolean = this.enlace$.value.some((wrapper) => wrapper.touched);
     return (this.enlaceEliminados.length > 0 || touched);
   }
-
 
   getSelectedUrls(): string[] {
     const urls = this.enlace$.value.map(enlace => enlace.value.url);

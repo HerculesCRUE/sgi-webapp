@@ -2,10 +2,8 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { IConfiguracionSolicitud } from '@core/models/csp/configuracion-solicitud';
-import { Destinatarios, IConvocatoria } from '@core/models/csp/convocatoria';
-import { IConvocatoriaConceptoGasto } from '@core/models/csp/convocatoria-concepto-gasto';
 import { IConvocatoriaFase } from '@core/models/csp/convocatoria-fase';
+import { IModeloEjecucion } from '@core/models/csp/tipos-configuracion';
 import { ActionService } from '@core/services/action-service';
 import { ConfiguracionSolicitudService } from '@core/services/csp/configuracion-solicitud.service';
 import { ConvocatoriaAreaTematicaService } from '@core/services/csp/convocatoria-area-tematica.service';
@@ -22,14 +20,14 @@ import { ConvocatoriaRequisitoEquipoService } from '@core/services/csp/convocato
 import { ConvocatoriaRequisitoIPService } from '@core/services/csp/convocatoria-requisito-ip.service';
 import { ConvocatoriaSeguimientoCientificoService } from '@core/services/csp/convocatoria-seguimiento-cientifico.service';
 import { ConvocatoriaService } from '@core/services/csp/convocatoria.service';
-import { DocumentoRequeridoService } from '@core/services/csp/documento-requerido.service';
+import { DocumentoRequeridoSolicitudService } from '@core/services/csp/documento-requerido-solicitud.service';
 import { UnidadGestionService } from '@core/services/csp/unidad-gestion.service';
 import { DialogService } from '@core/services/dialog.service';
-import { EmpresaEconomicaService } from '@core/services/sgp/empresa-economica.service';
-import { StatusWrapper } from '@core/utils/status-wrapper';
+import { EmpresaService } from '@core/services/sgemp/empresa.service';
 import { NGXLogger } from 'ngx-logger';
-import { Observable, of, throwError } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, Subject, throwError } from 'rxjs';
+import { switchMap, tap } from 'rxjs/operators';
+import { CONVOCATORIA_DATA_KEY } from './convocatoria-data.resolver';
 import { ConvocatoriaConceptoGastoFragment } from './convocatoria-formulario/convocatoria-concepto-gasto/convocatoria-concepto-gasto.fragment';
 import { ConvocatoriaConfiguracionSolicitudesFragment } from './convocatoria-formulario/convocatoria-configuracion-solicitudes/convocatoria-configuracion-solicitudes.fragment';
 import { ConvocatoriaDatosGeneralesFragment } from './convocatoria-formulario/convocatoria-datos-generales/convocatoria-datos-generales.fragment';
@@ -38,18 +36,18 @@ import { ConvocatoriaEnlaceFragment } from './convocatoria-formulario/convocator
 import { ConvocatoriaEntidadesConvocantesFragment } from './convocatoria-formulario/convocatoria-entidades-convocantes/convocatoria-entidades-convocantes.fragment';
 import { ConvocatoriaEntidadesFinanciadorasFragment } from './convocatoria-formulario/convocatoria-entidades-financiadoras/convocatoria-entidades-financiadoras.fragment';
 import { ConvocatoriaHitosFragment } from './convocatoria-formulario/convocatoria-hitos/convocatoria-hitos.fragment';
-import { ConvocatoriaPeriodosJustificacionFragment } from './convocatoria-formulario/convocatoria-periodos-justificacion/convocatoria-periodo-justificacion.fragment';
+import { ConvocatoriaPeriodosJustificacionFragment } from './convocatoria-formulario/convocatoria-periodos-justificacion/convocatoria-periodos-justificacion.fragment';
 import { ConvocatoriaPlazosFasesFragment } from './convocatoria-formulario/convocatoria-plazos-fases/convocatoria-plazos-fases.fragment';
 import { ConvocatoriaRequisitosEquipoFragment } from './convocatoria-formulario/convocatoria-requisitos-equipo/convocatoria-requisitos-equipo.fragment';
 import { ConvocatoriaRequisitosIPFragment } from './convocatoria-formulario/convocatoria-requisitos-ip/convocatoria-requisitos-ip.fragment';
 import { ConvocatoriaSeguimientoCientificoFragment } from './convocatoria-formulario/convocatoria-seguimiento-cientifico/convocatoria-seguimiento-cientifico.fragment';
+import { CONVOCATORIA_ROUTE_PARAMS } from './convocatoria-route-params';
 
+const MSG_REGISTRAR = marker('msg.csp.convocatoria.registrar');
 
-
-
-
-
-const MSG_REGISTRAR = marker('csp.convocatoria.registrar.msg');
+export interface IConvocatoriaData {
+  readonly: boolean;
+}
 
 @Injectable()
 export class ConvocatoriaActionService extends ActionService implements OnDestroy {
@@ -57,7 +55,7 @@ export class ConvocatoriaActionService extends ActionService implements OnDestro
   public readonly FRAGMENT = {
     DATOS_GENERALES: 'datos-generales',
     PERIODO_JUSTIFICACION: 'periodos-justificacion',
-    PLAZOS_FASES: 'plazos-fases',
+    FASES: 'fases',
     HITOS: 'hitos',
     ENTIDADES_CONVOCANTES: 'entidades-convocantes',
     SEGUIMIENTO_CIENTIFICO: 'seguimiento-cientifico',
@@ -85,25 +83,24 @@ export class ConvocatoriaActionService extends ActionService implements OnDestro
   private configuracionSolicitudes: ConvocatoriaConfiguracionSolicitudesFragment;
 
   private dialogService: DialogService;
-  private configuracionSolicitud: IConfiguracionSolicitud;
-  readonly = false;
-  private destionarioRequisitoIP = false;
-  private destionarioRequisitoEquipo = false;
 
-  private modeloEjecucionIdValue: number;
+  private readonly data: IConvocatoriaData;
+  public readonly id: number;
 
+  public readonly hasModeloEjecucion$: Subject<boolean> = new BehaviorSubject<boolean>(false);
+
+  private modeloEjecucion: IModeloEjecucion;
   get modeloEjecucionId(): number {
-    if (this.datosGenerales.isInitialized()) {
-      return this.datosGenerales.getValue().modeloEjecucion?.id;
-    }
-    return this.modeloEjecucionIdValue;
+    return this.modeloEjecucion?.id;
   }
 
   get duracion(): number {
-    return this.getDatosGeneralesConvocatoria().duracion;
+    return this.datosGenerales.getValue().duracion;
   }
 
-  convocatoriaId: number;
+  get readonly(): boolean {
+    return this.data?.readonly ?? false;
+  }
 
   constructor(
     fb: FormBuilder,
@@ -111,7 +108,7 @@ export class ConvocatoriaActionService extends ActionService implements OnDestro
     route: ActivatedRoute,
     private convocatoriaService: ConvocatoriaService,
     convocatoriaEnlaceService: ConvocatoriaEnlaceService,
-    empresaEconomicaService: EmpresaEconomicaService,
+    empresaService: EmpresaService,
     convocatoriaEntidadFinanciadoraService: ConvocatoriaEntidadFinanciadoraService,
     convocatoriaEntidadGestoraService: ConvocatoriaEntidadGestoraService,
     unidadGestionService: UnidadGestionService,
@@ -126,51 +123,46 @@ export class ConvocatoriaActionService extends ActionService implements OnDestro
     convocatoriaRequisitoIPService: ConvocatoriaRequisitoIPService,
     convocatoriaDocumentoService: ConvocatoriaDocumentoService,
     configuracionSolicitudService: ConfiguracionSolicitudService,
-    documentoRequeridoService: DocumentoRequeridoService,
+    documentoRequeridoSolicitudService: DocumentoRequeridoSolicitudService,
     dialogService: DialogService,
   ) {
     super();
+    this.id = Number(route.snapshot.paramMap.get(CONVOCATORIA_ROUTE_PARAMS.ID));
     this.dialogService = dialogService;
-    if (route.snapshot.data.convocatoriaId) {
-      this.convocatoriaId = route.snapshot.data.convocatoriaId;
+    if (this.id) {
+      this.data = route.snapshot.data[CONVOCATORIA_DATA_KEY];
       this.enableEdit();
-    }
-    if (route.snapshot.data.configuracionSolicitud) {
-      this.configuracionSolicitud = route.snapshot.data.configuracionSolicitud;
-    }
-    if (route.snapshot.data.modeloEjecucionId) {
-      this.modeloEjecucionIdValue = route.snapshot.data.modeloEjecucionId;
     }
 
     this.datosGenerales = new ConvocatoriaDatosGeneralesFragment(
-      logger, this.convocatoriaId, convocatoriaService, empresaEconomicaService,
+      logger, this.id, convocatoriaService, empresaService,
       convocatoriaEntidadGestoraService, unidadGestionService, convocatoriaAreaTematicaService,
       this.readonly);
     this.periodoJustificacion = new ConvocatoriaPeriodosJustificacionFragment(
-      this.convocatoriaId, convocatoriaService, convocatoriaPeriodoJustificacionService, this.readonly);
+      this.id, convocatoriaService, convocatoriaPeriodoJustificacionService, this.readonly);
     this.entidadesConvocantes = new ConvocatoriaEntidadesConvocantesFragment(
-      logger, this.convocatoriaId, convocatoriaService, convocatoriaEntidadConvocanteService,
-      empresaEconomicaService, this.readonly);
+      logger, this.id, convocatoriaService, convocatoriaEntidadConvocanteService,
+      empresaService, this.readonly);
     this.plazosFases = new ConvocatoriaPlazosFasesFragment(
-      this.convocatoriaId, convocatoriaService, convocatoriaFaseService, this.readonly);
-    this.hitos = new ConvocatoriaHitosFragment(this.convocatoriaId, convocatoriaService,
+      this.id, convocatoriaService, convocatoriaFaseService, this.readonly);
+    this.hitos = new ConvocatoriaHitosFragment(this.id, convocatoriaService,
       convocatoriaHitoService, this.readonly);
-    this.documentos = new ConvocatoriaDocumentosFragment(logger, this.convocatoriaId, convocatoriaService,
+    this.documentos = new ConvocatoriaDocumentosFragment(logger, this.id, convocatoriaService,
       convocatoriaDocumentoService, this.readonly);
-    this.seguimientoCientifico = new ConvocatoriaSeguimientoCientificoFragment(this.convocatoriaId,
+    this.seguimientoCientifico = new ConvocatoriaSeguimientoCientificoFragment(this.id,
       convocatoriaService, convocatoriaSeguimientoCientificoService, this.readonly);
     this.entidadesFinanciadoras = new ConvocatoriaEntidadesFinanciadorasFragment(
-      this.convocatoriaId, convocatoriaService, convocatoriaEntidadFinanciadoraService, this.readonly);
-    this.enlaces = new ConvocatoriaEnlaceFragment(this.convocatoriaId, convocatoriaService,
+      this.id, convocatoriaService, convocatoriaEntidadFinanciadoraService, this.readonly);
+    this.enlaces = new ConvocatoriaEnlaceFragment(this.id, convocatoriaService,
       convocatoriaEnlaceService, this.readonly);
-    this.requisitosIP = new ConvocatoriaRequisitosIPFragment(fb, this.convocatoriaId,
+    this.requisitosIP = new ConvocatoriaRequisitosIPFragment(fb, this.id,
       convocatoriaRequisitoIPService, this.readonly);
-    this.elegibilidad = new ConvocatoriaConceptoGastoFragment(fb, this.convocatoriaId, convocatoriaService,
-      convocatoriaConceptoGastoService, this.datosGenerales, this.readonly);
-    this.requisitosEquipo = new ConvocatoriaRequisitosEquipoFragment(fb, this.convocatoriaId,
+    this.elegibilidad = new ConvocatoriaConceptoGastoFragment(fb, this.id, convocatoriaService,
+      convocatoriaConceptoGastoService, this.readonly);
+    this.requisitosEquipo = new ConvocatoriaRequisitosEquipoFragment(fb, this.id,
       convocatoriaRequisitoEquipoService, this.readonly);
     this.configuracionSolicitudes = new ConvocatoriaConfiguracionSolicitudesFragment(
-      logger, this.convocatoriaId, configuracionSolicitudService, documentoRequeridoService,
+      logger, this.id, configuracionSolicitudService, documentoRequeridoSolicitudService,
       this.readonly);
 
     this.addFragment(this.FRAGMENT.DATOS_GENERALES, this.datosGenerales);
@@ -178,7 +170,7 @@ export class ConvocatoriaActionService extends ActionService implements OnDestro
     this.addFragment(this.FRAGMENT.ENTIDADES_CONVOCANTES, this.entidadesConvocantes);
     this.addFragment(this.FRAGMENT.ENTIDADES_FINANCIADORAS, this.entidadesFinanciadoras);
     this.addFragment(this.FRAGMENT.PERIODO_JUSTIFICACION, this.periodoJustificacion);
-    this.addFragment(this.FRAGMENT.PLAZOS_FASES, this.plazosFases);
+    this.addFragment(this.FRAGMENT.FASES, this.plazosFases);
     this.addFragment(this.FRAGMENT.HITOS, this.hitos);
     this.addFragment(this.FRAGMENT.DOCUMENTOS, this.documentos);
     this.addFragment(this.FRAGMENT.ENLACES, this.enlaces);
@@ -188,116 +180,50 @@ export class ConvocatoriaActionService extends ActionService implements OnDestro
     this.addFragment(this.FRAGMENT.CONFIGURACION_SOLICITUDES, this.configuracionSolicitudes);
 
     if (this.isEdit()) {
-      const subscription = this.convocatoriaService.modificable(this.convocatoriaId).subscribe(
-        (value) => {
-          this.readonly = !value;
-          if (this.readonly) {
-            this.datosGenerales.getFormGroup()?.disable();
-            this.requisitosEquipo.getFormGroup()?.disable();
-          }
-          this.datosGenerales.readonly = this.readonly;
-          this.seguimientoCientifico.readonly = this.readonly;
-          this.entidadesConvocantes.readonly = this.readonly;
-          this.entidadesFinanciadoras.readonly = this.readonly;
-          this.periodoJustificacion.readonly = this.readonly;
-          this.plazosFases.readonly = this.readonly;
-          this.hitos.readonly = this.readonly;
-          this.documentos.readonly = this.readonly;
-          this.enlaces.readonly = this.readonly;
-          this.requisitosIP.readonly = this.readonly;
-          this.elegibilidad.readonly = this.readonly;
-          this.requisitosEquipo.readonly = this.readonly;
-          this.configuracionSolicitudes.readonly = this.readonly;
-        });
-      this.subscriptions.push(subscription);
+      if (this.readonly) {
+        this.datosGenerales.getFormGroup()?.disable();
+        this.requisitosEquipo.getFormGroup()?.disable();
+      }
     }
 
     this.subscriptions.push(this.configuracionSolicitudes.initialized$.subscribe(value => {
-      if (value && !this.plazosFases.isInitialized()) {
+      if (value) {
         this.plazosFases.initialize();
+      }
+    }));
+    this.subscriptions.push(this.plazosFases.initialized$.subscribe(value => {
+      if (value) {
+        this.configuracionSolicitudes.initialize();
       }
     }));
     this.subscriptions.push(this.plazosFases.plazosFase$.subscribe(fases => {
       this.configuracionSolicitudes.setFases(fases.map(fase => fase.value));
     }));
+    this.subscriptions.push(this.datosGenerales.modeloEjecucion$.subscribe(
+      (modeloEjecucion) => {
+        this.modeloEjecucion = modeloEjecucion;
+        this.hasModeloEjecucion$.next(Boolean(modeloEjecucion));
+      }
+    ));
 
-    this.subscriptions.push(this.datosGenerales.destinatariosValue$.subscribe((destinatarios) => this.mostrarPestañaRequisito(destinatarios)));
-  }
-
-  /**
-   * Recupera los datos de la convocatoria del formulario de datos generales,
-   * si no se ha cargado el formulario de datos generales se recuperan los datos de la convocatoria que se esta editando.
-   *
-   * @returns los datos de la convocatoria.
-   */
-  getDatosGeneralesConvocatoria(): IConvocatoria {
-    return this.datosGenerales.isInitialized() ? this.datosGenerales.getValue() : {} as IConvocatoria;
-  }
-
-  /**
-   * Recupera plazos y fases
-   * si no se ha cargado el formulario de plazos y fases se recuperan los datos de la convocatoria que se esta editando.
-   *
-   * @returns los datos de la convocatoria.
-   */
-  getPlazosFases(): StatusWrapper<IConvocatoriaFase>[] {
-    return this.plazosFases.isInitialized() ? this.plazosFases.plazosFase$.value : [];
-  }
-
-  /**
-   * Recupera los registros de conceptos de gasto permitidos en la convocatoria
-   *
-   * @returns los conceptos de gastos permitidos de la convocatoria.
-   */
-  getElegibilidadPermitidos(): StatusWrapper<IConvocatoriaConceptoGasto>[] {
-    return this.elegibilidad.isInitialized() ? this.elegibilidad.convocatoriaConceptoGastoPermitido$.value : [];
-  }
-
-  /**
-   * Recupera los registros de conceptos de gasto no permitidos en la convocatoria
-   *
-   * @returns los conceptos de gastos no permitidos de la convocatoria.
-   */
-  getElegibilidadNoPermitidos(): StatusWrapper<IConvocatoriaConceptoGasto>[] {
-    return this.elegibilidad.isInitialized() ? this.elegibilidad.convocatoriaConceptoGastoNoPermitido$.value : [];
-  }
-
-
-
-  /**
-   * Recupera plazos y fases
-   * si no se ha cargado el formulario de plazos y fases se recuperan los datos de la convocatoria que se esta editando.
-   *
-   * @returns los datos de la convocatoria.
-   */
-  isPlazosFasesInitialized(): boolean {
-    return this.plazosFases.isInitialized();
+    // Inicializamos los datos generales
+    this.datosGenerales.initialize();
   }
 
   /**
    * Cuando se elimina una fase se actualizan los datos de la pestaña configuración solicitudes.
    */
   isDelete(convocatoriaFaseEliminada: IConvocatoriaFase): boolean {
-    const fasePresentacionSolicitudes = this.configuracionSolicitudes.getFormGroup()
-      .controls.fasePresentacionSolicitudes.value;
+    const fasePresentacionSolicitudes = this.configuracionSolicitudes.getValue()?.fasePresentacionSolicitudes;
 
     if (!fasePresentacionSolicitudes) {
       return true;
     }
 
-    return !(convocatoriaFaseEliminada.tipoFase.id === fasePresentacionSolicitudes.tipoFase.id
-      && convocatoriaFaseEliminada.fechaInicio === fasePresentacionSolicitudes.fechaInicio
-      && convocatoriaFaseEliminada.fechaFin === fasePresentacionSolicitudes.fechaFin
-      && convocatoriaFaseEliminada.observaciones === fasePresentacionSolicitudes.observaciones);
-  }
-
-
-  initializeConfiguracionSolicitud(): void {
-    this.configuracionSolicitudes.initialize();
-  }
-
-  initializePlazosFases(): void {
-    this.plazosFases.initialize();
+    return !(convocatoriaFaseEliminada.tipoFase.id === fasePresentacionSolicitudes?.tipoFase?.id
+      && convocatoriaFaseEliminada.fechaInicio.equals(fasePresentacionSolicitudes?.fechaInicio)
+      && convocatoriaFaseEliminada.fechaFin.equals(fasePresentacionSolicitudes?.fechaFin)
+      && convocatoriaFaseEliminada.observaciones === fasePresentacionSolicitudes?.observaciones);
   }
 
   saveOrUpdate(): Observable<void> {
@@ -306,98 +232,57 @@ export class ConvocatoriaActionService extends ActionService implements OnDestro
       return throwError('Errores');
     }
     if (this.isEdit()) {
-      return this.datosGenerales.saveOrUpdate().pipe(
-        switchMap(() => {
-          this.datosGenerales.refreshInitialState(true);
-          return this.plazosFases.saveOrUpdate();
-        }),
-        switchMap(() => {
-          this.plazosFases.refreshInitialState(true);
-          return this.elegibilidad.saveOrUpdate();
-        }),
-        switchMap(() => {
-          this.elegibilidad.refreshInitialState(true);
-
-          return super.saveOrUpdate();
-        })
+      let cascade = of(void 0);
+      if (this.datosGenerales.hasChanges()) {
+        cascade = cascade.pipe(
+          switchMap(() => this.datosGenerales.saveOrUpdate().pipe(tap(() => this.datosGenerales.refreshInitialState(true))))
+        );
+      }
+      if (this.plazosFases.hasChanges()) {
+        cascade = cascade.pipe(
+          switchMap(() => this.plazosFases.saveOrUpdate().pipe(tap(() => this.plazosFases.refreshInitialState(true))))
+        );
+      }
+      return cascade.pipe(
+        switchMap(() => super.saveOrUpdate())
       );
     } else {
-      return this.datosGenerales.saveOrUpdate().pipe(
-        switchMap((key) => {
-          this.datosGenerales.refreshInitialState(true);
-          if (typeof key === 'string' || typeof key === 'number') {
-            this.onKeyChange(key);
-          }
-          return this.plazosFases.saveOrUpdate();
-        }),
-        switchMap(() => {
-          this.plazosFases.refreshInitialState(true);
-          return this.elegibilidad.saveOrUpdate();
-        }),
-        switchMap(() => {
-          this.elegibilidad.refreshInitialState(true);
-
-          return super.saveOrUpdate();
-        })
+      let cascade = of(void 0);
+      if (this.datosGenerales.hasChanges()) {
+        cascade = cascade.pipe(
+          switchMap(() => this.datosGenerales.saveOrUpdate().pipe(
+            tap((key) => {
+              this.datosGenerales.refreshInitialState(true);
+              if (typeof key === 'string' || typeof key === 'number') {
+                this.onKeyChange(key);
+              }
+            })
+          ))
+        );
+      }
+      if (this.plazosFases.hasChanges()) {
+        cascade = cascade.pipe(
+          switchMap(() => this.plazosFases.saveOrUpdate().pipe(tap(() => this.plazosFases.refreshInitialState(true))))
+        );
+      }
+      return cascade.pipe(
+        switchMap(() => super.saveOrUpdate())
       );
     }
-  }
-
-  /**
-   * Recupera los datos de la convocatoria del formulario de configuración de solicitudes
-   *
-   * @return los datos de la cofiguración de solicitudes.
-   */
-  getConfiguracionSolicitudesConvocatoria(): IConfiguracionSolicitud {
-    return this.configuracionSolicitudes.isInitialized() ? this.configuracionSolicitudes.getValue() : this.configuracionSolicitud;
-  }
-
-  /**
-   * Mostramos pestaña requisitos IP/Equipo dependiendo
-   * lo seleccionado en la pestaña DATOS GENERALES - DESTINATARIOS
-   */
-  private mostrarPestañaRequisito(destionarios: Destinatarios) {
-    this.destionarioRequisitoIP = false;
-    this.destionarioRequisitoEquipo = false;
-    if (destionarios === Destinatarios.INDIVIDUAL) {
-      this.destionarioRequisitoIP = !this.destionarioRequisitoIP;
-      this.destionarioRequisitoEquipo = this.destionarioRequisitoEquipo;
-    }
-    if (destionarios === Destinatarios.EQUIPO_PROYECTO || destionarios === Destinatarios.GRUPO_INVESTIGACION) {
-      this.destionarioRequisitoIP = !this.destionarioRequisitoIP;
-      this.destionarioRequisitoEquipo = !this.destionarioRequisitoEquipo;
-    }
-  }
-
-  /**
-   * Modifica la visibilidad de la pestaña Requisito IP
-   *
-   * @param value Valor boolean
-   */
-  get disabledRequisitoIP(): boolean {
-    return this.destionarioRequisitoIP;
-  }
-
-  /**
-   * Modifica la visibilidad de la pestaña requisito EQUIPO
-   *
-   * @param value Valor boolean
-   */
-  get disabledRequisitoEquipo(): boolean {
-    return this.destionarioRequisitoEquipo;
   }
 
   /**
    * Acción de registro de una convocatoria
    */
   registrar(): Observable<void> {
-    return this.dialogService.showConfirmation(MSG_REGISTRAR)
-      .pipe(switchMap((accept) => {
+    return this.dialogService.showConfirmation(MSG_REGISTRAR).pipe(
+      switchMap((accept) => {
         if (accept) {
-          return this.convocatoriaService.registrar(this.convocatoriaId);
+          return this.convocatoriaService.registrar(this.id);
         } else {
           return of(void 0);
         }
-      }));
+      })
+    );
   }
 }

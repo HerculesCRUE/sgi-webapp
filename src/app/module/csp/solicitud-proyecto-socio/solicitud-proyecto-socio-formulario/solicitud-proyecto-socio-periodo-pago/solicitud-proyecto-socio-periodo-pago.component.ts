@@ -4,16 +4,19 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
-import { ISolicitudProyectoPeriodoPago } from '@core/models/csp/solicitud-proyecto-periodo-pago';
+import { MSG_PARAMS } from '@core/i18n';
+import { ISolicitudProyectoSocioPeriodoPago } from '@core/models/csp/solicitud-proyecto-socio-periodo-pago';
 import { DialogService } from '@core/services/dialog.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { SolicitudProyectoSocioPeriodoPagoModalComponent, SolicitudProyectoSocioPeriodoPagoModalData } from '../../modals/solicitud-proyecto-socio-periodo-pago-modal/solicitud-proyecto-socio-periodo-pago-modal.component';
 import { SolicitudProyectoSocioActionService } from '../../solicitud-proyecto-socio.action.service';
 import { SolicitudProyectoSocioPeriodoPagoFragment } from './solicitud-proyecto-socio-periodo-pago.fragment';
 
-const MSG_DELETE = marker('csp.solicitud-proyecto-socio.periodo-pago.borrar');
+const MSG_DELETE = marker('msg.delete.entity');
+const SOLICITUD_PROYECTO_SOCIO_PERIODO_PAGO_KEY = marker('csp.solicitud-proyecto-socio-periodo-pago');
 
 @Component({
   selector: 'sgi-solicitud-proyecto-socio-periodo-pago',
@@ -27,13 +30,17 @@ export class SolicitudProyectoSocioPeriodoPagoComponent extends FragmentComponen
   elementosPagina = [5, 10, 25, 100];
   displayedColumns = ['numPeriodo', 'mes', 'importe', 'acciones'];
 
-  dataSource = new MatTableDataSource<StatusWrapper<ISolicitudProyectoPeriodoPago>>();
+  msgParamEntity = {};
+  textoDelete: string;
+
+  dataSource = new MatTableDataSource<StatusWrapper<ISolicitudProyectoSocioPeriodoPago>>();
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
     private actionService: SolicitudProyectoSocioActionService,
     private matDialog: MatDialog,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.PERIODOS_PAGOS, actionService);
     this.formPart = this.fragment as SolicitudProyectoSocioPeriodoPagoFragment;
@@ -41,6 +48,7 @@ export class SolicitudProyectoSocioPeriodoPagoComponent extends FragmentComponen
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     const subcription = this.formPart.periodoPagos$.subscribe(
       (proyectoEquipos) => {
         this.dataSource.data = proyectoEquipos;
@@ -51,23 +59,43 @@ export class SolicitudProyectoSocioPeriodoPagoComponent extends FragmentComponen
     this.subscriptions.push(subcription);
   }
 
+  private setupI18N(): void {
+    this.translate.get(
+      SOLICITUD_PROYECTO_SOCIO_PERIODO_PAGO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_SOCIO_PERIODO_PAGO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
-  openModal(wrapper?: StatusWrapper<ISolicitudProyectoPeriodoPago>): void {
-    const solicitudProyectoPeriodoPago: ISolicitudProyectoPeriodoPago = {
+  openModal(wrapper?: StatusWrapper<ISolicitudProyectoSocioPeriodoPago>): void {
+    const solicitudProyectoPeriodoPago: ISolicitudProyectoSocioPeriodoPago = {
       id: undefined,
       importe: undefined,
       mes: undefined,
       numPeriodo: this.dataSource.data.length + 1,
-      solicitudProyectoSocio: undefined
+      solicitudProyectoSocioId: undefined
     };
     const data: SolicitudProyectoSocioPeriodoPagoModalData = {
-      solicitudProyectoPeriodoPago: wrapper ? wrapper.value : solicitudProyectoPeriodoPago,
+      solicitudProyectoPeriodoPago: wrapper?.value ?? solicitudProyectoPeriodoPago,
+      duracion: this.actionService.solicitudProyectoDuracion,
       selectedMeses: this.dataSource.data.map(element => element.value.mes),
-      mesInicioSolicitudProyectoSocio: this.actionService.getSolicitudProyectoSocio().mesInicio,
-      mesFinSolicitudProyectoSocio: this.actionService.getSolicitudProyectoSocio().mesFin,
+      mesInicioSolicitudProyectoSocio: this.actionService.mesInicio,
+      mesFinSolicitudProyectoSocio: this.actionService.mesFin,
       isEdit: Boolean(wrapper),
       readonly: this.formPart.readonly
     };
@@ -78,10 +106,8 @@ export class SolicitudProyectoSocioPeriodoPagoComponent extends FragmentComponen
       }
     }
     const config = {
-      width: GLOBAL_CONSTANTS.widthModalCSP,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
-      data,
-      autoFocus: false
+      panelClass: 'sgi-dialog-container',
+      data
     };
     const dialogRef = this.matDialog.open(SolicitudProyectoSocioPeriodoPagoModalComponent, config);
     dialogRef.afterClosed().subscribe(
@@ -100,9 +126,9 @@ export class SolicitudProyectoSocioPeriodoPagoComponent extends FragmentComponen
     );
   }
 
-  deleteProyectoEquipo(wrapper: StatusWrapper<ISolicitudProyectoPeriodoPago>): void {
+  deleteProyectoEquipo(wrapper: StatusWrapper<ISolicitudProyectoSocioPeriodoPago>): void {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado) => {
           if (aceptado) {
             this.formPart.deletePeriodoPago(wrapper);

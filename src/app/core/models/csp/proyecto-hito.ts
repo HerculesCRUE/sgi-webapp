@@ -1,23 +1,17 @@
-import { IProyecto } from "./proyecto";
-import { ITipoHito } from "./tipos-configuracion";
+import { DateTime } from 'luxon';
+import { ITipoHito } from './tipos-configuracion';
 
 export interface IProyectoHito {
   /** Id */
   id: number;
-
-  /** Proyecto */
-  proyecto: IProyecto;
-
+  /** Id de Proyecto */
+  proyectoId: number;
   /** Tipo de hito */
   tipoHito: ITipoHito;
-
   /** Fecha  */
-  fecha: Date;
-
+  fecha: DateTime;
   /** Comentario */
   comentario: string;
-
   /** Aviso */
   generaAviso: boolean;
-
 }

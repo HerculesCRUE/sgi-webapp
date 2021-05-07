@@ -1,9 +1,8 @@
-import { IEmpresaEconomica } from '../sgp/empresa-economica';
+import { IEmpresa } from '../sgemp/empresa';
 import { IPartidaGasto } from './partida-gasto';
-import { ISolicitudProyectoDatos } from './solicitud-proyecto-datos';
 
 export interface ISolicitudProyectoPresupuesto extends IPartidaGasto {
-  solicitudProyectoDatos: ISolicitudProyectoDatos;
-  empresa: IEmpresaEconomica;
+  solicitudProyectoId: number;
+  empresa: IEmpresa;
   financiacionAjena: boolean;
 }

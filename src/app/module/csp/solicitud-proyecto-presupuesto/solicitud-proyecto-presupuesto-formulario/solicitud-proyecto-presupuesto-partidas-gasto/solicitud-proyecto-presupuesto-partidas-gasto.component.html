@@ -1,13 +1,13 @@
 <section class="solicitud-proyecto-desglose-presupuesto-partidas-gasto">
 
-  <mat-label>{{'csp.solicitud-proyecto-presupuesto.partidas-gasto' | translate}}</mat-label>
+  <mat-label>{{'menu.csp.proyectos.proyecto-presupuesto.partidas-gasto' | translate}}</mat-label>
 
   <table class="mat-elevation-z8 table-desglose-presupuesto-global" mat-table [dataSource]="dataSource" matSort
     matSortActive="id" matSortDirection="asc" matSortDisableClear>
     <!-- Concepto de gasto Column -->
     <ng-container matColumnDef="conceptoGasto">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.solicitud-proyecto-presupuesto.partidas-gasto.concepto-gasto' | translate}}
+        {{'csp.solicitud-proyecto-presupuesto.partida-gasto.concepto-gasto' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.partidaGasto.value.conceptoGasto.nombre}}
@@ -17,7 +17,7 @@
     <!-- Anualidad Column -->
     <ng-container matColumnDef="anualidad">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.solicitud-proyecto-presupuesto.partidas-gasto.anualidad' | translate}}
+        {{'csp.solicitud-proyecto-presupuesto.partida-gasto.anualidad' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.partidaGasto.value.anualidad | translate}}
@@ -27,7 +27,7 @@
     <!-- Importe Column -->
     <ng-container matColumnDef="importe">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.solicitud-proyecto-presupuesto.partidas-gasto.importe' | translate}}
+        {{'csp.solicitud-proyecto-presupuesto.partida-gasto.importe' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.partidaGasto.value.importeSolicitado}}
@@ -37,7 +37,7 @@
     <!-- Importe total del presupuesto Column -->
     <ng-container matColumnDef="importeTotal">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.solicitud-proyecto-presupuesto.partidas-gasto.importe-total' | translate}}
+        {{'csp.solicitud-proyecto-presupuesto.partida-gasto.importe-total' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.importeTotalConceptoGasto}}
@@ -47,7 +47,7 @@
     <!-- Observaciones Column -->
     <ng-container matColumnDef="observaciones">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.solicitud-proyecto-presupuesto.partidas-gasto.observaciones' | translate}}
+        {{'csp.solicitud-proyecto-presupuesto.partida-gasto.observaciones' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.partidaGasto.value.observaciones}}
@@ -56,15 +56,15 @@
 
     <!-- Acciones Column -->
     <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef> {{'columna.acciones' | translate}} </th>
+      <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper">
         <ng-container>
-          <button mat-button matTooltip="{{'botones.editar' | translate}}" (click)="openModal(wrapper)">
+          <button mat-button matTooltip="{{'btn.edit' | translate}}" (click)="openModal(wrapper)">
             <mat-icon color="primary">border_color</mat-icon>
           </button>
         </ng-container>
         <ng-container>
-          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deletePartidaGasto(wrapper)">
+          <button mat-button matTooltip="{{'btn.delete' | translate}}" (click)="deletePartidaGasto(wrapper)">
             <mat-icon color="warn">highlight_off</mat-icon>
           </button>
         </ng-container>
@@ -80,7 +80,7 @@
   <div class="separation-button">
     <button color="three" mat-button mat-raised-button (click)="openModal()">
       <mat-icon color="accent">add_circle</mat-icon>
-      {{'csp.solicitud-proyecto-presupuesto.partidas-gasto.añadir' | translate}}
+      {{'csp.solicitud-proyecto-presupuesto.partida-gasto.add' | translate}}
     </button>
   </div>
 

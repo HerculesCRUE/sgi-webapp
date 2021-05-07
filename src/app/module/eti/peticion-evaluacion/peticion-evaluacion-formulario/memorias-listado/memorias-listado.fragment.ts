@@ -1,11 +1,10 @@
+import { IMemoriaPeticionEvaluacion } from '@core/models/eti/memoria-peticion-evaluacion';
 import { Fragment } from '@core/services/action-service';
-import { Observable, of, BehaviorSubject, merge, from } from 'rxjs';
-import { map, catchError, takeLast, tap, mergeMap, endWith } from 'rxjs/operators';
-import { StatusWrapper } from '@core/utils/status-wrapper';
-import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
-import { IMemoriaPeticionEvaluacion } from '@core/models/eti/memoriaPeticionEvaluacion';
 import { MemoriaService } from '@core/services/eti/memoria.service';
-
+import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
+import { StatusWrapper } from '@core/utils/status-wrapper';
+import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
+import { catchError, endWith, map, mergeMap, takeLast, tap } from 'rxjs/operators';
 
 export class MemoriasListadoFragment extends Fragment {
 
@@ -13,8 +12,7 @@ export class MemoriasListadoFragment extends Fragment {
     new BehaviorSubject<StatusWrapper<IMemoriaPeticionEvaluacion>[]>([]);
   private deleted: StatusWrapper<IMemoriaPeticionEvaluacion>[] = [];
 
-  constructor(key: number, private service: PeticionEvaluacionService
-    , private memoriaService: MemoriaService) {
+  constructor(key: number, private service: PeticionEvaluacionService, private memoriaService: MemoriaService) {
     super(key);
     this.setComplete(true);
   }
@@ -26,7 +24,6 @@ export class MemoriasListadoFragment extends Fragment {
     this.setComplete(true);
   }
 
-
   saveOrUpdate(): Observable<void> {
     return merge(
       this.delete(),
@@ -35,9 +32,6 @@ export class MemoriasListadoFragment extends Fragment {
       tap(() => this.setChanges(false))
     );
   }
-
-
-
 
   public addMemoria(memoria: IMemoriaPeticionEvaluacion): void {
     const wrapped = new StatusWrapper<IMemoriaPeticionEvaluacion>(memoria);
@@ -84,7 +78,6 @@ export class MemoriasListadoFragment extends Fragment {
       );
   }
 
-
   private delete(): Observable<void> {
     if (this.deleted.length === 0) {
       return of(void 0);
@@ -97,6 +90,5 @@ export class MemoriasListadoFragment extends Fragment {
       endWith()
     );
   }
-
 
 }

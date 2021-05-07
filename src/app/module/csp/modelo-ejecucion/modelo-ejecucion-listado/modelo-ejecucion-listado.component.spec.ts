@@ -8,8 +8,8 @@ import { SnackBarService } from '@core/services/snack-bar.service';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
 import { FooterCrearComponent } from '@shared/footers/footer-crear/footer-crear.component';
+import { SharedModule } from '@shared/shared.module';
 import { LoggerTestingModule } from 'ngx-logger/testing';
-
 import { ModeloEjecucionListadoComponent } from './modelo-ejecucion-listado.component';
 
 describe('ModeloEjecucionListadoComponent', () => {
@@ -32,6 +32,7 @@ describe('ModeloEjecucionListadoComponent', () => {
         FlexLayoutModule,
         FormsModule,
         ReactiveFormsModule,
+        SharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },

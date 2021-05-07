@@ -1,6 +1,5 @@
 export const CSP_ROUTE_NAMES = {
   CONVOCATORIA: 'convocatoria',
-  CONVOCATORIA_CONCEPTO_GASTO: 'convocatoria-concepto-gasto',
   SOLICITUD: 'solicitud',
   FUENTE_FINANCIACION: 'fuente-financiacion',
   TIPO_DOCUMENTO: 'tipo-documentos',
@@ -13,12 +12,5 @@ export const CSP_ROUTE_NAMES = {
   CONCEPTO_GASTO: 'concepto-gasto',
   TIPO_FINANCIACION: 'tipo-financiaciones',
   AREA_TEMATICA: 'area-tematica',
-  PROYECTO: 'proyectos',
-  SOLICITUD_PROYECTO_SOCIO: 'solicitud-proyecto-socio',
-  PROYECTO_SOCIO: 'proyecto-socio',
-  PROYECTO_SEGUIMIENTO_CIENTIFICO: 'proyecto-seguimiento-cientifico',
-  PROYECTO_SOCIO_PERIODO_JUSTIFICACION: 'proyecto-socio-periodo-justificacion',
-  PROYECTO_PRORROGA: 'proyecto-prorroga',
-  SOLICITUD_PROYECTO_PRESUPUESTO: 'solicitud-proyecto-presupuesto',
-  SOLICITUD_PROYECTO_PRESUPUESTO_AJENA: 'solicitud-proyecto-presupuesto-ajena'
+  PROYECTO: 'proyectos'
 };

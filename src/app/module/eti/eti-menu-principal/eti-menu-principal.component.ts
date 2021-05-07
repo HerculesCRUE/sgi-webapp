@@ -1,7 +1,8 @@
 import { Component, OnDestroy } from '@angular/core';
+import { MSG_PARAMS } from '@core/i18n';
 import { LayoutService } from '@core/services/layout.service';
-import { ETI_ROUTE_NAMES } from '../eti-route-names';
 import { Subscription } from 'rxjs';
+import { ETI_ROUTE_NAMES } from '../eti-route-names';
 
 @Component({
   selector: 'sgi-eti-menu-principal',
@@ -14,6 +15,10 @@ export class EtiMenuPrincipalComponent implements OnDestroy {
   opened: boolean;
 
   private subcription: Subscription;
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
 
   constructor(private layout: LayoutService) {
     this.subcription = this.layout.menuOpened$.subscribe((val) => this.opened = val);

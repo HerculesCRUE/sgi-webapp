@@ -29,12 +29,16 @@ export class MemoriaDocumentacionFragment extends Fragment {
   private deletedDocumentacionSeguimientoFinal: StatusWrapper<IDocumentacionMemoria>[] = [];
   private deletedDocumentacionRetrospectiva: StatusWrapper<IDocumentacionMemoria>[] = [];
 
+  private readonly: boolean;
+
   constructor(
     key: number,
+    readonly: boolean,
     private service: MemoriaService,
     private documentoService: DocumentoService
   ) {
     super(key);
+    this.readonly = readonly;
   }
 
   onInitialize(): void {
@@ -44,9 +48,7 @@ export class MemoriaDocumentacionFragment extends Fragment {
       this.loadDocumentosSeguimientoFinal(this.getKey() as number);
       this.loadDocumentosRetrospectiva(this.getKey() as number);
     }
-
   }
-
 
   loadDocumentosMemoria(idMemoria: number): void {
     if (!this.isInitialized()) {
@@ -63,7 +65,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
         this.documentacionesMemoria$.next(documentacionMemoria);
       });
     }
-
   }
 
   loadDocumentosSeguimientoAnual(idMemoria: number): void {
@@ -134,7 +135,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
     );
   }
 
-
   /**
    * Actualiza la documentación inicial de una memoria.
    */
@@ -156,7 +156,6 @@ export class MemoriaDocumentacionFragment extends Fragment {
         );
       }));
   }
-
 
   /**
    * Elimina la documentación inicial de una memoria.
@@ -429,5 +428,4 @@ export class MemoriaDocumentacionFragment extends Fragment {
       }
     }
   }
-
 }

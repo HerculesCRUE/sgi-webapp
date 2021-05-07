@@ -1,5 +1,6 @@
 <section class="proyecto-ficha-general">
-  <h2>{{'csp.proyecto.ficha.general.crear.titulo' | translate}}</h2>
+  <h2>{{'label.datos-generales' | translate}} - {{'label.ficha-general' | translate}}</h2>
+
 
   <form [formGroup]="formGroup">
 
@@ -9,9 +10,8 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.estado' | translate}}</mat-label>
-          <mat-select formControlName="estado" disabled
-            placeholder="{{'csp.solicitud.cambio-estado.actual' | translate}}">
+          <mat-label>{{'csp.proyecto.estado' | translate}}</mat-label>
+          <mat-select formControlName="estado" placeholder="{{'csp.solicitud.cambio-estado.actual' | translate}}">
             <mat-option *ngFor="let estado of ESTADO_MAP | keyvalue" [value]="estado.key">
               {{ estado.value | translate}}
             </mat-option>
@@ -22,9 +22,9 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order" *ngIf="formPart.comentarioEstadoCancelado">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.comentario' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.estado.comentario' | translate}}</mat-label>
           <textarea matInput formControlName="comentario" id="comentario"
-            placeholder="{{'csp.proyecto.ficha.general.comentario' | translate}}"></textarea>
+            placeholder="{{'csp.proyecto.estado.comentario' | translate}}"></textarea>
         </mat-form-field>
       </div>
 
@@ -37,88 +37,26 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.titulo' | translate}}</mat-label>
-          <input type="text" placeholder="{{'csp.proyecto.ficha.general.titulo' | translate}}" matInput
-            formControlName="titulo" required>
+          <mat-label>{{'csp.proyecto.titulo' | translate}}</mat-label>
+          <input type="text" placeholder="{{'csp.proyecto.titulo' | translate}}" matInput formControlName="titulo"
+            required>
           <mat-error *ngIf="formGroup.controls.titulo.errors?.required">
-            {{'csp.proyecto.ficha.general.titulo.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamTituloEntity}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.titulo.errors?.maxlength">
-            {{'csp.proyecto.ficha.general.titulo.maxlength' | translate}}
+            {{'error.maxlength.entity' | translate:msgParamTituloEntity}}
           </mat-error>
         </mat-form-field>
-
       </div>
-
-    </div>
-
-    <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
-      [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
 
       <!-- acronimo -->
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.acronimo' | translate}}</mat-label>
-          <input type="text" placeholder="{{'csp.proyecto.ficha.general.acronimo' | translate}}" matInput
-            formControlName="acronimo">
+          <mat-label>{{'csp.proyecto.acronimo' | translate}}</mat-label>
+          <input type="text" placeholder="{{'csp.proyecto.acronimo' | translate}}" matInput formControlName="acronimo">
           <mat-error *ngIf="formGroup.controls.acronimo.errors?.maxlength">
-            {{'csp.proyecto.ficha.general.acronimo.maxlength' | translate}}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <!-- Cod identificacion externo -->
-      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
-        [fxFlexOrder]="fxFlexProperties.order">
-        <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.codExterno' | translate}}</mat-label>
-          <input type="text" placeholder="{{'csp.proyecto.ficha.general.codExterno' | translate}}" matInput
-            formControlName="codigoExterno">
-          <mat-error *ngIf="formGroup.controls.codigoExterno.errors?.maxlength">
-            {{'csp.proyecto.ficha.general.codigoExterno.maxlength' | translate}}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-    </div>
-
-    <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
-      [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
-
-      <!-- Fecha inicio -->
-      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
-        [fxFlexOrder]="fxFlexProperties.order">
-        <mat-form-field color="primary">
-          <mat-label>{{'csp.proyecto.ficha.general.fecha.inicio'| translate}}</mat-label>
-          <input matInput [matDatepicker]="pickerFechaInicio" formControlName="fechaInicio" required>
-          <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaInicio"></mat-datepicker-toggle>
-          <mat-datepicker #pickerFechaInicio></mat-datepicker>
-          <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.required">
-            {{'csp.proyecto.ficha.general.fecha.inicio.error.requerido' | translate}}
-          </mat-error>
-          <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.range">
-            {{'csp.proyecto.ficha-general.fecha-inicio.error.range' | translate}}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <!-- Fecha fin -->
-      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
-        [fxFlexOrder]="fxFlexProperties.order">
-        <mat-form-field color="primary">
-          <mat-label>{{'csp.proyecto.ficha.general.fecha.fin'| translate}}</mat-label>
-          <input matInput [matDatepicker]="pickerFechaFin" formControlName="fechaFin" required>
-          <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaFin"></mat-datepicker-toggle>
-          <mat-datepicker #pickerFechaFin></mat-datepicker>
-          <mat-error *ngIf="formGroup.controls.fechaFin.errors?.required">
-            {{'csp.proyecto.ficha.general.fecha.fin.error.requerido' | translate}}
-          </mat-error>
-          <mat-error *ngIf="formGroup.controls.fechaFin.errors?.after">
-            {{'csp.proyecto.ficha.general.fechaFin.after' | translate}}
-          </mat-error>
-          <mat-error *ngIf="formGroup.controls.fechaFin.errors?.range">
-            {{'csp.proyecto.ficha-general.fecha-fin.error.range' | translate}}
+            {{'error.maxlength.entity' | translate:msgParamAcronimoEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -132,22 +70,22 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field fxFill>
-          <mat-label>{{'csp.proyecto.ficha.general.convocatoria' | translate}}</mat-label>
-          <sgi-select-convocatoria placeholder="{{'csp.proyecto.ficha.general.convocatoria' | translate}}"
+          <mat-label>{{'csp.proyecto.convocatoria' | translate}}</mat-label>
+          <sgi-select-convocatoria placeholder="{{'csp.proyecto.convocatoria' | translate}}"
             formControlName="convocatoria">
           </sgi-select-convocatoria>
         </mat-form-field>
       </div>
 
-      <!-- Referencia externa -->
+      <!-- Referencia externa convocatoria // Identificación convocatoria -->
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.externa.convocatoria' | translate}}</mat-label>
-          <input type="text" placeholder="{{'csp.proyecto.ficha.general.externa.convocatoria' | translate}}" matInput
+          <mat-label>{{'csp.proyecto.convocatoria-externa' | translate}}</mat-label>
+          <input type="text" placeholder="{{'csp.proyecto.convocatoria-externa' | translate}}" matInput
             formControlName="convocatoriaExterna">
           <mat-error *ngIf="formGroup.controls.convocatoriaExterna.errors?.maxlength">
-            {{'csp.proyecto.ficha.general.convocatoriaExterna.maxlength' | translate}}
+            {{'error.maxlength.entity' | translate:msgParamConvocatoriaExternaEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -156,15 +94,56 @@
 
     <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
       [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
+
+      <!-- Cod identificacion externo -->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field>
+          <mat-label>{{'csp.proyecto.codigo-externo' | translate}}</mat-label>
+          <input type="text" placeholder="{{'csp.proyecto.codigo-externo' | translate}}" matInput
+            formControlName="codigoExterno">
+          <mat-error *ngIf="formGroup.controls.codigoExterno.errors?.maxlength">
+            {{'error.maxlength.entity' | translate:msgParamCodigoExternoEntity}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
       <!-- Solicitud -->
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order" *ngIf="formPart.mostrarSolicitud">
         <mat-form-field class="input-form">
-          <mat-label>{{'csp.proyecto.ficha.general.solicitud' | translate}}</mat-label>
-          <input type="text" placeholder="{{'csp.proyecto.ficha.general.solicitud' | translate}}" matInput
+          <mat-label>{{'csp.proyecto.solicitud' | translate}}</mat-label>
+          <input type="text" placeholder="{{'csp.proyecto.solicitud' | translate}}" matInput
             formControlName="solicitudProyecto">
         </mat-form-field>
       </div>
+
+      <!-- Tipo de ámbito geográfico -->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field>
+          <mat-label>{{'csp.proyecto.ambito-geografico' | translate}}</mat-label>
+          <input matInput formControlName="ambitoGeografico" type="text" id="ambitoGeografico"
+            placeholder="{{'csp.proyecto.ambito-geografico' | translate}}" [matAutocomplete]="autoTipoAmbitoGeografico"
+            [required]="formPart.abiertoRequired">
+          <mat-autocomplete #autoTipoAmbitoGeografico="matAutocomplete" [displayWith]="getTipoAmbitoGeografico">
+            <mat-option *ngFor="let tipoAmbitoGeografico of tipoAmbitosGeograficos$ | async"
+              [value]="tipoAmbitoGeografico">
+              {{tipoAmbitoGeografico.nombre}}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="formGroup.controls.ambitoGeografico.errors?.required">
+            {{'error.required.entity' | translate:msgParamAmbitoGeograficoEntity}}
+          </mat-error>
+          <mat-error *ngIf="formGroup.controls.ambitoGeografico.errors?.vacio">
+            {{'error.invalid.entity' | translate:msgParamAmbitoGeograficoEntity}}
+          </mat-error>
+          <mat-error *ngIf="formGroup.controls.ambitoGeografico.errors?.invalid">
+            {{'error.invalid.entity' | translate:msgParamAmbitoGeograficoEntity}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
     </div>
 
     <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
@@ -174,11 +153,10 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.unidad.gestion' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.unidad-gestion' | translate}}</mat-label>
           <input matInput formControlName="unidadGestion" type="text" id="unidadGestion"
-            placeholder="{{'csp.proyecto.ficha.general.unidad.gestion' | translate}}"
-            [matAutocomplete]="autoUnidadGestion" (ngModelChange)="loadModelosEjecucion()"
-            (keyup)="clearModeloEjecuccion()" required>
+            placeholder="{{'csp.proyecto.unidad-gestion' | translate}}" [matAutocomplete]="autoUnidadGestion"
+            (ngModelChange)="loadModelosEjecucion()" (keyup)="clearModeloEjecuccion()" required>
           <mat-autocomplete #autoUnidadGestion="matAutocomplete" [displayWith]="getUnidadGestion">
             <mat-option *ngFor="let unidadGestion of unidadesGestion$ | async" [value]="unidadGestion"
               (click)="clearModeloEjecuccion()">
@@ -186,10 +164,10 @@
             </mat-option>
           </mat-autocomplete>
           <mat-error *ngIf="formGroup.controls.unidadGestion.errors?.required">
-            {{'csp.proyecto.ficha.general.unidad.gestion.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamUnidadGestionEntity}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.unidadGestion.errors?.invalid">
-            {{'csp.proyecto.ficha.general.unidad.gestion.error.invalid' | translate}}
+            {{'error.invalid.entity' | translate:msgParamUnidadGestionEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -198,8 +176,8 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.modelo.ejecucion' | translate}}</mat-label>
-          <input type="text" placeholder="{{'csp.proyecto.ficha.general.modelo.ejecucion' | translate}}" matInput
+          <mat-label>{{'csp.proyecto.modelo-ejecucion' | translate}}</mat-label>
+          <input type="text" placeholder="{{'csp.proyecto.modelo-ejecucion' | translate}}" matInput
             formControlName="modeloEjecucion" [matAutocomplete]="autoModeloEjecucion"
             (ngModelChange)="loadFinalidades()" (click)="loadModelosEjecucion()" required>
           <mat-autocomplete #autoModeloEjecucion="matAutocomplete" [displayWith]="getModeloEjecucion">
@@ -208,10 +186,10 @@
             </mat-option>
           </mat-autocomplete>
           <mat-error *ngIf="formGroup.controls.modeloEjecucion.errors?.required">
-            {{'csp.proyecto.ficha.general.modelo.ejecucion.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamModeloEjecucionEntity}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.modeloEjecucion.errors?.invalid">
-            {{'csp.proyecto.ficha.general.modelo.ejecucion.error.invalid' | translate}}
+            {{'error.invalid.entity' | translate:msgParamModeloEjecucionEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -220,9 +198,9 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.finalidad' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.finalidad' | translate}}</mat-label>
           <input matInput formControlName="finalidad" type="text" id="finalidad"
-            placeholder="{{'csp.proyecto.ficha.general.finalidad' | translate}}" [matAutocomplete]="autoFinalidad"
+            placeholder="{{'csp.proyecto.finalidad' | translate}}" [matAutocomplete]="autoFinalidad"
             [required]="formPart.abiertoRequired">
           <mat-autocomplete #autoFinalidad="matAutocomplete" [displayWith]="getFinalidad">
             <mat-option *ngFor="let finalidad of finalidades$ | async" [value]="finalidad">
@@ -230,10 +208,10 @@
             </mat-option>
           </mat-autocomplete>
           <mat-error *ngIf="formGroup.controls.finalidad.errors?.required">
-            {{'csp.proyecto.ficha.general.finalidad.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamFinalidadEntity}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.finalidad.errors?.invalid">
-            {{'csp.proyecto.ficha.general.finalidad.error.invalid' | translate}}
+            {{'error.invalid.entity' | translate:msgParamFinalidadEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -243,28 +221,41 @@
     <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
       [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
 
-      <!-- Tipo de ámbito geográfico -->
+      <!-- Fecha inicio -->
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
-        <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.tipo.ambito.geografico' | translate}}</mat-label>
-          <input matInput formControlName="ambitoGeografico" type="text" id="ambitoGeografico"
-            placeholder="{{'csp.proyecto.ficha.general.tipo.ambito.geografico' | translate}}"
-            [matAutocomplete]="autoTipoAmbitoGeografico" [required]="formPart.abiertoRequired">
-          <mat-autocomplete #autoTipoAmbitoGeografico="matAutocomplete" [displayWith]="getTipoAmbitoGeografico">
-            <mat-option *ngFor="let tipoAmbitoGeografico of tipoAmbitosGeograficos$ | async"
-              [value]="tipoAmbitoGeografico">
-              {{tipoAmbitoGeografico.nombre}}
-            </mat-option>
-          </mat-autocomplete>
-          <mat-error *ngIf="formGroup.controls.ambitoGeografico.errors?.required">
-            {{'csp.proyecto.ficha.general.tipo.ambito.geografico.error.required' | translate}}
+        <mat-form-field color="primary">
+          <mat-label>{{'csp.proyecto.fecha-inicio'| translate}}</mat-label>
+          <input matInput [ngxMatDatetimePicker]="pickerFechaInicio" formControlName="fechaInicio" required>
+          <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaInicio"></mat-datepicker-toggle>
+          <ngx-mat-datetime-picker #pickerFechaInicio showSeconds="true" [defaultTime]="[0,0,0]">
+          </ngx-mat-datetime-picker>
+          <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.required">
+            {{'error.required.entity' | translate:msgParamFechaInicioEntity}}
           </mat-error>
-          <mat-error *ngIf="formGroup.controls.ambitoGeografico.errors?.vacio">
-            {{'csp.proyecto.ficha.general.tipo.ambito.geografico.error.vacio' | translate}}
+          <mat-error *ngIf="formGroup.controls.fechaInicio.errors?.range">
+            {{'error.csp.proyecto-ficha-general.fecha-inicio.range' | translate}}
           </mat-error>
-          <mat-error *ngIf="formGroup.controls.ambitoGeografico.errors?.invalid">
-            {{'csp.proyecto.ficha.general.ambito.geografico.error.invalid' | translate}}
+        </mat-form-field>
+      </div>
+
+      <!-- Fecha fin -->
+      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
+        [fxFlexOrder]="fxFlexProperties.order">
+        <mat-form-field color="primary">
+          <mat-label>{{'csp.proyecto.fecha-fin'| translate}}</mat-label>
+          <input matInput [ngxMatDatetimePicker]="pickerFechaFin" formControlName="fechaFin" required>
+          <mat-datepicker-toggle class="fechaIcon" matSuffix [for]="pickerFechaFin"></mat-datepicker-toggle>
+          <ngx-mat-datetime-picker #pickerFechaFin showSeconds="true" [defaultTime]="[23,59,59]">
+          </ngx-mat-datetime-picker>
+          <mat-error *ngIf="formGroup.controls.fechaFin.errors?.required">
+            {{'error.required.entity' | translate:msgParamFechaFinEntity}}
+          </mat-error>
+          <mat-error *ngIf="formGroup.controls.fechaFin.errors?.after">
+            {{'error.after.fecha-fin' | translate}}
+          </mat-error>
+          <mat-error *ngIf="formGroup.controls.fechaFin.errors?.range">
+            {{'error.csp.proyecto-ficha-general.fecha-fin.range' | translate}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -278,13 +269,13 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.confidencial' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.confidencial' | translate}}</mat-label>
           <mat-select matNativeControl formControlName="confidencial" [required]="formPart.abiertoRequired">
             <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
             <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
           </mat-select>
           <mat-error *ngIf="formGroup.controls.confidencial.errors?.required">
-            {{'csp.proyecto.ficha.general.confidencial.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamConfidencialEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -293,8 +284,9 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.cvn' | translate}}</mat-label>
-          <mat-select formControlName="clasificacionCVN" placeholder="{{'csp.proyecto.ficha.general.cvn' | translate}}">
+          <mat-label>{{'csp.proyecto.clasificacion-produccion' | translate}}</mat-label>
+          <mat-select formControlName="clasificacionCVN"
+            placeholder="{{'csp.proyecto.clasificacion-produccion' | translate}}">
             <mat-option [value]="null"></mat-option>
             <mat-option *ngFor="let clasificacionCVN of CLASIFICACION_CVN_MAP | keyvalue"
               [value]="clasificacionCVN.key">
@@ -313,13 +305,13 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.colaborativo' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.proyecto-colaborativo' | translate}}</mat-label>
           <mat-select matNativeControl formControlName="colaborativo" [required]="formPart.abiertoRequired">
             <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
             <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
           </mat-select>
           <mat-error *ngIf="formGroup.controls.colaborativo.errors?.required">
-            {{'csp.proyecto.ficha.general.colaborativo.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamProyectoColaborativoEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -328,26 +320,14 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.coorExterno' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.coordinador-externo' | translate}}</mat-label>
           <mat-select matNativeControl formControlName="coordinadorExterno" [required]="formPart.abiertoRequired">
             <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
             <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
           </mat-select>
           <mat-error *ngIf="formGroup.controls.coordinadorExterno.errors?.required">
-            {{'csp.proyecto.ficha.general.coordinadorExterno.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamCoordinadorExternoEntity}}
           </mat-error>
-        </mat-form-field>
-      </div>
-
-      <!-- Universidad subcontratada -->
-      <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
-        [fxFlexOrder]="fxFlexProperties.order">
-        <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.subcontratada' | translate}}</mat-label>
-          <mat-select matNativeControl formControlName="uniSubcontratada">
-            <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
-            <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
-          </mat-select>
         </mat-form-field>
       </div>
 
@@ -360,16 +340,16 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.timesheet' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.timesheet' | translate}}</mat-label>
           <mat-select matNativeControl formControlName="timesheet" [required]="validacionTimesheet()">
             <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
             <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
           </mat-select>
           <mat-error *ngIf="formGroup.controls.timesheet.errors?.required">
-            {{'csp.proyecto.ficha.general.timesheet.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamTimesheetEntity}}
           </mat-error>
           <mat-error *ngIf="formGroup.controls.timesheet.errors?.invalid">
-            {{'csp.proyecto.ficha.general.timesheet.error.invalid' | translate}}
+            {{'error.invalid.entity' | translate:msgParamTimesheetEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -378,13 +358,13 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.paquete.trabajo' | translate}}</mat-label>
-          <mat-select matNativeControl formControlName="paquetesTrabajo" [required]="formPart.abiertoRequired">
+          <mat-label>{{'csp.proyecto.permite-paquetes-trabajo' | translate:MSG_PARAMS.CARDINALIRY.SINGULAR}}</mat-label>
+          <mat-select matNativeControl formControlName="permitePaquetesTrabajo" [required]="formPart.abiertoRequired">
             <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
             <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
           </mat-select>
-          <mat-error *ngIf="formGroup.controls.paquetesTrabajo.errors?.required">
-            {{'csp.proyecto.ficha.general.paquete.error.required' | translate}}
+          <mat-error *ngIf="formGroup.controls.permitePaquetesTrabajo.errors?.required">
+            {{'error.required.entity' | translate:msgParamPaqueteTrabajoEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -399,13 +379,13 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.calculo' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.calculo-coste-personal' | translate}}</mat-label>
           <mat-select matNativeControl formControlName="costeHora" [required]="formPart.abiertoRequired">
             <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
             <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
           </mat-select>
           <mat-error *ngIf="formGroup.controls.costeHora.errors?.required">
-            {{'csp.proyecto.ficha.general.coste.hora.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamCalculoCosteEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -414,7 +394,7 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order" *ngIf="requiredHoras">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.horas.anuales' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.horas-anuales' | translate}}</mat-label>
           <mat-select matNativeControl formControlName="tipoHorasAnuales" [required]="requiredHoras">
             <mat-option *ngFor="let tipoHorasAnuales of TIPO_HORAS_ANUALES_MAP | keyvalue"
               [value]="tipoHorasAnuales.key">
@@ -422,7 +402,7 @@
             </mat-option>
           </mat-select>
           <mat-error *ngIf="formGroup.controls.tipoHorasAnuales.errors?.required">
-            {{'csp.proyecto.ficha.general.coste.horas.anuales.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamHorasAnualesEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -436,13 +416,13 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.contratacion' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.contratacion-rrhh' | translate}}</mat-label>
           <mat-select matNativeControl formControlName="contratacion" [required]="formPart.abiertoRequired">
             <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
             <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
           </mat-select>
           <mat-error *ngIf="formGroup.controls.contratacion.errors?.required">
-            {{'csp.proyecto.ficha.general.contratacion.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamContratacionEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -451,13 +431,13 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.facturacion' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.facturacion' | translate}}</mat-label>
           <mat-select matNativeControl formControlName="facturacion" [required]="formPart.abiertoRequired">
             <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
             <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
           </mat-select>
           <mat-error *ngIf="formGroup.controls.facturacion.errors?.required">
-            {{'csp.proyecto.ficha.general.facturacion.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamFacturacionEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -466,13 +446,13 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field>
-          <mat-label>{{'csp.proyecto.ficha.general.iva' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.iva' | translate}}</mat-label>
           <mat-select matNativeControl formControlName="iva" [required]="formPart.abiertoRequired">
             <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
             <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
           </mat-select>
           <mat-error *ngIf="formGroup.controls.iva.errors?.required">
-            {{'csp.proyecto.ficha.general.iva.error.required' | translate}}
+            {{'error.required.entity' | translate:msgParamIvaEntity}}
           </mat-error>
         </mat-form-field>
       </div>
@@ -486,9 +466,9 @@
       <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
         [fxFlexOrder]="fxFlexProperties.order">
         <mat-form-field fxFill>
-          <mat-label>{{'csp.proyecto.ficha.general.observaciones' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto.observaciones' | translate}}</mat-label>
           <textarea matInput formControlName="observaciones" id="observaciones"
-            placeholder="{{'csp.proyecto.ficha.general.observaciones' | translate}}"></textarea>
+            placeholder="{{'csp.proyecto.observaciones' | translate}}"></textarea>
         </mat-form-field>
       </div>
 

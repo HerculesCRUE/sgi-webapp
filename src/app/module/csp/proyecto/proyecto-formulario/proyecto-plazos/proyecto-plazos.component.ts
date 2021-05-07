@@ -5,17 +5,20 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoPlazos } from '@core/models/csp/proyecto-plazo';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { GLOBAL_CONSTANTS } from '@core/utils/global-constants';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ProyectoPlazosModalComponent, ProyectoPlazosModalComponentData } from '../../modals/proyecto-plazos-modal/proyecto-plazos-modal.component';
 import { ProyectoActionService } from '../../proyecto.action.service';
 import { ProyectoPlazosFragment } from './proyecto-plazos.fragment';
 
-const MSG_DELETE = marker('csp.proyecto.plazo.listado.borrar');
+const MSG_DELETE = marker('msg.delete.entity');
+const PROYECTO_FASE_KEY = marker('csp.proyecto-fase');
 
 @Component({
   selector: 'sgi-proyecto-plazos',
@@ -29,25 +32,34 @@ export class ProyectoPlazosComponent extends FragmentComponent implements OnInit
   displayedColumns = ['fechaInicio', 'fechaFin', 'tipoFase', 'aviso', 'acciones'];
   elementosPagina = [5, 10, 25, 100];
 
+  msgParamEntity = {};
+  textoDelete: string;
+
   dataSource: MatTableDataSource<StatusWrapper<IProyectoPlazos>>;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   plazos$: BehaviorSubject<StatusWrapper<IProyectoPlazos>[]>;
 
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
+
   constructor(
     protected snackBarService: SnackBarService,
-    private actionService: ProyectoActionService,
+    public actionService: ProyectoActionService,
     private matDialog: MatDialog,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
-    super(actionService.FRAGMENT.PLAZOS, actionService);
+    super(actionService.FRAGMENT.FASES, actionService);
     this.formPart = this.fragment as ProyectoPlazosFragment;
     this.plazos$ = (this.fragment as ProyectoPlazosFragment).plazos$;
   }
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     this.dataSource = new MatTableDataSource<StatusWrapper<IProyectoPlazos>>();
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
@@ -55,6 +67,25 @@ export class ProyectoPlazosComponent extends FragmentComponent implements OnInit
     this.subscriptions.push(this.formPart.plazos$.subscribe(elements => {
       this.dataSource.data = elements;
     }));
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      PROYECTO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+
+    this.translate.get(
+      PROYECTO_FASE_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_DELETE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoDelete = value);
   }
 
   /**
@@ -66,26 +97,25 @@ export class ProyectoPlazosComponent extends FragmentComponent implements OnInit
       plazos: this.dataSource.data.map(plazos => plazos.value),
       plazo: plazo ? plazo.value : {} as IProyectoPlazos,
       idModeloEjecucion: this.actionService.modeloEjecucionId,
-      readonly: this.formPart.readonly
+      readonly: this.actionService.readonly
     };
 
     const config = {
-      width: GLOBAL_CONSTANTS.widthModalCSP,
-      maxHeight: GLOBAL_CONSTANTS.maxHeightModal,
+      panelClass: 'sgi-dialog-container',
       data: datosPlazosFases,
     };
 
     const dialogRef = this.matDialog.open(ProyectoPlazosModalComponent, config);
     dialogRef.afterClosed().subscribe(
-      (plazosFase: IProyectoPlazos) => {
-        if (plazosFase) {
+      (modalData: ProyectoPlazosModalComponentData) => {
+        if (modalData) {
           if (plazo) {
             if (!plazo.created) {
               plazo.setEdited();
             }
             this.formPart.setChanges(true);
           } else {
-            this.formPart.addPlazos(plazosFase);
+            this.formPart.addPlazos(modalData.plazo);
           }
         }
       }
@@ -97,7 +127,7 @@ export class ProyectoPlazosComponent extends FragmentComponent implements OnInit
    */
   deleteFase(wrapper: StatusWrapper<IProyectoPlazos>) {
     this.subscriptions.push(
-      this.dialogService.showConfirmation(MSG_DELETE).subscribe(
+      this.dialogService.showConfirmation(this.textoDelete).subscribe(
         (aceptado) => {
           if (aceptado) {
             this.formPart.deletePlazo(wrapper);

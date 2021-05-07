@@ -1,18 +1,15 @@
-import { SgiRoutes } from '@core/route';
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { SgiAuthGuard } from '@sgi/framework/auth';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { ConvocatoriaListadoInvComponent } from './convocatoria-listado-inv/convocatoria-listado-inv.component';
-import { ConvocatoriaEditarComponent } from './convocatoria-editar/convocatoria-editar.component';
-import { ActionGuard } from '@core/guards/master-form.guard';
-import { ConvocatoriaResolver } from './convocatoria.resolver';
-import { ConfiguracionSolicitudResolver } from './configuracion-solicitud.resolver';
-import { CONVOCATORIA_ROUTE_NAMES } from './convocatoria-route-names';
-import { ConvocatoriaDatosGeneralesComponent } from './convocatoria-formulario/convocatoria-datos-generales/convocatoria-datos-generales.component';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentGuard } from '@core/guards/detail-form.guard';
+import { ActionGuard } from '@core/guards/master-form.guard';
+import { SgiRoutes } from '@core/route';
+import { SgiAuthGuard } from '@sgi/framework/auth';
+import { ConvocatoriaDataResolver, CONVOCATORIA_DATA_KEY } from './convocatoria-data.resolver';
+import { ConvocatoriaEditarComponent } from './convocatoria-editar/convocatoria-editar.component';
 import { ConvocatoriaConceptoGastoComponent } from './convocatoria-formulario/convocatoria-concepto-gasto/convocatoria-concepto-gasto.component';
 import { ConvocatoriaConfiguracionSolicitudesComponent } from './convocatoria-formulario/convocatoria-configuracion-solicitudes/convocatoria-configuracion-solicitudes.component';
+import { ConvocatoriaDatosGeneralesComponent } from './convocatoria-formulario/convocatoria-datos-generales/convocatoria-datos-generales.component';
 import { ConvocatoriaDocumentosComponent } from './convocatoria-formulario/convocatoria-documentos/convocatoria-documentos.component';
 import { ConvocatoriaEnlaceComponent } from './convocatoria-formulario/convocatoria-enlace/convocatoria-enlace.component';
 import { ConvocatoriaEntidadesConvocantesComponent } from './convocatoria-formulario/convocatoria-entidades-convocantes/convocatoria-entidades-convocantes.component';
@@ -23,10 +20,13 @@ import { ConvocatoriaPlazosFasesComponent } from './convocatoria-formulario/conv
 import { ConvocatoriaRequisitosEquipoComponent } from './convocatoria-formulario/convocatoria-requisitos-equipo/convocatoria-requisitos-equipo.component';
 import { ConvocatoriaRequisitosIPComponent } from './convocatoria-formulario/convocatoria-requisitos-ip/convocatoria-requisitos-ip.component';
 import { ConvocatoriaSeguimientoCientificoComponent } from './convocatoria-formulario/convocatoria-seguimiento-cientifico/convocatoria-seguimiento-cientifico.component';
-import { ModeloEjecucionIdResolver } from './modelo-ejecucion-id.resolver';
+import { ConvocatoriaListadoInvComponent } from './convocatoria-listado-inv/convocatoria-listado-inv.component';
+import { CONVOCATORIA_ROUTE_NAMES } from './convocatoria-route-names';
+import { CONVOCATORIA_ROUTE_PARAMS } from './convocatoria-route-params';
 
 const MSG_CONVOCATORIAS_TITLE = marker('inv.convocatoria.listado.titulo');
 const MSG_CONVOCATORIAS_VER_TITLE = marker('inv.convocatoria.ver.titulo');
+const CONVOCATORIA_ELEGIBILIDAD_KEY = marker('csp.convocatoria-elegibilidad');
 
 const routes: SgiRoutes = [
   {
@@ -38,14 +38,12 @@ const routes: SgiRoutes = [
     }
   },
   {
-    path: `:id`,
+    path: `:${CONVOCATORIA_ROUTE_PARAMS.ID}`,
     component: ConvocatoriaEditarComponent,
     canActivate: [SgiAuthGuard],
     canDeactivate: [ActionGuard],
     resolve: {
-      convocatoriaId: ConvocatoriaResolver,
-      configuracionSolicitud: ConfiguracionSolicitudResolver,
-      modeloEjecucionId: ModeloEjecucionIdResolver
+      [CONVOCATORIA_DATA_KEY]: ConvocatoriaDataResolver
     },
     data: {
       title: MSG_CONVOCATORIAS_VER_TITLE,
@@ -66,7 +64,7 @@ const routes: SgiRoutes = [
         canDeactivate: [FragmentGuard]
       },
       {
-        path: CONVOCATORIA_ROUTE_NAMES.PLAZOS_FASES,
+        path: CONVOCATORIA_ROUTE_NAMES.FASES,
         component: ConvocatoriaPlazosFasesComponent,
         canDeactivate: [FragmentGuard]
       },
@@ -119,6 +117,50 @@ const routes: SgiRoutes = [
         component: ConvocatoriaConfiguracionSolicitudesComponent,
         canDeactivate: [FragmentGuard]
       },
+      {
+        path: CONVOCATORIA_ROUTE_NAMES.CONCEPTO_GATO_PERMITIDO,
+        redirectTo: CONVOCATORIA_ROUTE_NAMES.ELEGIBILIDAD
+      },
+      {
+        path: CONVOCATORIA_ROUTE_NAMES.CONCEPTO_GATO_NO_PERMITIDO,
+        redirectTo: CONVOCATORIA_ROUTE_NAMES.ELEGIBILIDAD
+      }
+    ]
+  },
+  {
+    path: `:${CONVOCATORIA_ROUTE_PARAMS.ID}`,
+    canActivate: [SgiAuthGuard],
+    data: {
+      title: MSG_CONVOCATORIAS_VER_TITLE
+    },
+    resolve: {
+      [CONVOCATORIA_DATA_KEY]: ConvocatoriaDataResolver
+    },
+    children: [
+      {
+        path: `${CONVOCATORIA_ROUTE_NAMES.CONCEPTO_GATO_PERMITIDO}`,
+        loadChildren: () =>
+          import('../convocatoria-concepto-gasto/convocatoria-concepto-gasto.module').then(
+            (m) => m.ConvocatoriaConceptoGastoModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: CONVOCATORIA_ELEGIBILIDAD_KEY,
+          permitido: true
+        }
+      },
+      {
+        path: `${CONVOCATORIA_ROUTE_NAMES.CONCEPTO_GATO_NO_PERMITIDO}`,
+        loadChildren: () =>
+          import('../convocatoria-concepto-gasto/convocatoria-concepto-gasto.module').then(
+            (m) => m.ConvocatoriaConceptoGastoModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: CONVOCATORIA_ELEGIBILIDAD_KEY,
+          permitido: false
+        }
+      }
     ]
   }
 ];

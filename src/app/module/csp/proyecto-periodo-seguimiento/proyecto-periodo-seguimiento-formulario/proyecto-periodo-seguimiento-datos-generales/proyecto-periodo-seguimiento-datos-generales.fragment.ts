@@ -6,7 +6,7 @@ import { FormFragment } from '@core/services/action-service';
 import { ProyectoPeriodoSeguimientoService } from '@core/services/csp/proyecto-periodo-seguimiento.service';
 import { DateValidator } from '@core/validators/date-validator';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 export class ProyectoPeriodoSeguimientoDatosGeneralesFragment extends FormFragment<IProyectoPeriodoSeguimiento> {
   proyectoPeriodoSeguimiento: IProyectoPeriodoSeguimiento;
@@ -15,30 +15,27 @@ export class ProyectoPeriodoSeguimientoDatosGeneralesFragment extends FormFragme
     key: number,
     private service: ProyectoPeriodoSeguimientoService,
     private proyecto: IProyecto,
-    public selectedProyectoPeriodoSeguimientos: IProyectoPeriodoSeguimiento[],
     private readonly
   ) {
     super(key);
-    this.proyectoPeriodoSeguimiento = {
-      proyecto: this.proyecto
-    } as IProyectoPeriodoSeguimiento;
+    this.proyectoPeriodoSeguimiento = { proyectoId: proyecto.id } as IProyectoPeriodoSeguimiento;
   }
 
   protected buildFormGroup(): FormGroup {
     const form = new FormGroup(
       {
         numPeriodo: new FormControl({
-          value: this.getLastNumPeriodo() ? this.getLastNumPeriodo() + 1 : 1,
+          value: 1,
           disabled: true
         }),
-        fechaInicio: new FormControl('', [
+        fechaInicio: new FormControl(null, [
           Validators.required
         ]),
-        fechaFin: new FormControl('', [
+        fechaFin: new FormControl(null, [
           Validators.required
         ]),
-        fechaInicioPresentacion: new FormControl(''),
-        fechaFinPresentacion: new FormControl(''),
+        fechaInicioPresentacion: new FormControl(null),
+        fechaFinPresentacion: new FormControl(null),
         observaciones: new FormControl('', [Validators.maxLength(250)]),
         fechaInicioProyecto: new FormControl(this.proyecto?.fechaInicio),
         fechaFinProyecto: new FormControl(this.proyecto?.fechaFin)
@@ -69,6 +66,7 @@ export class ProyectoPeriodoSeguimientoDatosGeneralesFragment extends FormFragme
   }
 
   protected buildPatch(proyectoPeriodoSeguimiento: IProyectoPeriodoSeguimiento): { [key: string]: any; } {
+    this.proyectoPeriodoSeguimiento = proyectoPeriodoSeguimiento;
     const result = {
       numPeriodo: proyectoPeriodoSeguimiento.numPeriodo,
       fechaInicio: proyectoPeriodoSeguimiento.fechaInicio,
@@ -81,10 +79,7 @@ export class ProyectoPeriodoSeguimientoDatosGeneralesFragment extends FormFragme
   }
 
   protected initializer(key: number): Observable<IProyectoPeriodoSeguimiento> {
-    return this.service.findById(key)
-      .pipe(
-        tap((proyectoPeriodoSeguimiento) => this.proyectoPeriodoSeguimiento = proyectoPeriodoSeguimiento)
-      );
+    return this.service.findById(key);
   }
 
   getValue(): IProyectoPeriodoSeguimiento {
@@ -116,18 +111,5 @@ export class ProyectoPeriodoSeguimientoDatosGeneralesFragment extends FormFragme
 
   private update(proyectoPeriodoSeguimiento: IProyectoPeriodoSeguimiento): Observable<IProyectoPeriodoSeguimiento> {
     return this.service.update(proyectoPeriodoSeguimiento.id, proyectoPeriodoSeguimiento);
-  }
-
-  /**
-   * Obtiene el último número de período de la tabla de periodos de seguimiento científico
-   */
-  getLastNumPeriodo(): number {
-    if (this.selectedProyectoPeriodoSeguimientos && this.selectedProyectoPeriodoSeguimientos.length > 0) {
-      this.selectedProyectoPeriodoSeguimientos
-        .sort((a, b) => (a.fechaInicio > b.fechaInicio) ? 1 : ((b.fechaInicio > a.fechaInicio) ? -1 : 0));
-
-      return this.selectedProyectoPeriodoSeguimientos[this.selectedProyectoPeriodoSeguimientos.length - 1].numPeriodo;
-    }
-    return null;
   }
 }

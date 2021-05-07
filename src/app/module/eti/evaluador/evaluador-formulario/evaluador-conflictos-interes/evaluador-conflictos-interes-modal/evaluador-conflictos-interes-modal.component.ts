@@ -2,18 +2,21 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { MSG_PARAMS } from '@core/i18n';
 import { IConflictoInteres } from '@core/models/eti/conflicto-interes';
 import { IEvaluador } from '@core/models/eti/evaluador';
 import { IPersona } from '@core/models/sgp/persona';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import { FormGroupUtil } from '@core/utils/form-group-util';
+import { TranslateService } from '@ngx-translate/core';
+import { TipoColectivo } from '@shared/select-persona/select-persona.component';
 import { Subscription } from 'rxjs';
 
-const MSG_SUCCESS = marker('eti.acta.asistentes.correcto');
-const MSG_ERROR = marker('eti.acta.asistentes.error');
-const MSG_ERROR_FORM = marker('form-group.error');
-const MSG_ERROR_CONFLICTO_REPETIDO = marker('eti.evaluador.conflictoInteres.formulario.listado.personaConflicto.repetida');
+const MSG_ERROR_FORM = marker('error.form-group');
+const CONFLICTO_INTERES_KEY = marker('eti.evaluador.conflicto-interes');
+const MSG_ERROR_CONFLICTO_REPETIDO = marker('error.eti.evaluador.conflicto-interes.duplicate');
+const EVALUADOR_PERSONA_KEY = marker('title.eti.search.user');
 
 @Component({
   selector: 'sgi-evaluador-conflictos-interes-modal',
@@ -26,68 +29,76 @@ export class EvaluadorConflictosInteresModalComponent implements OnInit, OnDestr
   formGroup: FormGroup;
   fxLayoutProperties: FxLayoutProperties;
 
-  conflictoInteresSuscripcion: Subscription;
+  personaChangeSuscripcion: Subscription;
 
   nuevaPersonaConflicto: IPersona;
+  msgParamConflictoInteresEntity = {};
+  msgParamPersonaEntity = {};
 
+  get tipoColectivoEquipoTrabajo() {
+    return TipoColectivo.EQUIPO_TRABAJO_ETICA;
+  }
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public conflictos: IConflictoInteres[],
     public readonly matDialogRef: MatDialogRef<EvaluadorConflictosInteresModalComponent>,
-    private readonly snackBarService: SnackBarService) {
+    private readonly snackBarService: SnackBarService,
+    private readonly translate: TranslateService) {
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.layout = 'column';
   }
 
   ngOnInit(): void {
     this.initFormGroup();
+    this.setupI18N();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      CONFLICTO_INTERES_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamConflictoInteresEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      EVALUADOR_PERSONA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamPersonaEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
   }
   /**
    * Inicializa el formGroup
    */
   private initFormGroup() {
     this.formGroup = new FormGroup({
-      identificador: new FormControl({ value: '', disabled: true }, [Validators.required])
+      persona: new FormControl(null, [Validators.required]),
+      identificador: new FormControl({ value: '', disabled: true }, [Validators.required]),
     });
-  }
 
-  /**
-   * Cierra la ventana modal y devuelve el conflicto de interés si se ha modificado
-   *
-   * @param conflictoInteres conflicto interés modificado
-   */
-  closeModal(conflictoInteres?: IConflictoInteres): void {
-    if (conflictoInteres) {
-      const isRepetido =
-        this.conflictos.some(conflictoListado =>
-          conflictoInteres.personaConflictoRef === conflictoListado.personaConflictoRef);
-
-      if (isRepetido) {
-        this.snackBarService.showError(MSG_ERROR_CONFLICTO_REPETIDO);
-        return;
-      }
-    }
-    this.matDialogRef.close(conflictoInteres);
+    this.personaChangeSuscripcion =
+      this.formGroup.controls.persona.valueChanges.subscribe((value) => {
+        this.formGroup.controls.identificador.setValue(`${value.numeroDocumento}`);
+      });
   }
 
   /**
    * Comprueba el formulario y envia el conflicto de interés resultante
    */
-  addConflicto() {
+  saveOrUpdate() {
+    const conflictoInteres = this.getDatosForm();
     if (FormGroupUtil.valid(this.formGroup)) {
-      this.closeModal(this.getDatosForm());
+      if (conflictoInteres) {
+        const isRepetido =
+          this.conflictos.some(conflictoListado =>
+            conflictoInteres.personaConflicto.id === conflictoListado.personaConflicto.id);
+
+        if (isRepetido) {
+          this.snackBarService.showError(MSG_ERROR_CONFLICTO_REPETIDO);
+          return;
+        }
+      }
+      this.matDialogRef.close(conflictoInteres);
     } else {
       this.snackBarService.showError(MSG_ERROR_FORM);
     }
-  }
-
-  /**
-   * Setea el persona seleccionado a través del componente
-   * @param persona persona seleccionada
-   */
-  public onSelectPersona(personaSeleccionada: IPersona): void {
-    this.nuevaPersonaConflicto = personaSeleccionada;
-    this.formGroup.controls.identificador.setValue(`${personaSeleccionada.identificadorNumero}${personaSeleccionada.identificadorLetra}`);
   }
 
   /**
@@ -101,34 +112,19 @@ export class EvaluadorConflictosInteresModalComponent implements OnInit, OnDestr
       fechaAlta: null,
       fechaBaja: null,
       id: null,
-      identificadorLetra: null,
-      identificadorNumero: null,
-      nivelAcademico: null,
-      nombre: null,
-      personaRef: null,
-      primerApellido: null,
       resumen: null,
-      segundoApellido: null,
-      vinculacion: null
+      persona: null
     };
     const conflictoInteres: IConflictoInteres = {
       evaluador: evaluadorObj,
       id: null,
-      personaConflictoRef: this.nuevaPersonaConflicto?.personaRef,
-      personaRef: this.nuevaPersonaConflicto?.personaRef,
-      nombre: this.nuevaPersonaConflicto?.nombre,
-      primerApellido: this.nuevaPersonaConflicto?.primerApellido,
-      segundoApellido: this.nuevaPersonaConflicto?.segundoApellido,
-      identificadorNumero: this.nuevaPersonaConflicto?.identificadorNumero,
-      identificadorLetra: this.nuevaPersonaConflicto?.identificadorLetra,
-      nivelAcademico: this.nuevaPersonaConflicto?.nivelAcademico,
-      vinculacion: this.nuevaPersonaConflicto?.vinculacion
+      personaConflicto: this.formGroup.controls.persona.value
     };
     return conflictoInteres;
   }
 
   ngOnDestroy(): void {
-    this.conflictoInteresSuscripcion?.unsubscribe();
+    this.personaChangeSuscripcion?.unsubscribe();
   }
 
 }

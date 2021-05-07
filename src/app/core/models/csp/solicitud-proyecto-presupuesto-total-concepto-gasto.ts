@@ -1,4 +1,4 @@
-import { IConceptoGasto } from "./tipos-configuracion";
+import { IConceptoGasto } from './tipos-configuracion';
 
 export interface ISolicitudProyectoPresupuestoTotalConceptoGasto {
   conceptoGasto: IConceptoGasto;

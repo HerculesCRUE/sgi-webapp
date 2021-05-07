@@ -2,20 +2,18 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ISolicitudProyectoSocio } from '@core/models/csp/solicitud-proyecto-socio';
 import { FormFragment } from '@core/services/action-service';
 import { SolicitudProyectoSocioService } from '@core/services/csp/solicitud-proyecto-socio.service';
-import { SolicitudService } from '@core/services/csp/solicitud.service';
 import { IsEntityValidator } from '@core/validators/is-entity-validador';
 import { NumberValidator } from '@core/validators/number-validator';
 import { Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 export class SolicitudProyectoSocioDatosGeneralesFragment extends FormFragment<ISolicitudProyectoSocio> {
   solicitudProyectoSocio: ISolicitudProyectoSocio;
 
   constructor(
     key: number,
-    private solicitudId: number,
+    private solicitudProyectoId: number,
     private service: SolicitudProyectoSocioService,
-    private solicitudService: SolicitudService,
     public readonly
   ) {
     super(key);
@@ -102,12 +100,8 @@ export class SolicitudProyectoSocioDatosGeneralesFragment extends FormFragment<I
   }
 
   private create(solicitudProyectoSocio: ISolicitudProyectoSocio): Observable<ISolicitudProyectoSocio> {
-    return this.solicitudService.findSolicitudProyectoDatos(this.solicitudId).pipe(
-      switchMap((solicitudProyectoDatos) => {
-        solicitudProyectoSocio.solicitudProyectoDatos = solicitudProyectoDatos;
-        return this.service.create(solicitudProyectoSocio);
-      })
-    );
+    solicitudProyectoSocio.solicitudProyectoId = this.solicitudProyectoId;
+    return this.service.create(solicitudProyectoSocio);
   }
 
   private update(solicitudProyectoSocio: ISolicitudProyectoSocio): Observable<ISolicitudProyectoSocio> {

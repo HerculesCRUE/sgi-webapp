@@ -2,73 +2,66 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+import { BaseModalComponent } from '@core/component/base-modal.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IConvocatoriaFase } from '@core/models/csp/convocatoria-fase';
-import { IModeloTipoFase } from '@core/models/csp/modelo-tipo-fase';
 import { ITipoFase } from '@core/models/csp/tipos-configuracion';
-import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ModeloEjecucionService } from '@core/services/csp/modelo-ejecucion.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { DateUtils } from '@core/utils/date-utils';
-import { FormGroupUtil } from '@core/utils/form-group-util';
 import { DateValidator } from '@core/validators/date-validator';
-import { NullIdValidador } from '@core/validators/null-id-validador';
 import { IRange, RangeValidator } from '@core/validators/range-validator';
-import { SgiRestListResult } from '@sgi/framework/http';
-import { NGXLogger } from 'ngx-logger';
-import { Observable, Subscription } from 'rxjs';
-import { map, startWith, tap } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
+import { Observable } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs/operators';
 
-const MSG_ERROR_FORM_GROUP = marker('form-group.error');
-const MSG_ERROR_INIT = marker('csp.convocatoria.plazos.fases.error.cargar');
-const MSG_ERROR_TIPOS = marker('csp.convocatoria.tipo.fases.error.cargar');
-const MSG_ANADIR = marker('botones.aniadir');
-const MSG_ACEPTAR = marker('botones.aceptar');
+const MSG_ANADIR = marker('btn.add');
+const MSG_ACEPTAR = marker('btn.ok');
+const CONVOCATORIA_FASE_KEY = marker('csp.convocatoria-fase');
+const CONVOCATORIA_FASES_FECHA_FIN_KEY = marker('csp.convocatoria-fase.fecha-fin');
+const CONVOCATORIA_FASES_FECHA_INICIO_KEY = marker('csp.convocatoria-fase.fecha-inicio');
+const CONVOCATORIA_FASES_OBSERVACIONES_KEY = marker('csp.convocatoria-fase.observaciones');
+const CONVOCATORIA_FASES_TIPO_KEY = marker('csp.convocatoria-fase.tipo');
+const TITLE_NEW_ENTITY = marker('title.new.entity');
+
 export interface ConvocatoriaPlazosFaseModalComponentData {
   plazos: IConvocatoriaFase[];
   plazo: IConvocatoriaFase;
   idModeloEjecucion: number;
   readonly: boolean;
 }
+
 @Component({
   templateUrl: './convocatoria-plazos-fase-modal.component.html',
   styleUrls: ['./convocatoria-plazos-fase-modal.component.scss']
 })
-export class ConvocatoriaPlazosFaseModalComponent implements OnInit, OnDestroy {
-
-  formGroup: FormGroup;
-  fxFlexProperties: FxFlexProperties;
-  fxFlexProperties2: FxFlexProperties;
+export class ConvocatoriaPlazosFaseModalComponent extends
+  BaseModalComponent<ConvocatoriaPlazosFaseModalComponentData, ConvocatoriaPlazosFaseModalComponent> implements OnInit, OnDestroy {
   fxLayoutProperties: FxLayoutProperties;
   fxLayoutProperties2: FxLayoutProperties;
-  modeloTipoFases$: Observable<IModeloTipoFase[]>;
+  tiposFases$: Observable<ITipoFase[]>;
 
-  private modeloTipoFasesFiltered: IModeloTipoFase[];
-  private suscripciones: Subscription[] = [];
 
   textSaveOrUpdate: string;
+  title: string;
 
-  /** ngx-mat-datetime-picker */
-  showSeconds = true;
-  defaultTimeStart = [0, 0, 0];
-  defaultTimeEnd = [23, 59, 59];
-  /** ngx-mat-datetime-picker */
+  msgParamFechaInicioEntity = {};
+  msgParamFechaFinEntity = {};
+  msgParamTipoEntity = {};
+  msgParamObservacionesEntity = {};
 
   constructor(
-    private readonly logger: NGXLogger,
-    private snackBarService: SnackBarService,
+    protected snackBarService: SnackBarService,
     @Inject(MAT_DIALOG_DATA) public data: ConvocatoriaPlazosFaseModalComponentData,
     public matDialogRef: MatDialogRef<ConvocatoriaPlazosFaseModalComponent>,
-    private modeloEjecucionService: ModeloEjecucionService,
+    modeloEjecucionService: ModeloEjecucionService,
+    private readonly translate: TranslateService
   ) {
+    super(snackBarService, matDialogRef, data);
+
     this.fxLayoutProperties = new FxLayoutProperties();
     this.fxLayoutProperties.layout = 'row';
     this.fxLayoutProperties.layoutAlign = 'row';
-    this.fxFlexProperties = new FxFlexProperties();
-    this.fxFlexProperties.sm = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.md = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.gtMd = '0 1 calc(100%-10px)';
-    this.fxFlexProperties.order = '2';
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.xs = 'column';
 
@@ -77,38 +70,62 @@ export class ConvocatoriaPlazosFaseModalComponent implements OnInit, OnDestroy {
     this.fxLayoutProperties2.layout = 'row';
     this.fxLayoutProperties2.xs = 'column';
 
-    this.fxFlexProperties2 = new FxFlexProperties();
-    this.fxFlexProperties2.sm = '0 1 calc(50%-10px)';
-    this.fxFlexProperties2.md = '0 1 calc(50%-10px)';
-    this.fxFlexProperties2.gtMd = '0 1 calc(50%-10px)';
-    this.fxFlexProperties2.order = '3';
+    this.tiposFases$ = modeloEjecucionService.findModeloTipoFaseModeloEjecucionConvocatoria(this.data.idModeloEjecucion).pipe(
+      map(response => response.items.map(modeloTipoFase => modeloTipoFase.tipoFase))
+    );
   }
 
   ngOnInit(): void {
-    this.initFormGroup();
-    this.loadTipoFases();
+    super.ngOnInit();
+
+    this.createValidatorDate(this.data?.plazo?.tipoFase);
+    const suscription = this.formGroup.controls.tipoFase.valueChanges.pipe(tap((value) => this.createValidatorDate(value))).subscribe();
+    this.subscriptions.push(suscription);
+
+    this.setupI18N();
     this.textSaveOrUpdate = this.data.plazo.fechaInicio ? MSG_ACEPTAR : MSG_ANADIR;
   }
 
-  /**
-   * Inicializa formulario de creación/edición de plazos y fases
-   */
-  private initFormGroup() {
-    this.formGroup = new FormGroup({
-      fechaInicio: new FormControl(this.data?.plazo?.fechaInicio, [Validators.required]),
-      fechaFin: new FormControl(this.data?.plazo?.fechaFin, Validators.required),
-      tipoFase: new FormControl(this.data?.plazo?.tipoFase, [Validators.required, new NullIdValidador().isValid()]),
-      observaciones: new FormControl(this.data?.plazo?.observaciones, [Validators.maxLength(250)])
-    });
+  private setupI18N(): void {
+    this.translate.get(
+      CONVOCATORIA_FASES_FECHA_FIN_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaFinEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
 
-    if (this.data.readonly) {
-      this.formGroup.disable();
+    this.translate.get(
+      CONVOCATORIA_FASES_FECHA_INICIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaInicioEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      CONVOCATORIA_FASES_TIPO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamTipoEntity = { entity: value, ...MSG_PARAMS.GENDER.MALE });
+
+    this.translate.get(
+      CONVOCATORIA_FASES_OBSERVACIONES_KEY,
+      MSG_PARAMS.CARDINALIRY.PLURAL
+    ).subscribe((value) => this.msgParamObservacionesEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE, ...MSG_PARAMS.CARDINALIRY.PLURAL });
+
+    if (this.data.plazo.tipoFase) {
+      this.translate.get(
+        CONVOCATORIA_FASE_KEY,
+        MSG_PARAMS.CARDINALIRY.SINGULAR
+      ).subscribe((value) => this.title = value);
+    } else {
+      this.translate.get(
+        CONVOCATORIA_FASE_KEY,
+        MSG_PARAMS.CARDINALIRY.SINGULAR
+      ).pipe(
+        switchMap((value) => {
+          return this.translate.get(
+            TITLE_NEW_ENTITY,
+            { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+          );
+        })
+      ).subscribe((value) => this.title = value);
     }
 
-    this.createValidatorDate(this.data?.plazo?.tipoFase);
-
-    const suscription = this.formGroup.controls.tipoFase.valueChanges.pipe(tap((value) => this.createValidatorDate(value))).subscribe();
-    this.suscripciones.push(suscription);
   }
 
   /**
@@ -125,8 +142,8 @@ export class ConvocatoriaPlazosFaseModalComponent implements OnInit, OnDestroy {
       rangoFechas = convocatoriasFases.map(
         fase => {
           const rango: IRange = {
-            inicio: DateUtils.fechaToDate(fase.fechaInicio).getTime(),
-            fin: DateUtils.fechaToDate(fase.fechaFin).getTime()
+            inicio: fase.fechaInicio,
+            fin: fase.fechaFin
           };
           return rango;
         }
@@ -139,82 +156,31 @@ export class ConvocatoriaPlazosFaseModalComponent implements OnInit, OnDestroy {
     ]);
   }
 
-  loadTipoFases() {
-    this.suscripciones.push(
-      this.modeloEjecucionService.findModeloTipoFaseModeloEjecucionConvocatoria(this.data.idModeloEjecucion).subscribe(
-        (res: SgiRestListResult<IModeloTipoFase>) => {
-          this.modeloTipoFasesFiltered = res.items;
-          this.modeloTipoFases$ = this.formGroup.controls.tipoFase.valueChanges
-            .pipe(
-              startWith(''),
-              map(value => this.filtroTipoPlazosFase(value))
-            );
-        },
-        (error) => {
-          this.logger.error(error);
-          if (this.data.idModeloEjecucion) {
-            this.snackBarService.showError(MSG_ERROR_INIT);
-          } else {
-            this.snackBarService.showError(MSG_ERROR_TIPOS);
-          }
-        })
-    );
+  protected getDatosForm(): ConvocatoriaPlazosFaseModalComponentData {
+    this.data.plazo.fechaInicio = this.formGroup.controls.fechaInicio.value;
+    this.data.plazo.fechaFin = this.formGroup.controls.fechaFin.value;
+    this.data.plazo.tipoFase = this.formGroup.controls.tipoFase.value;
+    this.data.plazo.observaciones = this.formGroup.controls.observaciones.value;
+    return this.data;
   }
 
-  /**
-   * Actualizar o guardar datos
-   */
-  saveOrUpdate(): void {
-    if (FormGroupUtil.valid(this.formGroup)) {
-      this.loadDatosForm();
-      this.closeModal(this.data.plazo);
-    } else {
-      this.snackBarService.showError(MSG_ERROR_FORM_GROUP);
+  protected getFormGroup(): FormGroup {
+    const formGroup = new FormGroup({
+      fechaInicio: new FormControl(this.data?.plazo?.fechaInicio, Validators.required),
+      fechaFin: new FormControl(this.data?.plazo?.fechaFin, Validators.required),
+      tipoFase: new FormControl(this.data?.plazo?.tipoFase, Validators.required),
+      observaciones: new FormControl(this.data?.plazo?.observaciones, Validators.maxLength(250))
+    });
+
+    if (this.data.readonly) {
+      formGroup.disable();
     }
-  }
 
-  /**
-   * Método para actualizar la entidad con los datos de un formGroup
-   *
-   * @returns Comentario con los datos del formulario
-   */
-  private loadDatosForm(): void {
-    this.data.plazo.fechaInicio = FormGroupUtil.getValue(this.formGroup, 'fechaInicio');
-    this.data.plazo.fechaFin = FormGroupUtil.getValue(this.formGroup, 'fechaFin');
-    this.data.plazo.tipoFase = FormGroupUtil.getValue(this.formGroup, 'tipoFase');
-    this.data.plazo.observaciones = FormGroupUtil.getValue(this.formGroup, 'observaciones');
-  }
-
-  /**
-   * Devuelve el nombre tipo de plazos fase
-   * @param tipoFase tipo de plazos fase
-   * @returns nombre de plazos fase
-   */
-  getTipoPlazosFase(tipoFase?: ITipoFase): string | undefined {
-    return typeof tipoFase === 'string' ? tipoFase : tipoFase?.nombre;
-  }
-
-  /**
-   * Filtra la lista devuelta por el servicio.
-   *
-   * @param value del input para autocompletar
-   */
-  filtroTipoPlazosFase(value: string): IModeloTipoFase[] {
-    const filterValue = value.toString().toLowerCase();
-    return this.modeloTipoFasesFiltered.filter(modeloTipoFase =>
-      modeloTipoFase.tipoFase?.nombre?.toLowerCase().includes(filterValue));
-  }
-
-  /**
-   * Cierra la ventana modal
-   *
-   */
-  closeModal(plazos?: IConvocatoriaFase): void {
-    this.matDialogRef.close(plazos);
+    return formGroup;
   }
 
   ngOnDestroy(): void {
-    this.suscripciones?.forEach(x => x.unsubscribe());
+    super.ngOnDestroy();
   }
 
 }

@@ -1,6 +1,6 @@
-import { ISolicitudProyectoPeriodoPago } from '@core/models/csp/solicitud-proyecto-periodo-pago';
+import { ISolicitudProyectoSocioPeriodoPago } from '@core/models/csp/solicitud-proyecto-socio-periodo-pago';
 import { Fragment } from '@core/services/action-service';
-import { SolicitudProyectoPeriodoPagoService } from '@core/services/csp/solicitud-proyecto-periodo-pago.service';
+import { SolicitudProyectoSocioPeriodoPagoService } from '@core/services/csp/solicitud-proyecto-socio-periodo-pago.service';
 import { SolicitudProyectoSocioService } from '@core/services/csp/solicitud-proyecto-socio.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { NGXLogger } from 'ngx-logger';
@@ -8,13 +8,13 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map, takeLast, tap } from 'rxjs/operators';
 
 export class SolicitudProyectoSocioPeriodoPagoFragment extends Fragment {
-  periodoPagos$ = new BehaviorSubject<StatusWrapper<ISolicitudProyectoPeriodoPago>[]>([]);
+  periodoPagos$ = new BehaviorSubject<StatusWrapper<ISolicitudProyectoSocioPeriodoPago>[]>([]);
 
   constructor(
     private readonly logger: NGXLogger,
     key: number,
     private solicitudProyectoSocioService: SolicitudProyectoSocioService,
-    private solicitudProyectoPeriodoPagoService: SolicitudProyectoPeriodoPagoService,
+    private solicitudProyectoSocioPeriodoPagoService: SolicitudProyectoSocioPeriodoPagoService,
     public readonly
   ) {
     super(key);
@@ -25,12 +25,12 @@ export class SolicitudProyectoSocioPeriodoPagoFragment extends Fragment {
     if (this.getKey()) {
       const id = this.getKey() as number;
       this.subscriptions.push(
-        this.solicitudProyectoSocioService.findAllSolicitudProyectoPeriodoPago(id).pipe(
+        this.solicitudProyectoSocioService.findAllSolicitudProyectoSocioPeriodoPago(id).pipe(
           map(response => response.items)
         ).subscribe(
           result => {
             this.periodoPagos$.next(
-              result.map(value => new StatusWrapper<ISolicitudProyectoPeriodoPago>(value))
+              result.map(value => new StatusWrapper<ISolicitudProyectoSocioPeriodoPago>(value))
             );
           },
           error => {
@@ -41,8 +41,8 @@ export class SolicitudProyectoSocioPeriodoPagoFragment extends Fragment {
     }
   }
 
-  addPeriodoPago(element: ISolicitudProyectoPeriodoPago) {
-    const wrapped = new StatusWrapper<ISolicitudProyectoPeriodoPago>(element);
+  addPeriodoPago(element: ISolicitudProyectoSocioPeriodoPago) {
+    const wrapped = new StatusWrapper<ISolicitudProyectoSocioPeriodoPago>(element);
     wrapped.setCreated();
     const current = this.periodoPagos$.value;
     current.push(wrapped);
@@ -50,7 +50,7 @@ export class SolicitudProyectoSocioPeriodoPagoFragment extends Fragment {
     this.setChanges(true);
   }
 
-  deletePeriodoPago(wrapper: StatusWrapper<ISolicitudProyectoPeriodoPago>) {
+  deletePeriodoPago(wrapper: StatusWrapper<ISolicitudProyectoSocioPeriodoPago>) {
     const current = this.periodoPagos$.value;
     const index = current.findIndex((value) => value === wrapper);
     if (index >= 0) {
@@ -63,11 +63,11 @@ export class SolicitudProyectoSocioPeriodoPagoFragment extends Fragment {
   saveOrUpdate(): Observable<void> {
     const values = this.periodoPagos$.value.map(wrapper => wrapper.value);
     const id = this.getKey() as number;
-    return this.solicitudProyectoPeriodoPagoService.updateList(id, values).pipe(
+    return this.solicitudProyectoSocioPeriodoPagoService.updateList(id, values).pipe(
       takeLast(1),
       map((results) => {
         this.periodoPagos$.next(
-          results.map(value => new StatusWrapper<ISolicitudProyectoPeriodoPago>(value)));
+          results.map(value => new StatusWrapper<ISolicitudProyectoSocioPeriodoPago>(value)));
       }),
       tap(() => {
         if (this.isSaveOrUpdateComplete()) {
@@ -82,7 +82,7 @@ export class SolicitudProyectoSocioPeriodoPagoFragment extends Fragment {
     return !hasTouched;
   }
 
-  private recalcularNumPeriodos(current: StatusWrapper<ISolicitudProyectoPeriodoPago>[]): void {
+  private recalcularNumPeriodos(current: StatusWrapper<ISolicitudProyectoSocioPeriodoPago>[]): void {
     let numPeriodo = 1;
     current.sort((a, b) =>
       (a.value.mes > b.value.mes) ? 1 : ((b.value.mes > a.value.mes) ? -1 : 0));

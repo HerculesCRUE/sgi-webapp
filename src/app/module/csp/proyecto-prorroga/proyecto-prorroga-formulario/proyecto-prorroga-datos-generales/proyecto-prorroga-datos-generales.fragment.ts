@@ -1,50 +1,52 @@
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { IProyecto } from '@core/models/csp/proyecto';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { IProyectoProrroga, Tipo } from '@core/models/csp/proyecto-prorroga';
 import { FormFragment } from '@core/services/action-service';
 import { ProyectoProrrogaService } from '@core/services/csp/proyecto-prorroga.service';
+import { DialogService } from '@core/services/dialog.service';
 import { DateValidator } from '@core/validators/date-validator';
-import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { DateTime } from 'luxon';
+import { NEVER, Observable } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+
+const MSG_IMPORTE = marker('msg.csp.prorroga.update-importe-proyecto');
 
 export class ProyectoProrrogaDatosGeneralesFragment extends FormFragment<IProyectoProrroga> {
+
+  private proyectoProrroga: IProyectoProrroga;
+  private importeInicial: number;
 
   constructor(
     key: number,
     private service: ProyectoProrrogaService,
-    private proyecto: IProyecto,
-    public selectedProyectoProrrogas: IProyectoProrroga[],
-    private proyectoProrroga: IProyectoProrroga,
-    private readonly: boolean
+    proyectoId: number,
+    private fechaUltimaConcesion: DateTime,
+    private readonly: boolean,
+    private dialogService: DialogService
   ) {
     super(key);
-    if (this.proyectoProrroga) {
-      this.proyectoProrroga.proyecto = this.proyecto;
-    } else {
-      this.proyectoProrroga = {
-        id: key,
-        proyecto: this.proyecto as IProyecto
-      } as IProyectoProrroga;
-    }
+    this.proyectoProrroga = {
+      proyectoId
+    } as IProyectoProrroga;
   }
 
   protected buildFormGroup(): FormGroup {
     const form = new FormGroup(
       {
         numProrroga: new FormControl({
-          value: this.getLastProrroga() ? this.getLastProrroga()?.numProrroga + 1 : 1,
+          value: 1,
           disabled: true
         }),
-        fechaConcesion: new FormControl('', [
+        fechaConcesion: new FormControl(null, [
           Validators.required
         ]),
         tipo: new FormControl('', [
           Validators.required
         ]),
-        fechaFin: new FormControl({ value: '', disabled: true }),
+        fechaFin: new FormControl({ value: null, disabled: true }),
         importe: new FormControl({ value: '', disabled: true }),
         observaciones: new FormControl('', [Validators.maxLength(250)]),
-        fechaUltimaConcesion: new FormControl(this?.getLastProrroga()?.fechaConcesion)
+        fechaUltimaConcesion: new FormControl(this.fechaUltimaConcesion)
       },
       {
         validators: [
@@ -65,6 +67,8 @@ export class ProyectoProrrogaDatosGeneralesFragment extends FormFragment<IProyec
   }
 
   protected buildPatch(proyectoProrroga: IProyectoProrroga): { [key: string]: any; } {
+    this.proyectoProrroga = proyectoProrroga;
+    this.importeInicial = this.proyectoProrroga.importe;
     const result = {
       numProrroga: proyectoProrroga.numProrroga,
       fechaConcesion: proyectoProrroga.fechaConcesion,
@@ -79,10 +83,7 @@ export class ProyectoProrrogaDatosGeneralesFragment extends FormFragment<IProyec
   }
 
   protected initializer(key: number): Observable<IProyectoProrroga> {
-    return this.service.findById(key)
-      .pipe(
-        tap((proyectoProrroga) => this.proyectoProrroga = proyectoProrroga)
-      );
+    return this.service.findById(key);
   }
 
   getValue(): IProyectoProrroga {
@@ -98,12 +99,34 @@ export class ProyectoProrrogaDatosGeneralesFragment extends FormFragment<IProyec
 
   saveOrUpdate(): Observable<number> {
     const proyectoProrroga = this.getValue();
-
+    let mostrarAvisoImporte = false;
+    if (proyectoProrroga.tipo === Tipo.IMPORTE) {
+      if (this.isEdit() && proyectoProrroga.importe !== this.importeInicial) {
+        mostrarAvisoImporte = true;
+      } else if (proyectoProrroga.importe !== null) {
+        mostrarAvisoImporte = true;
+      }
+    }
     const observable$ = this.isEdit() ? this.update(proyectoProrroga) : this.create(proyectoProrroga);
+    if (mostrarAvisoImporte) {
+      return this.dialogService.showConfirmation(MSG_IMPORTE).pipe(
+        switchMap(aceptado => {
+          if (aceptado) {
+            return this.persist(observable$);
+          } else {
+            return NEVER;
+          }
+        })
+      );
+    } else {
+      return this.persist(observable$);
+    }
+  }
+
+  private persist(observable$: Observable<IProyectoProrroga>): Observable<number> {
     return observable$.pipe(
       map(result => {
         this.proyectoProrroga = result;
-        this.refreshInitialState(true);
         return this.proyectoProrroga.id;
       })
     );
@@ -148,21 +171,5 @@ export class ProyectoProrrogaDatosGeneralesFragment extends FormFragment<IProyec
         form.importe.enable();
       }
     }
-  }
-
-  /**
-   * Obtiene la última prórroga del listado
-   */
-  getLastProrroga(): IProyectoProrroga {
-    if (this.selectedProyectoProrrogas && this.selectedProyectoProrrogas.length > 0) {
-      if (this.proyectoProrroga) {
-        if (this.proyectoProrroga.id !== this.selectedProyectoProrrogas[this.selectedProyectoProrrogas.length - 1].id) {
-          return this.selectedProyectoProrrogas[this.selectedProyectoProrrogas.length - 1];
-        } else if (this.selectedProyectoProrrogas.length > 1) {
-          return this.selectedProyectoProrrogas[this.selectedProyectoProrrogas.length - 2];
-        }
-      }
-    }
-    return null;
   }
 }

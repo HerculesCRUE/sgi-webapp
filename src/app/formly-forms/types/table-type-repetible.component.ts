@@ -1,7 +1,7 @@
-import { Component, ViewChild, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit, Pipe, PipeTransform } from '@angular/core';
 import { FieldArrayType } from '@ngx-formly/core';
-import { Observable, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { DateTime } from 'luxon';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'sgi-repetible-table-type',
@@ -188,7 +188,7 @@ import { takeUntil } from 'rxjs/operators';
   `]
 })
 export class TableTypeRepetible extends FieldArrayType implements OnInit, OnDestroy {
-  trigger = new Date().getTime();
+  trigger = DateTime.now().toMillis();
 
   private _unsubscribeAll$: Subject<any>;
 
@@ -359,7 +359,6 @@ export class TableTypeRepetible extends FieldArrayType implements OnInit, OnDest
 
 
 
-import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({ name: 'hideColumnsBody' })
 export class HideColumnsBodyPipe implements PipeTransform {

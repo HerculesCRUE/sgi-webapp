@@ -1,35 +1,34 @@
-import { SgiRoutes } from '@core/route';
-
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-
-import { SgiAuthGuard } from '@sgi/framework/auth';
-
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-
-import { ROUTE_NAMES } from '@core/route.names';
-import { ActionGuard } from '@core/guards/master-form.guard';
-import { SOLICITUD_ROUTE_NAMES } from './solicitud-route-names';
 import { FragmentGuard } from '@core/guards/detail-form.guard';
-import { SolicitudResolver } from './solicitud.resolver';
+import { ActionGuard } from '@core/guards/master-form.guard';
+import { MSG_PARAMS } from '@core/i18n';
+import { SgiRoutes } from '@core/route';
+import { ROUTE_NAMES } from '@core/route.names';
+import { SgiAuthGuard } from '@sgi/framework/auth';
+import { SOLICITUD_PROYECTO_PRESUPUESTO_AJENA_KEY } from '../solicitud-proyecto-presupuesto/solicitud-proyecto-presupuesto-data.resolver';
 import { SolicitudCrearComponent } from './solicitud-crear/solicitud-crear.component';
+import { SolicitudDataResolver, SOLICITUD_DATA_KEY } from './solicitud-data.resolver';
 import { SolicitudEditarComponent } from './solicitud-editar/solicitud-editar.component';
-import { SolicitudListadoComponent } from './solicitud-listado/solicitud-listado.component';
 import { SolicitudDatosGeneralesComponent } from './solicitud-formulario/solicitud-datos-generales/solicitud-datos-generales.component';
-import { SolicitudHitosComponent } from './solicitud-formulario/solicitud-hitos/solicitud-hitos.component';
-import { SolicitudHistoricoEstadosComponent } from './solicitud-formulario/solicitud-historico-estados/solicitud-historico-estados.component';
 import { SolicitudDocumentosComponent } from './solicitud-formulario/solicitud-documentos/solicitud-documentos.component';
-import { SolicitudProyectoFichaGeneralComponent } from './solicitud-formulario/solicitud-proyecto-ficha-general/solicitud-proyecto-ficha-general.component';
 import { SolicitudEquipoProyectoComponent } from './solicitud-formulario/solicitud-equipo-proyecto/solicitud-equipo-proyecto.component';
-import { SolicitudSociosColaboradoresComponent } from './solicitud-formulario/solicitud-socios-colaboradores/solicitud-socios-colaboradores.component';
+import { SolicitudHistoricoEstadosComponent } from './solicitud-formulario/solicitud-historico-estados/solicitud-historico-estados.component';
+import { SolicitudHitosComponent } from './solicitud-formulario/solicitud-hitos/solicitud-hitos.component';
 import { SolicitudProyectoEntidadesFinanciadorasComponent } from './solicitud-formulario/solicitud-proyecto-entidades-financiadoras/solicitud-proyecto-entidades-financiadoras.component';
-import { SolicitudProyectoPresupuestoGlobalComponent } from './solicitud-formulario/solicitud-proyecto-presupuesto-global/solicitud-proyecto-presupuesto-global.component';
+import { SolicitudProyectoFichaGeneralComponent } from './solicitud-formulario/solicitud-proyecto-ficha-general/solicitud-proyecto-ficha-general.component';
 import { SolicitudProyectoPresupuestoEntidadesComponent } from './solicitud-formulario/solicitud-proyecto-presupuesto-entidades/solicitud-proyecto-presupuesto-entidades.component';
+import { SolicitudProyectoPresupuestoGlobalComponent } from './solicitud-formulario/solicitud-proyecto-presupuesto-global/solicitud-proyecto-presupuesto-global.component';
+import { SolicitudProyectoSocioComponent } from './solicitud-formulario/solicitud-proyecto-socio/solicitud-proyecto-socio.component';
+import { SolicitudListadoComponent } from './solicitud-listado/solicitud-listado.component';
+import { SOLICITUD_ROUTE_NAMES } from './solicitud-route-names';
+import { SOLICITUD_ROUTE_PARAMS } from './solicitud-route-params';
 
-
-const MSG_EDIT_TITLE = marker('csp.solicitud.editar.titulo');
-const MSG_LISTADO_TITLE = marker('csp.solicitud.listado.titulo');
-const MSG_NEW_TITLE = marker('csp.solicitud.crear.titulo');
+const SOLICITUD_KEY = marker('csp.solicitud');
+const MSG_NEW_TITLE = marker('title.new.entity');
+const PROYECTO_SOCIO_KEY = marker('csp.solicitud-proyecto-socio');
+const PROYECTO_PRESUPUESTO_KEY = marker('menu.csp.solicitudes.desgloses-presupuesto');
 
 const routes: SgiRoutes = [
   {
@@ -37,7 +36,8 @@ const routes: SgiRoutes = [
     component: SolicitudListadoComponent,
     canActivate: [SgiAuthGuard],
     data: {
-      title: MSG_LISTADO_TITLE,
+      title: SOLICITUD_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.PLURAL
     }
   },
   {
@@ -47,6 +47,9 @@ const routes: SgiRoutes = [
     canDeactivate: [ActionGuard],
     data: {
       title: MSG_NEW_TITLE,
+      titleParams: {
+        entity: SOLICITUD_KEY, ...MSG_PARAMS.GENDER.FEMALE, ...MSG_PARAMS.CARDINALIRY.SINGULAR
+      }
     },
     children: [
       {
@@ -62,15 +65,16 @@ const routes: SgiRoutes = [
     ]
   },
   {
-    path: `:id`,
+    path: `:${SOLICITUD_ROUTE_PARAMS.ID}`,
     component: SolicitudEditarComponent,
     canActivate: [SgiAuthGuard],
     canDeactivate: [ActionGuard],
     resolve: {
-      solicitud: SolicitudResolver
+      [SOLICITUD_DATA_KEY]: SolicitudDataResolver
     },
     data: {
-      title: MSG_EDIT_TITLE,
+      title: SOLICITUD_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.SINGULAR
     },
     children: [
       {
@@ -89,8 +93,8 @@ const routes: SgiRoutes = [
         canDeactivate: [FragmentGuard]
       },
       {
-        path: SOLICITUD_ROUTE_NAMES.SOCIOS_COLABORADORES,
-        component: SolicitudSociosColaboradoresComponent,
+        path: SOLICITUD_ROUTE_NAMES.SOCIOS,
+        component: SolicitudProyectoSocioComponent,
         canDeactivate: [FragmentGuard]
       },
       {
@@ -127,11 +131,66 @@ const routes: SgiRoutes = [
         path: SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_ENTIDADES,
         component: SolicitudProyectoPresupuestoEntidadesComponent,
         canDeactivate: [FragmentGuard]
+      },
+      {
+        path: SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_ENTIDADES_CONVOCATORIA,
+        redirectTo: SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_ENTIDADES
+      },
+      {
+        path: SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_ENTIDADES_SOLICITUD,
+        redirectTo: SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_ENTIDADES
+      }
+    ]
+  },
+  {
+    path: `:${SOLICITUD_ROUTE_PARAMS.ID}`,
+    canActivate: [SgiAuthGuard],
+    data: {
+      title: SOLICITUD_KEY,
+      titleParams: MSG_PARAMS.CARDINALIRY.SINGULAR
+    },
+    resolve: {
+      [SOLICITUD_DATA_KEY]: SolicitudDataResolver
+    },
+    children: [
+      {
+        path: SOLICITUD_ROUTE_NAMES.SOCIOS,
+        loadChildren: () =>
+          import('../solicitud-proyecto-socio/solicitud-proyecto-socio.module').then(
+            (m) => m.SolicitudProyectoSocioModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          title: PROYECTO_SOCIO_KEY
+        }
+      },
+      {
+        path: SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_ENTIDADES_CONVOCATORIA,
+        loadChildren: () =>
+          import('../solicitud-proyecto-presupuesto/solicitud-proyecto-presupuesto.module').then(
+            (m) => m.SolicitudProyectoPresupuestoModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          [SOLICITUD_PROYECTO_PRESUPUESTO_AJENA_KEY]: false,
+          title: PROYECTO_PRESUPUESTO_KEY
+        }
+      },
+      {
+        path: SOLICITUD_ROUTE_NAMES.DESGLOSE_PRESUPUESTO_ENTIDADES_SOLICITUD,
+        loadChildren: () =>
+          import('../solicitud-proyecto-presupuesto/solicitud-proyecto-presupuesto.module').then(
+            (m) => m.SolicitudProyectoPresupuestoModule
+          ),
+        canActivate: [SgiAuthGuard],
+        data: {
+          [SOLICITUD_PROYECTO_PRESUPUESTO_AJENA_KEY]: true,
+          title: PROYECTO_PRESUPUESTO_KEY
+        }
       }
     ]
   }
 ];
-
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

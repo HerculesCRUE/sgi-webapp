@@ -5,36 +5,32 @@ import { MatSort } from '@angular/material/sort';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
 import { IComite } from '@core/models/eti/comite';
-import { IEvaluacionSolicitante } from '@core/models/eti/evaluacion-solicitante';
+import { IEvaluacion } from '@core/models/eti/evaluacion';
 import { TipoConvocatoriaReunion } from '@core/models/eti/tipo-convocatoria-reunion';
 import { TipoEvaluacion } from '@core/models/eti/tipo-evaluacion';
-import { IPersona } from '@core/models/sgp/persona';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ComiteService } from '@core/services/eti/comite.service';
 import { EvaluacionService } from '@core/services/eti/evaluacion.service';
 import { TipoConvocatoriaReunionService } from '@core/services/eti/tipo-convocatoria-reunion.service';
 import { TipoEvaluacionService } from '@core/services/eti/tipo-evaluacion.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
-import { DateUtils } from '@core/utils/date-utils';
+import { LuxonUtils } from '@core/utils/luxon-utils';
 import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
+import { TipoColectivo } from '@shared/select-persona/select-persona.component';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of, zip } from 'rxjs';
 import { catchError, map, startWith, switchMap } from 'rxjs/operators';
 
-const TEXT_USER_TITLE = marker('eti.buscarSolicitante.titulo');
-const TEXT_USER_BUTTON = marker('eti.buscarSolicitante.boton.buscar');
-const MSG_ERROR = marker('eti.seguimiento.listado.error');
-const MSG_ERROR_LOAD_TIPOS_CONVOCATORIA = marker('eti.seguimiento.listado.buscador.tipoConvocatoria.error');
-
+const MSG_ERROR = marker('error.load');
 
 @Component({
   selector: 'sgi-gestion-seguimiento-listado',
   templateUrl: './gestion-seguimiento-listado.component.html',
   styleUrls: ['./gestion-seguimiento-listado.component.scss']
 })
-export class GestionSeguimientoListadoComponent extends AbstractTablePaginationComponent<IEvaluacionSolicitante> implements OnInit {
+export class GestionSeguimientoListadoComponent extends AbstractTablePaginationComponent<IEvaluacion> implements OnInit {
 
   fxFlexProperties: FxFlexProperties;
   fxLayoutProperties: FxLayoutProperties;
@@ -44,13 +40,7 @@ export class GestionSeguimientoListadoComponent extends AbstractTablePaginationC
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   @ViewChild(MatPaginator, { static: false }) paginator: MatPaginator;
 
-  evaluaciones$: Observable<IEvaluacionSolicitante[]> = of();
-
-  textoUsuarioLabel = TEXT_USER_TITLE;
-  textoUsuarioInput = TEXT_USER_TITLE;
-  textoUsuarioButton = TEXT_USER_BUTTON;
-  datosUsuarioSolicitante: string;
-  personaRefSolicitante: string;
+  evaluaciones$: Observable<IEvaluacion[]> = of();
 
   private comiteListado: IComite[];
   private tipoEvaluacionListado: TipoEvaluacion[];
@@ -61,6 +51,10 @@ export class GestionSeguimientoListadoComponent extends AbstractTablePaginationC
   filteredTipoEvaluacion: Observable<TipoEvaluacion[]>;
   filteredTipoConvocatoriaReunion: Observable<TipoConvocatoriaReunion[]>;
 
+  get tipoColectivoSolicitante() {
+    return TipoColectivo.SOLICITANTE_ETICA;
+  }
+
   constructor(
     private readonly logger: NGXLogger,
     private readonly evaluacionesService: EvaluacionService,
@@ -68,7 +62,7 @@ export class GestionSeguimientoListadoComponent extends AbstractTablePaginationC
     private readonly comiteService: ComiteService,
     private readonly tipoEvaluacionService: TipoEvaluacionService,
     private readonly tipoConvocatoriaReunionService: TipoConvocatoriaReunionService,
-    protected readonly personaFisicaService: PersonaFisicaService
+    protected readonly personaService: PersonaService
   ) {
 
     super(snackBarService, MSG_ERROR);
@@ -93,8 +87,8 @@ export class GestionSeguimientoListadoComponent extends AbstractTablePaginationC
     super.ngOnInit();
     this.formGroup = new FormGroup({
       comite: new FormControl('', []),
-      fechaEvaluacionInicio: new FormControl('', []),
-      fechaEvaluacionFin: new FormControl('', []),
+      fechaEvaluacionInicio: new FormControl(null, []),
+      fechaEvaluacionFin: new FormControl(null, []),
       referenciaMemoria: new FormControl('', []),
       tipoConvocatoriaReunion: new FormControl('', []),
       solicitante: new FormControl('', []),
@@ -106,9 +100,7 @@ export class GestionSeguimientoListadoComponent extends AbstractTablePaginationC
     this.loadConvocatoriasReunion();
   }
 
-
-
-  protected createObservable(): Observable<SgiRestListResult<IEvaluacionSolicitante>> {
+  protected createObservable(): Observable<SgiRestListResult<IEvaluacion>> {
     const observable$ = this.evaluacionesService.findSeguimientoMemoria(this.getFindOptions());
     return observable$;
   }
@@ -121,25 +113,18 @@ export class GestionSeguimientoListadoComponent extends AbstractTablePaginationC
   protected createFilter(): SgiRestFilter {
     const controls = this.formGroup.controls;
     const filter = new RSQLSgiRestFilter('memoria.comite.id', SgiRestFilterOperator.EQUALS, controls.comite.value?.id?.toString())
-      .and('tipoEvaluacion.id', SgiRestFilterOperator.EQUALS, controls.tipoEvaluacion.value?.id?.toString());
-    if (controls.fechaEvaluacionInicio) {
-      const fechaFilter = DateUtils.getFechaFinDia(controls.fechaEvaluacionInicio.value);
-      filter.and('fechaDictamen',
-        SgiRestFilterOperator.GREATHER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fechaFilter));
-    }
-    if (controls.fechaEvaluacionFin) {
-      const fechaFilter = DateUtils.getFechaFinDia(controls.fechaEvaluacionFin.value);
-      filter.and('fechaDictamen',
-        SgiRestFilterOperator.LOWER_OR_EQUAL, DateUtils.formatFechaAsISODateTime(fechaFilter));
-    }
-    filter
+      .and('tipoEvaluacion.id', SgiRestFilterOperator.EQUALS, controls.tipoEvaluacion.value?.id?.toString())
+      .and('fechaDictamen', SgiRestFilterOperator.GREATHER_OR_EQUAL, LuxonUtils.toBackend(controls.fechaEvaluacionInicio.value))
+      .and('fechaDictamen', SgiRestFilterOperator.LOWER_OR_EQUAL, LuxonUtils.toBackend(controls.fechaEvaluacionFin.value))
       .and('memoria.numReferencia', SgiRestFilterOperator.EQUALS, controls.referenciaMemoria.value)
-      .and('convocatoriaReunion.tipoConvocatoriaReunion.id', SgiRestFilterOperator.EQUALS, controls.tipoConvocatoriaReunion.value?.id?.toString())
-      .and('memoria.peticionEvaluacion.personaRef', SgiRestFilterOperator.EQUALS, this.personaRefSolicitante);
+      .and(
+        'convocatoriaReunion.tipoConvocatoriaReunion.id',
+        SgiRestFilterOperator.EQUALS,
+        controls.tipoConvocatoriaReunion.value?.id?.toString()
+      ).and('memoria.peticionEvaluacion.personaRef', SgiRestFilterOperator.EQUALS, controls.solicitante.value.id);
 
     return filter;
   }
-
 
   protected loadTable(reset?: boolean) {
     // Do the request with paginator/sort/filter values
@@ -154,12 +139,13 @@ export class GestionSeguimientoListadoComponent extends AbstractTablePaginationC
 
         if (response.items) {
           // Solicitantes
-          const listObservables: Observable<IEvaluacionSolicitante>[] = [];
+          const listObservables: Observable<IEvaluacion>[] = [];
           response.items.forEach((evaluacion) => {
-            const evaluacion$ = this.personaFisicaService.getInformacionBasica(evaluacion.memoria?.peticionEvaluacion?.personaRef).pipe(
+            const evaluacion$ = this.personaService.findById(
+              evaluacion.memoria?.peticionEvaluacion?.solicitante?.id
+            ).pipe(
               map((personaInfo) => {
-                evaluacion.persona = personaInfo;
-
+                evaluacion.memoria.peticionEvaluacion.solicitante = personaInfo;
                 return evaluacion;
               })
             );
@@ -170,9 +156,6 @@ export class GestionSeguimientoListadoComponent extends AbstractTablePaginationC
         } else {
           return of([]);
         }
-
-        // Return the values
-        // return response.items;
       }),
     ),
       catchError((error) => {
@@ -260,11 +243,10 @@ export class GestionSeguimientoListadoComponent extends AbstractTablePaginationC
       },
       (error) => {
         this.logger.error(error);
-        this.snackBarService.showError(MSG_ERROR_LOAD_TIPOS_CONVOCATORIA);
+        this.snackBarService.showError(MSG_ERROR);
       }
     ));
   }
-
 
   /**
    * Filtro de campo autocompletable comité.
@@ -317,24 +299,13 @@ export class GestionSeguimientoListadoComponent extends AbstractTablePaginationC
       (tipoConvocatoriaReunion => tipoConvocatoriaReunion.nombre.toLowerCase().includes(filterValue));
   }
 
-
-  /**
-   * Setea el persona seleccionado a través del componente
-   * @param persona Persona seleccionada
-   */
-  public setPersona(persona: IPersona) {
-    this.formGroup.controls.solicitante.setValue(persona.personaRef);
-    this.datosUsuarioSolicitante = persona.nombre ? persona.nombre + ' ' + persona.primerApellido + ' ' + persona.segundoApellido : '';
-    this.personaRefSolicitante = persona?.personaRef;
-  }
-
-
   /**
    * Clean filters an reload the table
    */
   onClearFilters(): void {
     super.onClearFilters();
-    this.setPersona({} as IPersona);
+    this.formGroup.controls.fechaEvaluacionInicio.setValue(null);
+    this.formGroup.controls.fechaEvaluacionFin.setValue(null);
   }
 
 }

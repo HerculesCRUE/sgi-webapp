@@ -8,7 +8,9 @@ import { EquipoTrabajoService } from '@core/services/eti/equipo-trabajo.service'
 import { MemoriaService } from '@core/services/eti/memoria.service';
 import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
 import { TareaService } from '@core/services/eti/tarea.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { DatosAcademicosService } from '@core/services/sgp/datos-academicos.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
+import { VinculacionService } from '@core/services/sgp/vinculacion.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { SgiAuthService } from '@sgi/framework/auth/';
 import { NGXLogger } from 'ngx-logger';
@@ -45,10 +47,12 @@ export class PeticionEvaluacionActionService extends ActionService {
     protected readonly peticionEvaluacionService: PeticionEvaluacionService,
     private readonly route: ActivatedRoute,
     private readonly sgiAuthService: SgiAuthService,
-    protected readonly personaFisicaService: PersonaFisicaService,
+    protected readonly personaService: PersonaService,
     protected readonly equipoTrabajoService: EquipoTrabajoService,
     protected readonly tareaService: TareaService,
-    protected readonly memoriaService: MemoriaService
+    protected readonly memoriaService: MemoriaService,
+    protected readonly datosAcademicosService: DatosAcademicosService,
+    protected readonly vinculacionService: VinculacionService
   ) {
     super();
 
@@ -64,9 +68,9 @@ export class PeticionEvaluacionActionService extends ActionService {
       new PeticionEvaluacionDatosGeneralesFragment(
         fb, this.peticionEvaluacion?.id, peticionEvaluacionService, sgiAuthService, this.readonly);
     this.equipoInvestigadorListado = new EquipoInvestigadorListadoFragment(
-      this.peticionEvaluacion?.id, personaFisicaService, peticionEvaluacionService, sgiAuthService);
+      this.peticionEvaluacion?.id, personaService, peticionEvaluacionService, sgiAuthService, datosAcademicosService, vinculacionService);
     this.memoriasListado = new MemoriasListadoFragment(this.peticionEvaluacion?.id, peticionEvaluacionService, memoriaService);
-    this.tareas = new PeticionEvaluacionTareasFragment(this.peticionEvaluacion?.id, personaFisicaService, tareaService,
+    this.tareas = new PeticionEvaluacionTareasFragment(this.peticionEvaluacion?.id, personaService, tareaService,
       peticionEvaluacionService, this.equipoInvestigadorListado, this.memoriasListado);
 
     this.addFragment(this.FRAGMENT.DATOS_GENERALES, this.datosGenerales);
@@ -88,6 +92,10 @@ export class PeticionEvaluacionActionService extends ActionService {
     this.memoriasListado.memorias$.subscribe(list => {
       this.tareas.setMemorias(list.map((memoria) => memoria.value));
     });
+  }
+
+  initializeEquiposInvestigador(): void {
+    this.equipoInvestigadorListado.initialize();
   }
 
   /**

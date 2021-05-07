@@ -1,20 +1,20 @@
-import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { SgiResolverResolver } from '@core/resolver/sgi-resolver';
-import { SnackBarService } from '@core/services/snack-bar.service';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { IMemoria } from '@core/models/eti/memoria';
+import { SgiResolverResolver } from '@core/resolver/sgi-resolver';
 import { MemoriaService } from '@core/services/eti/memoria.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import { NGXLogger } from 'ngx-logger';
+import { Observable } from 'rxjs';
 
-
-const MSG_NOT_FOUND = marker('eti.memoria.not-found');
+const MSG_NOT_FOUND = marker('error.load');
 
 @Injectable()
 export class MemoriaResolver extends SgiResolverResolver<IMemoria> {
 
-  constructor(router: Router, snackBar: SnackBarService, private service: MemoriaService) {
-    super(router, snackBar, MSG_NOT_FOUND);
+  constructor(logger: NGXLogger, router: Router, snackBar: SnackBarService, private service: MemoriaService) {
+    super(logger, router, snackBar, MSG_NOT_FOUND);
   }
 
   protected resolveEntity(route: ActivatedRouteSnapshot): Observable<IMemoria> {

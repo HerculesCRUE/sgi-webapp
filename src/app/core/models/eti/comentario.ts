@@ -6,19 +6,14 @@ import { TipoComentario } from './tipo-comentario';
 export interface IComentario {
   /** Id */
   id: number;
-
   /** Memoria */
   memoria: IMemoria;
-
   /** Apartado del formulario */
   apartado: IApartado;
-
   /** Evaluación */
   evaluacion: IEvaluacion;
-
   /** Tipo de comentario */
   tipoComentario: TipoComentario;
-
   /** Texto */
   texto: string;
 }

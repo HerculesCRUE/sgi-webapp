@@ -1,11 +1,10 @@
-import { IProyecto } from '@core/models/csp/proyecto';
 import { IProyectoProrroga } from '@core/models/csp/proyecto-prorroga';
 import { Fragment } from '@core/services/action-service';
 import { ProyectoProrrogaService } from '@core/services/csp/proyecto-prorroga.service';
 import { ProyectoService } from '@core/services/csp/proyecto.service';
 import { DocumentoService } from '@core/services/sgdoc/documento.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
-import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
+import { BehaviorSubject, from, Observable, of } from 'rxjs';
 import { map, mergeMap, switchMap, takeLast, tap } from 'rxjs/operators';
 
 export class ProyectoProrrogasFragment extends Fragment {
@@ -34,15 +33,6 @@ export class ProyectoProrrogasFragment extends Fragment {
     }
   }
 
-  public addProrroga(periodoSeguimiento: IProyectoProrroga) {
-    const wrapped = new StatusWrapper<IProyectoProrroga>(periodoSeguimiento);
-    wrapped.setCreated();
-    const current = this.prorrogas$.value;
-    current.push(wrapped);
-    this.prorrogas$.next(current);
-    this.setChanges(true);
-  }
-
   public deleteProrroga(wrapper: StatusWrapper<IProyectoProrroga>) {
     const current = this.prorrogas$.value;
     const index = current.findIndex(
@@ -59,11 +49,7 @@ export class ProyectoProrrogasFragment extends Fragment {
   }
 
   saveOrUpdate(): Observable<void> {
-    return merge(
-      this.deleteProrrogas(),
-      this.updateProrrogas(),
-      this.createProrrogas()
-    ).pipe(
+    return this.deleteProrrogas().pipe(
       takeLast(1),
       tap(() => {
         if (this.isSaveOrUpdateComplete()) {
@@ -102,49 +88,8 @@ export class ProyectoProrrogasFragment extends Fragment {
     );
   }
 
-  private createProrrogas(): Observable<void> {
-    const createdProrrogas = this.prorrogas$.value.filter((proyectoProrroga) => proyectoProrroga.created);
-    if (createdProrrogas.length === 0) {
-      return of(void 0);
-    }
-    createdProrrogas.forEach(
-      (wrapper) => wrapper.value.proyecto = {
-        id: this.getKey(),
-        activo: true
-      } as IProyecto
-    );
-    return from(createdProrrogas).pipe(
-      mergeMap((wrappedProrrogas) => {
-        return this.proyectoProrrogaService.create(wrappedProrrogas.value).pipe(
-          map((updatedProrrogas) => {
-            const index = this.prorrogas$.value.findIndex((currentprorrogas) => currentprorrogas === wrappedProrrogas);
-            this.prorrogas$.value[index] = new StatusWrapper<IProyectoProrroga>(updatedProrrogas);
-          })
-        );
-      })
-    );
-  }
-
-  private updateProrrogas(): Observable<void> {
-    const updateProrrogas = this.prorrogas$.value.filter((proyectoProrroga) => proyectoProrroga.edited);
-    if (updateProrrogas.length === 0) {
-      return of(void 0);
-    }
-    return from(updateProrrogas).pipe(
-      mergeMap((wrappedProrrogas) => {
-        return this.proyectoProrrogaService.update(wrappedProrrogas.value.id, wrappedProrrogas.value).pipe(
-          map((updatedProrrogas) => {
-            const index = this.prorrogas$.value.findIndex((currentprorrogas) => currentprorrogas === wrappedProrrogas);
-            this.prorrogas$.value[index] = new StatusWrapper<IProyectoProrroga>(updatedProrrogas);
-          })
-        );
-      })
-    );
-  }
-
   private isSaveOrUpdateComplete(): boolean {
-    const touched: boolean = this.prorrogas$.value.some((wrapper) => wrapper.touched);
-    return (this.prorrogasEliminados.length > 0 || touched);
+    return this.prorrogasEliminados.length > 0;
   }
 
 }

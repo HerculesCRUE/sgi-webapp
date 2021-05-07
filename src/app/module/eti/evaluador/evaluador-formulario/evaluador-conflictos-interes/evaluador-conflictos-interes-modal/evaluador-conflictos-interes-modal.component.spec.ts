@@ -1,15 +1,16 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MaterialDesignModule } from '@material/material-design.module';
-import TestUtils from '@core/utils/test-utils';
-import { RouterTestingModule } from '@angular/router/testing';
-import { ReactiveFormsModule } from '@angular/forms';
-import { LoggerTestingModule } from 'ngx-logger/testing';
-import { SnackBarService } from '@core/services/snack-bar.service';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { EvaluadorConflictosInteresModalComponent } from './evaluador-conflictos-interes-modal.component';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterTestingModule } from '@angular/router/testing';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import TestUtils from '@core/utils/test-utils';
+import { MaterialDesignModule } from '@material/material-design.module';
 import { SgiAuthModule, SgiAuthService } from '@sgi/framework/auth';
+import { SharedModule } from '@shared/shared.module';
+import { LoggerTestingModule } from 'ngx-logger/testing';
+import { EvaluadorConflictosInteresModalComponent } from './evaluador-conflictos-interes-modal.component';
 
 describe('EvaluadorConflictosInteresModalComponent', () => {
   let component: EvaluadorConflictosInteresModalComponent;
@@ -26,7 +27,8 @@ describe('EvaluadorConflictosInteresModalComponent', () => {
         TestUtils.getIdiomas(),
         RouterTestingModule,
         ReactiveFormsModule,
-        SgiAuthModule
+        SgiAuthModule,
+        SharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },

@@ -1,25 +1,38 @@
-<div class="modal-crear-tareas">
-  <header class="modal-header-material">
-    <h3 mat-dialog-title>{{'eti.evaluador.conflictosInteres.nuevo.titulo' | translate}}</h3>
-  </header>
-  <main>
-    <form [formGroup]="formGroup">
-      <!-- Boton buscador personas -->
-      <sgi-buscar-persona (usuarioSeleccionado)="onSelectPersona($event)"></sgi-buscar-persona>
-
-      <div [fxLayout]="fxLayoutProperties.layout">
-        <mat-form-field fxFill>
-          <mat-label>{{'eti.evaluador.formulario.conflictoInteres.modal.identificador' | translate}}
-          </mat-label>
-          <input matInput formControlName="identificador" type="text" id="identificadorModal" />
-        </mat-form-field>
-      </div>
-
-    </form>
-  </main>
-  <mat-dialog-actions align="center">
-    <button color="accent" (click)="addConflicto()" md-button mat-raised-button
-      tabindex="-1">{{'botones.aniadir' | translate}}</button>
-    <button class="link-cancelar" mat-button mat-dialog-close tabindex="-1">{{'botones.cancelar' | translate}}</button>
-  </mat-dialog-actions>
+<div class="sgi-dialog-header" fxLayout="row" fxLayoutGap="20px">
+  <span fxFlexAlign="center" mat-mat-dialog-title role="heading" aria-level="3" fxFlex>{{'title.new.entity' |
+    translate:msgParamConflictoInteresEntity}}</span>
+  <button fxFlex="nogrow" mat-icon-button mat-dialog-close>
+    <mat-icon class="close-icon">close</mat-icon>
+  </button>
 </div>
+<mat-dialog-content>
+  <form [formGroup]="formGroup">
+    <!--Persona-->
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field>
+        <mat-label>{{'title.eti.search.user' | translate}}</mat-label>
+        <sgi-select-persona placeholder="{{'title.eti.search.user' | translate}}" formControlName="persona"
+          [tipoColectivo]="tipoColectivoEquipoTrabajo" required>
+        </sgi-select-persona>
+        <mat-error *ngIf="formGroup.controls.persona.errors?.required">
+          {{'error.required.entity' | translate:msgParamPersonaEntity}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+    <div [fxLayout]="fxLayoutProperties.layout" [fxLayoutAlign]="fxLayoutProperties.layoutAlign">
+      <mat-form-field>
+        <mat-label>{{'eti.evaluador.conflicto-interes.identificador' | translate}}
+        </mat-label>
+        <input matInput formControlName="identificador" type="text" id="identificadorModal" />
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button color="accent" (click)="saveOrUpdate()" mat-raised-button type="submit">
+    <mat-icon class="save-icon">save</mat-icon>{{'btn.add' |
+    translate}}
+  </button>
+  <button class="link-cancelar" mat-button type="button" mat-dialog-close>{{'btn.cancel' |
+    translate}}</button>
+</mat-dialog-actions>

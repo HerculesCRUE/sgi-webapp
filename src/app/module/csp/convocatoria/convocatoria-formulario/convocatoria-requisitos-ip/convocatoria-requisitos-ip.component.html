@@ -1,21 +1,21 @@
 <section class="convocatoria-requisitos-ip">
-  <h2>{{'csp.convocatoria.requisitoIP.titulo' | translate}}</h2>
+  <h2>{{'csp.convocatoria-requisito-ip' | translate}}</h2>
 
   <form [formGroup]="formGroup" [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
     [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
 
-    <!-- Número máximo ips -->
+    <!-- Número Máximo IPs -->
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
-        <mat-label>{{'csp.convocatoria.requisitoIP.numMaximoIP' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-requisito-ip.numero-maximo' | translate}}</mat-label>
         <input matInput formControlName="numMaximoIP" type="number" id="numMaximoIP" min="0"
-          placeholder="{{'csp.convocatoria.requisitoIP.numMaximoIP' | translate}}">
+          placeholder="{{'csp.convocatoria-requisito-ip.numero-maximo' | translate}}">
         <mat-error *ngIf="formGroup.controls.numMaximoIP.hasError('max')">
-          {{'csp.convocatoria.requisitoIP.error.max' | translate}}
+          {{'error.max.digit' | translate}}
         </mat-error>
         <mat-error *ngIf="formGroup.controls.numMaximoIP.hasError('min')">
-          {{'csp.convocatoria.requisitoIP.error.min' | translate}}
+          {{'error.min.digit' | translate}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -24,11 +24,11 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'csp.convocatoria.requisitoIP.nivelAcademico' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-requisito-ip.nivel-academico' | translate}}</mat-label>
         <input matInput formControlName="nivelAcademicoRef" id="nivelAcademicoRef"
-          placeholder="{{'csp.convocatoria.requisitoIP.nivelAcademico' | translate}}" />
+          placeholder="{{'csp.convocatoria-requisito-ip.nivel-academico' | translate}}" />
         <mat-error *ngIf="formGroup.controls.nivelAcademicoRef.hasError('maxlength')">
-          {{'csp.convocatoria.requisitoIP.error.maxLength' | translate}}
+          {{'error.maxlength.entity' | translate:msgParamNivelAcademicoEntity}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -37,14 +37,14 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
-        <mat-label>{{'csp.convocatoria.requisitoIP.aniosNivelAcademico' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-requisito-ip.nivel-academico.anios' | translate}}</mat-label>
         <input matInput formControlName="aniosNivelAcademico" type="number" id="aniosNivelAcademico" min="0"
-          placeholder="{{'csp.convocatoria.requisitoIP.aniosNivelAcademico' | translate}}">
+          placeholder="{{'csp.convocatoria-requisito-ip.nivel-academico.anios' | translate}}">
         <mat-error *ngIf="formGroup.controls.aniosNivelAcademico.hasError('max')">
-          {{'csp.convocatoria.requisitoIP.error.max' | translate}}
+          {{'error.max.digit' | translate}}
         </mat-error>
         <mat-error *ngIf="formGroup.controls.aniosNivelAcademico.hasError('min')">
-          {{'csp.convocatoria.requisitoIP.error.min' | translate}}
+          {{'error.min.digit' | translate}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -53,14 +53,14 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
-        <mat-label>{{'csp.convocatoria.requisitoIP.edadMaxima' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-requisito-ip.edad-maxima' | translate}}</mat-label>
         <input matInput formControlName="edadMaxima" type="number" id="edadMaxima" min="0"
-          placeholder="{{'csp.convocatoria.requisitoIP.edadMaxima' | translate}}">
+          placeholder="{{'csp.convocatoria-requisito-ip.edad-maxima' | translate}}">
         <mat-error *ngIf="formGroup.controls.edadMaxima.hasError('max')">
-          {{'csp.convocatoria.requisitoIP.error.max' | translate}}
+          {{'error.max.digit' | translate}}
         </mat-error>
         <mat-error *ngIf="formGroup.controls.edadMaxima.hasError('min')">
-          {{'csp.convocatoria.requisitoIP.error.min' | translate}}
+          {{'error.min.digit' | translate}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -69,7 +69,8 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
-        <mat-label>{{'csp.convocatoria.requisitoIP.sexo' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-requisito-ip.sexo' | translate}}</mat-label>
+        <!-- TODO: Convertir en enumerado -->
         <mat-select matNativeControl formControlName="sexo">
           <mat-option [value]="null"></mat-option>
           <mat-option [value]="'label.sexo.hombre' | translate">{{'label.sexo.hombre' | translate}}</mat-option>
@@ -82,12 +83,8 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
-        <mat-label>{{'csp.convocatoria.requisitoIP.vinculacionUniversidad' | translate}}</mat-label>
-        <mat-select matNativeControl formControlName="vinculacionUniversidad">
-          <mat-option [value]="null"></mat-option>
-          <mat-option [value]="true">{{'label.si' | translate}}</mat-option>
-          <mat-option [value]="false">{{'label.no' | translate}}</mat-option>
-        </mat-select>
+        <mat-label>{{'csp.convocatoria-requisito-ip.vinculacion-universidad' | translate}}</mat-label>
+        <sgi-select-boolean formControlName="vinculacionUniversidad"></sgi-select-boolean>
       </mat-form-field>
     </div>
 
@@ -95,14 +92,14 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
-        <mat-label>{{'csp.convocatoria.requisitoIP.aniosVinculacion' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-requisito-ip.vinculacion-anios' | translate}}</mat-label>
         <input matInput formControlName="aniosVinculacion" type="number" id="aniosVinculacion" min="0"
-          placeholder="{{'csp.convocatoria.requisitoIP.aniosVinculacion' | translate}}">
+          placeholder="{{'csp.convocatoria-requisito-ip.vinculacion-anios' | translate}}">
         <mat-error *ngIf="formGroup.controls.aniosVinculacion.hasError('max')">
-          {{'csp.convocatoria.requisitoIP.error.max' | translate}}
+          {{'error.max.digit' | translate}}
         </mat-error>
         <mat-error *ngIf="formGroup.controls.aniosVinculacion.hasError('min')">
-          {{'csp.convocatoria.requisitoIP.error.min' | translate}}
+          {{'error.min.digit' | translate}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -111,11 +108,11 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field>
-        <mat-label>{{'csp.convocatoria.requisitoIP.modalidadContrato' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-requisito-ip.modalidad-contratos' | translate}}</mat-label>
         <input matInput formControlName="modalidadContratoRef" id="modalidadContratoRef"
-          placeholder="{{'csp.convocatoria.requisitoIP.modalidadContrato' | translate}}" />
+          placeholder="{{'csp.convocatoria-requisito-ip.modalidad-contratos' | translate}}" />
         <mat-error *ngIf="formGroup.controls.modalidadContratoRef.hasError('maxlength')">
-          {{'csp.convocatoria.requisitoIP.error.maxLength' | translate}}
+          {{'error.maxlength.entity' | translate:msgParamModalidadContratoEntity}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -124,14 +121,14 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
-        <mat-label>{{'csp.convocatoria.requisitoIP.numMinimoCompetitivos' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-requisito-ip.proyecto-competitivo.minimo' | translate}}</mat-label>
         <input matInput formControlName="numMinimoCompetitivos" type="number" id="numMinimoCompetitivos" min="0"
-          placeholder="{{'csp.convocatoria.requisitoIP.numMinimoCompetitivos' | translate}}">
+          placeholder="{{'csp.convocatoria-requisito-ip.proyecto-competitivo.minimo' | translate}}">
         <mat-error *ngIf="formGroup.controls.numMinimoCompetitivos.hasError('max')">
-          {{'csp.convocatoria.requisitoIP.error.max' | translate}}
+          {{'error.max.digit' | translate}}
         </mat-error>
         <mat-error *ngIf="formGroup.controls.numMinimoCompetitivos.hasError('min')">
-          {{'csp.convocatoria.requisitoIP.error.min' | translate}}
+          {{'error.min.digit' | translate}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -140,14 +137,14 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
-        <mat-label>{{'csp.convocatoria.requisitoIP.numMinimoNoCompetitivos' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-requisito-ip.proyecto-no-competitivo.minimo' | translate}}</mat-label>
         <input matInput formControlName="numMinimoNoCompetitivos" type="number" id="numMinimoNoCompetitivos" min="0"
-          placeholder="{{'csp.convocatoria.requisitoIP.numMinimoNoCompetitivos' | translate}}">
+          placeholder="{{'csp.convocatoria-requisito-ip.proyecto-no-competitivo.minimo' | translate}}">
         <mat-error *ngIf="formGroup.controls.numMinimoNoCompetitivos.hasError('max')">
-          {{'csp.convocatoria.requisitoIP.error.max' | translate}}
+          {{'error.max.digit' | translate}}
         </mat-error>
         <mat-error *ngIf="formGroup.controls.numMinimoNoCompetitivos.hasError('min')">
-          {{'csp.convocatoria.requisitoIP.error.min' | translate}}
+          {{'error.min.digit' | translate}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -156,14 +153,14 @@
     <div [fxFlex.sm]="fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
-        <mat-label>{{'csp.convocatoria.requisitoIP.numMaximoCompetitivosActivos' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-requisito-ip.proyecto-competitivo.maximo' | translate}}</mat-label>
         <input matInput formControlName="numMaximoCompetitivosActivos" type="number" id="numMaximoCompetitivosActivos"
-          min="0" placeholder="{{'csp.convocatoria.requisitoIP.numMaximoCompetitivosActivos' | translate}}">
+          min="0" placeholder="{{'csp.convocatoria-requisito-ip.proyecto-competitivo.maximo' | translate}}">
         <mat-error *ngIf="formGroup.controls.numMaximoCompetitivosActivos.hasError('max')">
-          {{'csp.convocatoria.requisitoIP.error.max' | translate}}
+          {{'error.max.digit' | translate}}
         </mat-error>
         <mat-error *ngIf="formGroup.controls.numMaximoCompetitivosActivos.hasError('min')">
-          {{'csp.convocatoria.requisitoIP.error.min' | translate}}
+          {{'error.min.digit' | translate}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -172,15 +169,15 @@
     <div [fxFlex.sm]=" fxFlexProperties.sm" [fxFlex.md]="fxFlexProperties.md" [fxFlex.gt-md]="fxFlexProperties.gtMd"
       [fxFlexOrder]="fxFlexProperties.order">
       <mat-form-field class="input-form">
-        <mat-label>{{'csp.convocatoria.requisitoIP.numMaximoNoCompetitivosActivos' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-requisito-ip.proyecto-no-competitivo.maximo' | translate}}</mat-label>
         <input matInput formControlName="numMaximoNoCompetitivosActivos" type="number" min="0"
           id="numMaximoNoCompetitivosActivos"
-          placeholder="{{'csp.convocatoria.requisitoIP.numMaximoNoCompetitivosActivos' | translate}}">
+          placeholder="{{'csp.convocatoria-requisito-ip.proyecto-no-competitivo.maximo' | translate}}">
         <mat-error *ngIf="formGroup.controls.numMaximoNoCompetitivosActivos.hasError('max')">
-          {{'csp.convocatoria.requisitoIP.error.max' | translate}}
+          {{'error.max.digit' | translate}}
         </mat-error>
         <mat-error *ngIf="formGroup.controls.numMaximoNoCompetitivosActivos.hasError('min')">
-          {{'csp.convocatoria.requisitoIP.error.min' | translate}}
+          {{'error.min.digit' | translate}}
         </mat-error>
       </mat-form-field>
     </div>
@@ -189,9 +186,9 @@
     <div [fxFlex.sm]="fxFlexPropertiesInline.sm" [fxFlex.md]="fxFlexPropertiesInline.md"
       [fxFlex.gt-md]="fxFlexPropertiesInline.gtMd" [fxFlexOrder]="fxFlexPropertiesInline.order">
       <mat-form-field>
-        <mat-label>{{'csp.convocatoria.requisitoIP.otrosRequisitos' | translate}}</mat-label>
+        <mat-label>{{'csp.convocatoria-requisito-ip.otros-requisitos' | translate}}</mat-label>
         <textarea #resumen matInput formControlName="otrosRequisitos" id="otrosRequisitos"
-          placeholder="{{'csp.convocatoria.requisitoIP.otrosRequisitos' | translate}}" maxlength="250"></textarea>
+          placeholder="{{'csp.convocatoria-requisito-ip.otros-requisitos' | translate}}" maxlength="250"></textarea>
         <mat-hint>{{resumen.value.length}} / 250</mat-hint>
       </mat-form-field>
     </div>

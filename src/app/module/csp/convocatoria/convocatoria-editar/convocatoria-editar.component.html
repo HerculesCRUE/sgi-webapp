@@ -6,51 +6,52 @@
         [fragment]="actionService.getFragment(actionService.FRAGMENT.DATOS_GENERALES)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.ENTIDADES_CONVOCANTES]"
-        [title]="'label.entidades-convocantes' | translate"
+        [title]="'csp.convocatoria-entidad-convocante' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.ENTIDADES_CONVOCANTES)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.ENTIDADES_FINANCIADORAS]"
-        [title]="'label.entidades-financiadoras' | translate"
+        [title]="'csp.convocatoria-entidad-financiadora' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.ENTIDADES_FINANCIADORAS)">
       </sgi-action-fragment-menu-item>
-      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.ENLACES]" [title]="'label.enlaces' | translate"
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.ENLACES]"
+        [title]="'csp.convocatoria-enlace' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.ENLACES)">
       </sgi-action-fragment-menu-item>
-      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.PLAZOS_FASES]"
-        [title]="'label.plazos-fases' | translate"
-        [fragment]="actionService.getFragment(actionService.FRAGMENT.PLAZOS_FASES)">
+      <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.FASES]"
+        [title]="'csp.convocatoria-fase' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
+        [fragment]="actionService.getFragment(actionService.FRAGMENT.FASES)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.PERIODO_JUSTIFICACION]"
-        [title]="'label.periodo-justificacion' | translate"
+        [title]="'csp.convocatoria-periodo-justificacion' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.PERIODO_JUSTIFICACION)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.SEGUIMIENTO_CIENTIFICO]"
-        [title]="'label.seguimiento-cientifico' | translate"
+        [title]="'csp.convocatoria-seguimiento-cientifico' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.SEGUIMIENTO_CIENTIFICO)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item *sgiHasAnyAuthorityForAnyUO="['CSP-CONV-C']"
-        [route]="[CONVOCATORIA_ROUTE_NAMES.HITOS]" [title]="'csp.convocatoria.hitos' | translate"
+        [route]="[CONVOCATORIA_ROUTE_NAMES.HITOS]" [title]="'csp.hito' | translate:MSG_PARAMS.CARDINALIRY.PLURAL"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.HITOS)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.DOCUMENTOS]"
-        [title]="'csp.convocatoria.documentos' | translate"
+        [title]="'csp.documentos' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.DOCUMENTOS)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.REQUISITOS_IP]"
-        *ngIf="actionService.disabledRequisitoIP" [title]="'csp.convocatoria.requisitos-ip' | translate"
+        [title]="'csp.convocatoria-requisito-ip' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.REQUISITOS_IP)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.REQUISITOS_EQUIPO]"
-        *ngIf="actionService.disabledRequisitoEquipo" [title]="'csp.convocatoria.requisitos.equipo' | translate"
+        [title]="'csp.convocatoria-requisito-equipo' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.REQUISITOS_EQUIPO)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[CONVOCATORIA_ROUTE_NAMES.ELEGIBILIDAD]"
-        [title]="'csp.convocatoria.elegibilidad' | translate"
+        [title]="'csp.convocatoria-elegibilidad' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.ELEGIBILIDAD)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item *sgiHasAnyAuthorityForAnyUO="['CSP-CONV-C']"
         [route]="[CONVOCATORIA_ROUTE_NAMES.CONFIGURACION_SOLICITUDES]"
-        [title]="'csp.convocatoria.configuracion.solicitudes' | translate"
+        [title]="'csp.convocatoria-configuracion-solicitud' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.CONFIGURACION_SOLICITUDES)">
       </sgi-action-fragment-menu-item>
 
@@ -61,9 +62,8 @@
       <router-outlet></router-outlet>
     </div>
     <sgi-action-footer [texto]="textoCrear" [actionService]="actionService">
-      <sgi-action-footer-button color="primary" [text]="textoRegistrar"
-        [disabled]="disableRegistrar || actionService.readonly || disable" icon="move_to_inbox"
-        (buttonClick)="registrar()">
+      <sgi-action-footer-button color="primary" [text]="textoRegistrar" [disabled]="disableRegistrar$ | async"
+        icon="move_to_inbox" (buttonClick)="registrar()">
       </sgi-action-footer-button>
     </sgi-action-footer>
   </mat-drawer-content>

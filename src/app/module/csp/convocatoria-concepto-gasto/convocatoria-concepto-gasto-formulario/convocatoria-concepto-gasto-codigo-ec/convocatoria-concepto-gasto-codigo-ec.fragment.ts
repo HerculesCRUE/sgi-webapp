@@ -1,20 +1,23 @@
-import { Fragment } from '@core/services/action-service';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { IConvocatoriaConceptoGastoCodigoEc } from '@core/models/csp/convocatoria-concepto-gasto-codigo-ec';
-import { StatusWrapper } from '@core/utils/status-wrapper';
-import { tap, map } from 'rxjs/operators';
-import { ConvocatoriaConceptoGastoService } from '@core/services/csp/convocatoria-concepto-gasto.service';
-import { ConvocatoriaConceptoGastoCodigoEcService } from '@core/services/csp/convocatoria-concepto-gasto-codigo-ec.service';
 import { IConvocatoriaConceptoGasto } from '@core/models/csp/convocatoria-concepto-gasto';
+import { IConvocatoriaConceptoGastoCodigoEc } from '@core/models/csp/convocatoria-concepto-gasto-codigo-ec';
+import { Fragment } from '@core/services/action-service';
+import { ConvocatoriaConceptoGastoCodigoEcService } from '@core/services/csp/convocatoria-concepto-gasto-codigo-ec.service';
+import { ConvocatoriaConceptoGastoService } from '@core/services/csp/convocatoria-concepto-gasto.service';
+import { StatusWrapper } from '@core/utils/status-wrapper';
+import { BehaviorSubject, from, Observable } from 'rxjs';
+import { map, mergeMap, tap } from 'rxjs/operators';
+
+export interface ConvocatoriaConceptoGastoCodigoEc extends IConvocatoriaConceptoGastoCodigoEc {
+  convocatoriaConceptoGasto: IConvocatoriaConceptoGasto;
+}
 
 export class ConvocatoriaConceptoGastoCodigoEcFragment extends Fragment {
-  convocatoriaConceptoGastoCodigoEcs$ = new BehaviorSubject<StatusWrapper<IConvocatoriaConceptoGastoCodigoEc>[]>([]);
+  convocatoriaConceptoGastoCodigoEcs$ = new BehaviorSubject<StatusWrapper<ConvocatoriaConceptoGastoCodigoEc>[]>([]);
 
   constructor(
     key: number,
     private convocatoriaConceptoGastoService: ConvocatoriaConceptoGastoService,
     private convocatoriaConceptoGastoCodigoEcService: ConvocatoriaConceptoGastoCodigoEcService,
-    public convocatoriaConceptoGasto: IConvocatoriaConceptoGasto,
     public readonly: boolean
   ) {
     super(key);
@@ -26,22 +29,33 @@ export class ConvocatoriaConceptoGastoCodigoEcFragment extends Fragment {
       const id = this.getKey() as number;
       this.subscriptions.push(
         this.convocatoriaConceptoGastoService.findAllConvocatoriaConceptoGastoCodigoEcs(id).pipe(
-          map(response => response.items)
+          map(response => response.items),
+          mergeMap(conceptosGasto => {
+            return from(conceptosGasto).pipe(
+              map(conceptoGasto => conceptoGasto as ConvocatoriaConceptoGastoCodigoEc),
+              mergeMap(conceptoGasto => {
+                return this.convocatoriaConceptoGastoService.findById(conceptoGasto.convocatoriaConceptoGastoId).pipe(
+                  map(conepto => {
+                    conceptoGasto.convocatoriaConceptoGasto = conepto;
+                    return conceptoGasto;
+                  })
+                );
+              })
+            );
+          })
         ).subscribe(
           result => {
-            this.convocatoriaConceptoGastoCodigoEcs$.next(
-              result.map(convocatoriaConceptoGastoCodigoEc =>
-                new StatusWrapper<IConvocatoriaConceptoGastoCodigoEc>(convocatoriaConceptoGastoCodigoEc)
-              )
-            );
+            const current = this.convocatoriaConceptoGastoCodigoEcs$.value;
+            current.push(new StatusWrapper<ConvocatoriaConceptoGastoCodigoEc>(result));
+            this.convocatoriaConceptoGastoCodigoEcs$.next(current);
           }
         )
       );
     }
   }
 
-  addConvocatoriaConceptoGastoCodigoEc(element: IConvocatoriaConceptoGastoCodigoEc) {
-    const wrapped = new StatusWrapper<IConvocatoriaConceptoGastoCodigoEc>(element);
+  addConvocatoriaConceptoGastoCodigoEc(element: ConvocatoriaConceptoGastoCodigoEc) {
+    const wrapped = new StatusWrapper<ConvocatoriaConceptoGastoCodigoEc>(element);
     wrapped.setCreated();
     const current = this.convocatoriaConceptoGastoCodigoEcs$.value;
     current.push(wrapped);
@@ -49,7 +63,7 @@ export class ConvocatoriaConceptoGastoCodigoEcFragment extends Fragment {
     this.setChanges(true);
   }
 
-  deleteConvocatoriaConceptoGastoCodigoEc(wrapper: StatusWrapper<IConvocatoriaConceptoGastoCodigoEc>) {
+  deleteConvocatoriaConceptoGastoCodigoEc(wrapper: StatusWrapper<ConvocatoriaConceptoGastoCodigoEc>) {
     const current = this.convocatoriaConceptoGastoCodigoEcs$.value;
     const index = current.findIndex((value) => value === wrapper);
     if (index >= 0) {
@@ -62,18 +76,23 @@ export class ConvocatoriaConceptoGastoCodigoEcFragment extends Fragment {
   saveOrUpdate(): Observable<void> {
     const values = this.convocatoriaConceptoGastoCodigoEcs$.value.map(wrapper => wrapper.value);
     const id = this.getKey() as number;
-    return this.convocatoriaConceptoGastoCodigoEcService.updateList(id, values)
-      .pipe(
-        map((results) => {
-          this.convocatoriaConceptoGastoCodigoEcs$.next(
-            results.map(value => new StatusWrapper<IConvocatoriaConceptoGastoCodigoEc>(value)));
-        }),
-        tap(() => {
-          if (this.isSaveOrUpdateComplete()) {
-            this.setChanges(false);
-          }
-        })
-      );
+    values.forEach(value => {
+      if (!Boolean(value.convocatoriaConceptoGastoId)) {
+        value.convocatoriaConceptoGastoId = id;
+      }
+    });
+    return this.convocatoriaConceptoGastoCodigoEcService.updateList(id, values).pipe(
+      map((results) => {
+        // TODO: Hacer maching con los datos preexistente para mantener el ConvocatoriaCodigoEconomico cargado
+        this.convocatoriaConceptoGastoCodigoEcs$.next(
+          results.map(value => new StatusWrapper<ConvocatoriaConceptoGastoCodigoEc>(value as ConvocatoriaConceptoGastoCodigoEc)));
+      }),
+      tap(() => {
+        if (this.isSaveOrUpdateComplete()) {
+          this.setChanges(false);
+        }
+      })
+    );
   }
 
   private isSaveOrUpdateComplete(): boolean {

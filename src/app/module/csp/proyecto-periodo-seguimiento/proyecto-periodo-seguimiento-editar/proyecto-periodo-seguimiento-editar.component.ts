@@ -1,16 +1,20 @@
-import { Component } from '@angular/core';
-import { PROYECTO_PERIODO_SEGUIMIENTO_ROUTE_NAMES } from '../proyecto-periodo-seguimiento-route-names';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { NGXLogger } from 'ngx-logger';
-import { SnackBarService } from '@core/services/snack-bar.service';
-import { Router, ActivatedRoute } from '@angular/router';
-import { ProyectoPeriodoSeguimientoActionService } from '../proyecto-periodo-seguimiento.action.service';
-import { DialogService } from '@core/services/dialog.service';
 import { ActionComponent } from '@core/component/action.component';
+import { MSG_PARAMS } from '@core/i18n';
+import { DialogService } from '@core/services/dialog.service';
+import { SnackBarService } from '@core/services/snack-bar.service';
+import { TranslateService } from '@ngx-translate/core';
+import { NGXLogger } from 'ngx-logger';
+import { switchMap } from 'rxjs/operators';
+import { PROYECTO_PERIODO_SEGUIMIENTO_ROUTE_NAMES } from '../proyecto-periodo-seguimiento-route-names';
+import { ProyectoPeriodoSeguimientoActionService } from '../proyecto-periodo-seguimiento.action.service';
 
-const MSG_BUTTON_EDIT = marker('botones.guardar');
-const MSG_SUCCESS = marker('csp.proyecto-periodo-seguimiento.editar.correcto');
-const MSG_ERROR = marker('csp.proyecto-periodo-seguimiento.editar.error');
+const MSG_BUTTON_EDIT = marker('btn.save.entity');
+const MSG_SUCCESS = marker('msg.update.entity.success');
+const MSG_ERROR = marker('error.update.entity');
+const PROYECTO_PERIODO_SEGUIMIENTO_CIENTIFICO_KEY = marker('csp.proyecto-periodo-seguimiento-cientifico');
 
 @Component({
   selector: 'sgi-proyecto-periodo-seguimiento-editar',
@@ -20,12 +24,13 @@ const MSG_ERROR = marker('csp.proyecto-periodo-seguimiento.editar.error');
     ProyectoPeriodoSeguimientoActionService
   ]
 })
-export class ProyectoPeriodoSeguimientoEditarComponent extends ActionComponent {
+export class ProyectoPeriodoSeguimientoEditarComponent extends ActionComponent implements OnInit {
 
   PROYECTO_PERIODO_SEGUIMIENTO_ROUTE_NAMES = PROYECTO_PERIODO_SEGUIMIENTO_ROUTE_NAMES;
 
-  textoEditar = MSG_BUTTON_EDIT;
-  private urlFrom: string;
+  textoEditar: string;
+  textoEditarSuccess: string;
+  textoEditarError: string;
 
   constructor(
     private readonly logger: NGXLogger,
@@ -33,10 +38,53 @@ export class ProyectoPeriodoSeguimientoEditarComponent extends ActionComponent {
     router: Router,
     route: ActivatedRoute,
     public actionService: ProyectoPeriodoSeguimientoActionService,
-    dialogService: DialogService
+    dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(router, route, actionService, dialogService);
-    this.urlFrom = history.state?.from;
+  }
+
+  ngOnInit(): void {
+    super.ngOnInit();
+    this.setupI18N();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      PROYECTO_PERIODO_SEGUIMIENTO_CIENTIFICO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_BUTTON_EDIT,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoEditar = value);
+
+    this.translate.get(
+      PROYECTO_PERIODO_SEGUIMIENTO_CIENTIFICO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoEditarSuccess = value);
+
+    this.translate.get(
+      PROYECTO_PERIODO_SEGUIMIENTO_CIENTIFICO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoEditarError = value);
   }
 
   saveOrUpdate(): void {
@@ -44,10 +92,10 @@ export class ProyectoPeriodoSeguimientoEditarComponent extends ActionComponent {
       () => { },
       (error) => {
         this.logger.error(error);
-        this.snackBarService.showError(MSG_ERROR);
+        this.snackBarService.showError(this.textoEditarError);
       },
       () => {
-        this.snackBarService.showSuccess(MSG_SUCCESS);
+        this.snackBarService.showSuccess(this.textoEditarSuccess);
         this.returnUrl();
       }
     );
@@ -57,8 +105,7 @@ export class ProyectoPeriodoSeguimientoEditarComponent extends ActionComponent {
     this.returnUrl();
   }
 
-
   private returnUrl() {
-    this.router.navigateByUrl(this.urlFrom);
+    this.router.navigate(['../'], { relativeTo: this.activatedRoute });
   }
 }

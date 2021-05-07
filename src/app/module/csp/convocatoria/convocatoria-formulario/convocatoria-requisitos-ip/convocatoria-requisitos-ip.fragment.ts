@@ -1,10 +1,9 @@
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { IConvocatoria } from '@core/models/csp/convocatoria';
 import { IConvocatoriaRequisitoIP } from '@core/models/csp/convocatoria-requisito-ip';
 import { FormFragment } from '@core/services/action-service';
 import { ConvocatoriaRequisitoIPService } from '@core/services/csp/convocatoria-requisito-ip.service';
-import { Observable, of } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 
 export class ConvocatoriaRequisitosIPFragment extends FormFragment<IConvocatoriaRequisitoIP> {
   private requisitoIP: IConvocatoriaRequisitoIP;
@@ -52,16 +51,12 @@ export class ConvocatoriaRequisitosIPFragment extends FormFragment<IConvocatoria
 
   protected initializer(key: number): Observable<IConvocatoriaRequisitoIP> {
     if (this.getKey()) {
-      return this.convocatoriaRequisitoIPService.getRequisitoIPConvocatoria(key).pipe(
-        switchMap((requisitoIP) => {
-          this.requisitoIP = requisitoIP;
-          return of(this.requisitoIP);
-        })
-      );
+      return this.convocatoriaRequisitoIPService.getRequisitoIPConvocatoria(key);
     }
   }
 
   buildPatch(value: IConvocatoriaRequisitoIP): { [key: string]: any } {
+    this.requisitoIP = value;
     return {
       numMaximoIP: value ? value.numMaximoIP : null,
       nivelAcademicoRef: value ? value.nivelAcademicoRef : null,
@@ -102,9 +97,7 @@ export class ConvocatoriaRequisitosIPFragment extends FormFragment<IConvocatoria
 
   saveOrUpdate(): Observable<number> {
     const datosRequisitoIP = this.getValue();
-    datosRequisitoIP.convocatoria = {
-      id: this.getKey()
-    } as IConvocatoria;
+    datosRequisitoIP.convocatoriaId = this.getKey() as number;
     const obs = datosRequisitoIP.id ? this.update(datosRequisitoIP) :
       this.create(datosRequisitoIP);
     return obs.pipe(

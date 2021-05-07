@@ -1,42 +1,29 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
-import { ProyectoSocioEquipoComponent } from './proyecto-socio-equipo.component';
-import TestUtils from '@core/utils/test-utils';
-import { MaterialDesignModule } from '@material/material-design.module';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { LoggerTestingModule } from 'ngx-logger/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FlexModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute, Data } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
+import TestUtils from '@core/utils/test-utils';
+import { MaterialDesignModule } from '@material/material-design.module';
 import { SharedModule } from '@shared/shared.module';
-import { ProyectoSocioActionService } from '../../proyecto-socio.action.service';
-import { ISolicitudProyectoSocio } from '@core/models/csp/solicitud-proyecto-socio';
-import { IProyectoSocio } from '@core/models/csp/proyecto-socio';
-import { IProyectoSocioState } from '../../../proyecto/proyecto-formulario/proyecto-socios/proyecto-socios.component';
+import { LoggerTestingModule } from 'ngx-logger/testing';
+import { PROYECTO_SOCIO_DATA_KEY } from '../../proyecto-socio-data.resolver';
+import { IProyectoSocioData, ProyectoSocioActionService } from '../../proyecto-socio.action.service';
+import { ProyectoSocioEquipoComponent } from './proyecto-socio-equipo.component';
 
 describe('ProyectoSocioEquipoComponent', () => {
   let component: ProyectoSocioEquipoComponent;
   let fixture: ComponentFixture<ProyectoSocioEquipoComponent>;
-
-  const proyectoSocio: IProyectoSocio = {
-    empresa: undefined,
-    id: undefined,
-    fechaFin: undefined,
-    fechaInicio: undefined,
-    importeConcedido: undefined,
-    numInvestigadores: undefined,
-    proyecto: undefined,
-    rolSocio: undefined
+  const routeData: Data = {
+    [PROYECTO_SOCIO_DATA_KEY]: {
+      proyecto: {
+        id: 1
+      }
+    } as IProyectoSocioData
   };
-
-  const state: IProyectoSocioState = {
-    proyectoId: 1,
-    coordinadorExterno: false,
-    proyectoSocio,
-    selectedProyectoSocios: [],
-    urlProyecto: ''
-  };
+  const routeMock = TestUtils.buildActivatedRouteMock('1', routeData);
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -57,14 +44,13 @@ describe('ProyectoSocioEquipoComponent', () => {
       ],
       providers: [
         ProyectoSocioActionService,
+        { provide: ActivatedRoute, useValue: routeMock }
       ],
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    spyOnProperty(history, 'state', 'get').and.returnValue(state);
-
     fixture = TestBed.createComponent(ProyectoSocioEquipoComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

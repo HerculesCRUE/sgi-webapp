@@ -1,19 +1,17 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { FlexLayoutModule, FlexModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
-import { LoggerTestingModule } from 'ngx-logger/testing';
-
-import { ActionFooterComponent } from '@shared/action-footer/action-footer.component';
-import { FlexModule, FlexLayoutModule } from '@angular/flex-layout';
-
-import { SharedModule } from '@shared/shared.module';
-import { SolicitudCrearComponent } from './solicitud-crear.component';
-import { SolicitudActionService } from '../solicitud.action.service';
 import { SgiAuthService } from '@sgi/framework/auth';
+import { ActionFooterComponent } from '@shared/action-footer/action-footer.component';
+import { SharedModule } from '@shared/shared.module';
+import { LoggerTestingModule } from 'ngx-logger/testing';
+import { SolicitudActionService } from '../solicitud.action.service';
+import { SolicitudCrearComponent } from './solicitud-crear.component';
 
 describe('SolicitudCrearComponent', () => {
   let component: SolicitudCrearComponent;

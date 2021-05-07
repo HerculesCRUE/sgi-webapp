@@ -1,9 +1,35 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { CONVOCATORIA_AREA_TEMATICA_CONVERTER } from '@core/converters/csp/convocatoria-area-tematica.converter';
+import { CONVOCATORIA_CONCEPTO_GASTO_CODIGO_EC_CONVERTER } from '@core/converters/csp/convocatoria-concepto-gasto-codigo-ec.converter';
+import { CONVOCATORIA_CONCEPTO_GASTO_CONVERTER } from '@core/converters/csp/convocatoria-concepto-gasto.converter';
+import { CONVOCATORIA_DOCUMENTO_CONVERTER } from '@core/converters/csp/convocatoria-documento.converter';
+import { CONVOCATORIA_ENLACE_CONVERTER } from '@core/converters/csp/convocatoria-enlace.converter';
+import { CONVOCATORIA_ENTIDAD_CONVOCANTE_CONVERTER } from '@core/converters/csp/convocatoria-entidad-convocante.converter';
+import { CONVOCATORIA_ENTIDAD_FINANCIADORA_CONVERTER } from '@core/converters/csp/convocatoria-entidad-financiadora.converter';
+import { CONVOCATORIA_ENTIDAD_GESTORA_CONVERTER } from '@core/converters/csp/convocatoria-entidad-gestora.converter';
+import { CONVOCATORIA_FASE_CONVERTER } from '@core/converters/csp/convocatoria-fase.converter';
+import { CONVOCATORIA_HITO_CONVERTER } from '@core/converters/csp/convocatoria-hito.converter';
+import { CONVOCATORIA_PERIODO_JUSTIFICACION_CONVERTER } from '@core/converters/csp/convocatoria-periodo-justificacion.converter';
+import { CONVOCATORIA_PERIODO_SEGUIMIENTO_CIENTIFICO_CONVERTER } from '@core/converters/csp/convocatoria-periodo-seguimiento-cientifico.converter';
+import { CONVOCATORIA_CONVERTER } from '@core/converters/csp/convocatoria.converter';
+import { IConvocatoriaAreaTematicaBackend } from '@core/models/csp/backend/convocatoria-area-tematica-backend';
+import { IConvocatoriaBackend } from '@core/models/csp/backend/convocatoria-backend';
+import { IConvocatoriaConceptoGastoBackend } from '@core/models/csp/backend/convocatoria-concepto-gasto-backend';
+import { IConvocatoriaConceptoGastoCodigoEcBackend } from '@core/models/csp/backend/convocatoria-concepto-gasto-codigo-ec-backend';
+import { IConvocatoriaDocumentoBackend } from '@core/models/csp/backend/convocatoria-documento-backend';
+import { IConvocatoriaEnlaceBackend } from '@core/models/csp/backend/convocatoria-enlace-backend';
+import { IConvocatoriaEntidadConvocanteBackend } from '@core/models/csp/backend/convocatoria-entidad-convocante-backend';
+import { IConvocatoriaEntidadFinanciadoraBackend } from '@core/models/csp/backend/convocatoria-entidad-financiadora-backend';
+import { IConvocatoriaEntidadGestoraBackend } from '@core/models/csp/backend/convocatoria-entidad-gestora-backend';
+import { IConvocatoriaFaseBackend } from '@core/models/csp/backend/convocatoria-fase-backend';
+import { IConvocatoriaHitoBackend } from '@core/models/csp/backend/convocatoria-hito-backend';
+import { IConvocatoriaPeriodoJustificacionBackend } from '@core/models/csp/backend/convocatoria-periodo-justificacion-backend';
+import { IConvocatoriaPeriodoSeguimientoCientificoBackend } from '@core/models/csp/backend/convocatoria-periodo-seguimiento-cientifico-backend';
 import { IConvocatoria } from '@core/models/csp/convocatoria';
 import { IConvocatoriaAreaTematica } from '@core/models/csp/convocatoria-area-tematica';
 import { IConvocatoriaConceptoGasto } from '@core/models/csp/convocatoria-concepto-gasto';
-import { IConvocatoriaSeguimientoCientifico } from '@core/models/csp/convocatoria-seguimiento-cientifico';
+import { IConvocatoriaConceptoGastoCodigoEc } from '@core/models/csp/convocatoria-concepto-gasto-codigo-ec';
 import { IConvocatoriaDocumento } from '@core/models/csp/convocatoria-documento';
 import { IConvocatoriaEnlace } from '@core/models/csp/convocatoria-enlace';
 import { IConvocatoriaEntidadConvocante } from '@core/models/csp/convocatoria-entidad-convocante';
@@ -12,33 +38,34 @@ import { IConvocatoriaEntidadGestora } from '@core/models/csp/convocatoria-entid
 import { IConvocatoriaFase } from '@core/models/csp/convocatoria-fase';
 import { IConvocatoriaHito } from '@core/models/csp/convocatoria-hito';
 import { IConvocatoriaPeriodoJustificacion } from '@core/models/csp/convocatoria-periodo-justificacion';
+import { IConvocatoriaPeriodoSeguimientoCientifico } from '@core/models/csp/convocatoria-periodo-seguimiento-cientifico';
+import { IModeloEjecucion } from '@core/models/csp/tipos-configuracion';
 import { environment } from '@env';
-import { SgiRestFindOptions, SgiRestListResult, SgiRestService } from '@sgi/framework/http/';
+import { SgiMutableRestService, SgiRestFindOptions, SgiRestListResult } from '@sgi/framework/http/';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { ConvocatoriaEntidadConvocanteService, IConvocatoriaEntidadConvocanteBackend } from './convocatoria-entidad-convocante.service';
-import { ConvocatoriaEntidadFinanciadoraService, IConvocatoriaEntidadFinanciadoraBackend } from './convocatoria-entidad-financiadora.service';
-import { ConvocatoriaEntidadGestoraService, IConvocatoriaEntidadGestoraBackend } from './convocatoria-entidad-gestora.service';
-import { IConvocatoriaConceptoGastoCodigoEc } from '@core/models/csp/convocatoria-concepto-gasto-codigo-ec';
-import { IModeloEjecucion } from '@core/models/csp/tipos-configuracion';
 
 @Injectable({
   providedIn: 'root'
 })
-
-export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
+export class ConvocatoriaService extends SgiMutableRestService<number, IConvocatoriaBackend, IConvocatoria> {
   private static readonly MAPPING = '/convocatorias';
 
   constructor(protected http: HttpClient) {
     super(
       ConvocatoriaService.name,
       `${environment.serviceServers.csp}${ConvocatoriaService.MAPPING}`,
-      http
+      http,
+      CONVOCATORIA_CONVERTER
     );
   }
 
   findAllTodos(options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoria>> {
-    return this.find<IConvocatoria, IConvocatoria>(`${this.endpointUrl}/todos`, options);
+    return this.find<IConvocatoriaBackend, IConvocatoria>(
+      `${this.endpointUrl}/todos`,
+      options,
+      this.converter
+    );
   }
 
   /**
@@ -47,7 +74,11 @@ export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
    * @returns listado de convocatorias
    */
   findAllRestringidos(options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoria>> {
-    return this.find<IConvocatoria, IConvocatoria>(`${this.endpointUrl}/restringidos`, options);
+    return this.find<IConvocatoriaBackend, IConvocatoria>(
+      `${this.endpointUrl}/restringidos`,
+      options,
+      this.converter
+    );
   }
 
   /**
@@ -56,7 +87,11 @@ export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
    * @returns listado de convocatorias
    */
   findAllTodosRestringidos(options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoria>> {
-    return this.find<IConvocatoria, IConvocatoria>(`${this.endpointUrl}/todos/restringidos`, options);
+    return this.find<IConvocatoriaBackend, IConvocatoria>(
+      `${this.endpointUrl}/todos/restringidos`,
+      options,
+      this.converter
+    );
   }
 
   /**
@@ -67,7 +102,11 @@ export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
    * @returns periodos de justificacion de la convocatoria.
    */
   getPeriodosJustificacion(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoriaPeriodoJustificacion>> {
-    return this.find<IConvocatoriaPeriodoJustificacion, IConvocatoriaPeriodoJustificacion>(`${this.endpointUrl}/${id}/convocatoriaperiodojustificaciones`, options);
+    return this.find<IConvocatoriaPeriodoJustificacionBackend, IConvocatoriaPeriodoJustificacion>(
+      `${this.endpointUrl}/${id}/convocatoriaperiodojustificaciones`,
+      options,
+      CONVOCATORIA_PERIODO_JUSTIFICACION_CONVERTER
+    );
   }
 
   /**
@@ -76,8 +115,11 @@ export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
    * @param options opciones de búsqueda.
    */
   getEnlaces(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoriaEnlace>> {
-    const endpointUrl = `${this.endpointUrl}/${id}/convocatoriaenlaces`;
-    return this.find<IConvocatoriaEnlace, IConvocatoriaEnlace>(endpointUrl, options);
+    return this.find<IConvocatoriaEnlaceBackend, IConvocatoriaEnlace>(
+      `${this.endpointUrl}/${id}/convocatoriaenlaces`,
+      options,
+      CONVOCATORIA_ENLACE_CONVERTER
+    );
   }
 
   /**
@@ -85,24 +127,21 @@ export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
    * @param id seguimiento científicos
    * @param options opciones de búsqueda.
    */
-  findSeguimientosCientificos(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoriaSeguimientoCientifico>> {
-    const endpointUrl = `${this.endpointUrl}/${id}/convocatoriaperiodoseguimientocientificos`;
-    return this.find<IConvocatoriaSeguimientoCientifico, IConvocatoriaSeguimientoCientifico>(endpointUrl, options);
+  findSeguimientosCientificos(id: number, options?: SgiRestFindOptions)
+    : Observable<SgiRestListResult<IConvocatoriaPeriodoSeguimientoCientifico>> {
+    return this.find<IConvocatoriaPeriodoSeguimientoCientificoBackend, IConvocatoriaPeriodoSeguimientoCientifico>(
+      `${this.endpointUrl}/${id}/convocatoriaperiodoseguimientocientificos`,
+      options,
+      CONVOCATORIA_PERIODO_SEGUIMIENTO_CIENTIFICO_CONVERTER
+    );
   }
 
   findEntidadesFinanciadoras(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoriaEntidadFinanciadora>> {
     return this.find<IConvocatoriaEntidadFinanciadoraBackend, IConvocatoriaEntidadFinanciadora>(
-      `${this.endpointUrl}/${id}/convocatoriaentidadfinanciadoras`, options, ConvocatoriaEntidadFinanciadoraService.CONVERTER);
-  }
-
-  /**
-   * Recupera listado mock de plazos y fases.
-   * @param id convocatoria
-   * @param options opciones de búsqueda.
-   */
-  findFasesConvocatoria(idConvocatoria: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoriaFase>> {
-    const endpointUrl = `${this.endpointUrl}/${idConvocatoria}/convocatoriafases`;
-    return this.find<IConvocatoriaFase, IConvocatoriaFase>(endpointUrl, options);
+      `${this.endpointUrl}/${id}/convocatoriaentidadfinanciadoras`,
+      options,
+      CONVOCATORIA_ENTIDAD_FINANCIADORA_CONVERTER
+    );
   }
 
   /**
@@ -111,26 +150,37 @@ export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
    * @returns Listado de hitos.
    */
   findHitosConvocatoria(idConvocatoria: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoriaHito>> {
-    const endpointUrl = `${this.endpointUrl}/${idConvocatoria}/convocatoriahitos`;
-    return this.find<IConvocatoriaHito, IConvocatoriaHito>(endpointUrl, options);
+    return this.find<IConvocatoriaHitoBackend, IConvocatoriaHito>(
+      `${this.endpointUrl}/${idConvocatoria}/convocatoriahitos`,
+      options,
+      CONVOCATORIA_HITO_CONVERTER
+    );
   }
 
   findAllConvocatoriaEntidadConvocantes(id: number, options?: SgiRestFindOptions):
     Observable<SgiRestListResult<IConvocatoriaEntidadConvocante>> {
-    const endpointUrl = `${this.endpointUrl}/${id}/convocatoriaentidadconvocantes`;
-    return this.find<IConvocatoriaEntidadConvocanteBackend, IConvocatoriaEntidadConvocante>(endpointUrl, options,
-      ConvocatoriaEntidadConvocanteService.CONVERTER);
+    return this.find<IConvocatoriaEntidadConvocanteBackend, IConvocatoriaEntidadConvocante>(
+      `${this.endpointUrl}/${id}/convocatoriaentidadconvocantes`,
+      options,
+      CONVOCATORIA_ENTIDAD_CONVOCANTE_CONVERTER
+    );
   }
 
   findAllConvocatoriaFases(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoriaFase>> {
-    return this.find<IConvocatoriaFase, IConvocatoriaFase>(
-      `${this.endpointUrl}/${id}/convocatoriafases`, options);
+    return this.find<IConvocatoriaFaseBackend, IConvocatoriaFase>(
+      `${this.endpointUrl}/${id}/convocatoriafases`,
+      options,
+      CONVOCATORIA_FASE_CONVERTER
+    );
   }
 
   findAllConvocatoriaEntidadGestora(id: number, options?:
     SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoriaEntidadGestora>> {
     return this.find<IConvocatoriaEntidadGestoraBackend, IConvocatoriaEntidadGestora>(
-      `${this.endpointUrl}/${id}/convocatoriaentidadgestoras`, options, ConvocatoriaEntidadGestoraService.CONVERTER);
+      `${this.endpointUrl}/${id}/convocatoriaentidadgestoras`,
+      options,
+      CONVOCATORIA_ENTIDAD_GESTORA_CONVERTER
+    );
   }
 
   /**
@@ -139,13 +189,19 @@ export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
    * @returns listado de modelos de áreas temáticas.
    */
   findAreaTematicas(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoriaAreaTematica>> {
-    return this.find<IConvocatoriaAreaTematica, IConvocatoriaAreaTematica>(
-      `${this.endpointUrl}/${id}/convocatoriaareatematicas`, options);
+    return this.find<IConvocatoriaAreaTematicaBackend, IConvocatoriaAreaTematica>(
+      `${this.endpointUrl}/${id}/convocatoriaareatematicas`,
+      options,
+      CONVOCATORIA_AREA_TEMATICA_CONVERTER
+    );
   }
 
   findDocumentos(id: number, options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoriaDocumento>> {
-    return this.find<IConvocatoriaDocumento, IConvocatoriaDocumento>(
-      `${this.endpointUrl}/${id}/convocatoriadocumentos`, options);
+    return this.find<IConvocatoriaDocumentoBackend, IConvocatoriaDocumento>(
+      `${this.endpointUrl}/${id}/convocatoriadocumentos`,
+      options,
+      CONVOCATORIA_DOCUMENTO_CONVERTER
+    );
   }
 
   /**
@@ -154,8 +210,11 @@ export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
    * @param options opciones de búsqueda.
    */
   findAllConvocatoriaConceptoGastosPermitidos(id: number): Observable<SgiRestListResult<IConvocatoriaConceptoGasto>> {
-    const endpointUrl = `${this.endpointUrl}/${id}/convocatoriagastos/permitidos`;
-    return this.find<IConvocatoriaConceptoGasto, IConvocatoriaConceptoGasto>(endpointUrl);
+    return this.find<IConvocatoriaConceptoGastoBackend, IConvocatoriaConceptoGasto>(
+      `${this.endpointUrl}/${id}/convocatoriagastos/permitidos`,
+      undefined,
+      CONVOCATORIA_CONCEPTO_GASTO_CONVERTER
+    );
   }
 
   /**
@@ -164,8 +223,11 @@ export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
    * @param options opciones de búsqueda.
    */
   findAllConvocatoriaConceptoGastosNoPermitidos(id: number): Observable<SgiRestListResult<IConvocatoriaConceptoGasto>> {
-    const endpointUrl = `${this.endpointUrl}/${id}/convocatoriagastos/nopermitidos`;
-    return this.find<IConvocatoriaConceptoGasto, IConvocatoriaConceptoGasto>(endpointUrl);
+    return this.find<IConvocatoriaConceptoGastoBackend, IConvocatoriaConceptoGasto>(
+      `${this.endpointUrl}/${id}/convocatoriagastos/nopermitidos`,
+      undefined,
+      CONVOCATORIA_CONCEPTO_GASTO_CONVERTER
+    );
   }
 
   /**
@@ -174,8 +236,11 @@ export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
    * @param options opciones de búsqueda.
    */
   findAllConvocatoriaConceptoGastoCodigoEcsPermitidos(id: number): Observable<SgiRestListResult<IConvocatoriaConceptoGastoCodigoEc>> {
-    const endpointUrl = `${this.endpointUrl}/${id}/convocatoriagastocodigoec/permitidos`;
-    return this.find<IConvocatoriaConceptoGastoCodigoEc, IConvocatoriaConceptoGastoCodigoEc>(endpointUrl);
+    return this.find<IConvocatoriaConceptoGastoCodigoEcBackend, IConvocatoriaConceptoGastoCodigoEc>(
+      `${this.endpointUrl}/${id}/convocatoriagastocodigoec/permitidos`,
+      undefined,
+      CONVOCATORIA_CONCEPTO_GASTO_CODIGO_EC_CONVERTER
+    );
   }
 
   /**
@@ -184,10 +249,11 @@ export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
    * @param options opciones de búsqueda.
    */
   findAllConvocatoriaConceptoGastoCodigoEcsNoPermitidos(id: number): Observable<SgiRestListResult<IConvocatoriaConceptoGastoCodigoEc>> {
-    const endpointUrl = `${this.endpointUrl}/${id}/convocatoriagastocodigoec/nopermitidos`;
-    return this.find<IConvocatoriaConceptoGastoCodigoEc, IConvocatoriaConceptoGastoCodigoEc>(endpointUrl);
+    return this.find<IConvocatoriaConceptoGastoCodigoEcBackend, IConvocatoriaConceptoGastoCodigoEc>(
+      `${this.endpointUrl}/${id}/convocatoriagastocodigoec/nopermitidos`,
+      undefined,
+      CONVOCATORIA_CONCEPTO_GASTO_CODIGO_EC_CONVERTER);
   }
-
 
   /**
    * Reactivar convocatoria
@@ -272,7 +338,11 @@ export class ConvocatoriaService extends SgiRestService<number, IConvocatoria> {
    * @param options opciones de búsqueda.
    */
   findAllInvestigador(options?: SgiRestFindOptions): Observable<SgiRestListResult<IConvocatoria>> {
-    return this.find<IConvocatoria, IConvocatoria>(`${this.endpointUrl}/investigador`, options);
+    return this.find<IConvocatoriaBackend, IConvocatoria>(
+      `${this.endpointUrl}/investigador`,
+      options,
+      this.converter
+    );
   }
 
   /**

@@ -1,35 +1,37 @@
 <section class="proyecto-socio">
+  <h2>{{'menu.csp.proyectos.socios' | translate}}</h2>
+
   <!-- Error no proyecto colaborativo -->
-  <div *ngIf="!(actionService.disabledAddSocios$ | async)" class="info-message">
-    {{'csp.proyecto.socios.error.proyectoColaborativo.deshabilitado' | translate}}
+  <div *ngIf="actionService.disableAddSocios$ | async" class="info-message">
+    {{'info.csp.proyecto-socio' | translate}}
   </div>
 
   <table class="mat-elevation-z8 table-acta" mat-table [dataSource]="dataSource" matSort matSortActive="id"
     matSortDirection="asc" matSortDisableClear>
     <!-- Identificador fiscal Column -->
-    <ng-container matColumnDef="empresa.numeroDocumento">
+    <ng-container matColumnDef="empresa.numeroIdentificacion">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto.socios.identificadorFiscal' | translate}}
+        {{'csp.proyecto-socio.indentificador-fiscal' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
-        {{ wrapper.value.empresa?.numeroDocumento }}
+        {{ wrapper.value.empresa?.numeroIdentificacion }}
       </td>
     </ng-container>
 
     <!-- Nombre Column -->
-    <ng-container matColumnDef="empresa.razonSocial">
+    <ng-container matColumnDef="empresa.nombre">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto.socios.nombre' | translate}}
+        {{'info.csp.proyecto-socio.nombre' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
-        {{ wrapper.value.empresa?.razonSocial }}
+        {{ wrapper.value.empresa?.nombre }}
       </td>
     </ng-container>
 
     <!-- Rol Column -->
     <ng-container matColumnDef="rolSocio.nombre">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto.socios.rol' | translate}}
+        {{'info.csp.proyecto-socio.rol' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.value.rolSocio.nombre | translate}}
@@ -39,7 +41,7 @@
     <!-- Número de investigadores Column -->
     <ng-container matColumnDef="numInvestigadores">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto.socios.numInvestigadores' | translate}}
+        {{'info.csp.proyecto-socio.numero-investigadores' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
         {{wrapper.value.numInvestigadores}}
@@ -49,35 +51,34 @@
     <!-- Fecha de inicio Column -->
     <ng-container matColumnDef="fechaInicio">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto.socios.fechaInicio' | translate}}
+        {{'info.csp.proyecto-socio.fecha-inicio' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
-        {{wrapper.value.fechaInicio | date:'dd/MM/yyyy'}}
+        {{wrapper.value.fechaInicio | luxon:'short'}}
       </td>
     </ng-container>
 
     <!-- Fecha de fin Column -->
     <ng-container matColumnDef="fechaFin">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        {{'csp.proyecto.socios.fechaFin' | translate}}
+        {{'info.csp.proyecto-socio.fecha-fin' | translate}}
       </th>
       <td mat-cell *matCellDef="let wrapper">
-        {{wrapper.value.fechaFin | date:'dd/MM/yyyy'}}
+        {{wrapper.value.fechaFin | luxon:'short'}}
       </td>
     </ng-container>
 
     <!-- Acciones Column -->
     <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef> {{'csp.solicitud.listado.acciones' | translate}} </th>
+      <th mat-header-cell *matHeaderCellDef> {{'label.actions' | translate}} </th>
       <td mat-cell *matCellDef="let wrapper">
         <ng-container>
-          <button mat-button matTooltip="{{'botones.editar' | translate}}"
-            [routerLink]="['../../..', PROYECTO_SOCIO_ROUTE, wrapper.value.id]" [state]="createState(wrapper)">
+          <button mat-button matTooltip="{{'btn.edit' | translate}}" [routerLink]="[wrapper.value.id]">
             <mat-icon color="primary">border_color</mat-icon>
           </button>
         </ng-container>
         <ng-container>
-          <button mat-button matTooltip="{{'botones.borrar' | translate}}" (click)="deleteProyectoSocio(wrapper)">
+          <button mat-button matTooltip="{{'btn.delete' | translate}}" (click)="deleteProyectoSocio(wrapper)">
             <mat-icon color="warn">highlight_off</mat-icon>
           </button>
         </ng-container>
@@ -87,11 +88,10 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
   <div class="separation-button">
-    <button color="three" mat-button mat-raised-button
-      [routerLink]="['../../..', PROYECTO_SOCIO_ROUTE, ROUTE_NAMES.NEW]" [state]="createState()"
-      [disabled]="!(actionService.disabledAddSocios$ | async)">
+    <button color="three" mat-button mat-raised-button [routerLink]="[ROUTE_NAMES.NEW]"
+      [disabled]="actionService.disableAddSocios$ | async">
       <mat-icon color="accent">add_circle</mat-icon>
-      {{'csp.proyecto.socios.añadir' | translate}}
+      {{ 'btn.add.entity' | translate:msgParamEntity }}
     </button>
   </div>
 

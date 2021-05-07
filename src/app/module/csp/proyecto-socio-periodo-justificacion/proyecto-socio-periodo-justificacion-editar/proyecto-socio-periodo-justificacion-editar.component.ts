@@ -1,17 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActionComponent } from '@core/component/action.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { DialogService } from '@core/services/dialog.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
+import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
-import { IProyectoSocioState } from '../../proyecto/proyecto-formulario/proyecto-socios/proyecto-socios.component';
+import { switchMap } from 'rxjs/operators';
 import { PROYECTO_SOCIO_PERIODO_JUSTIFICACION_ROUTE_NAMES } from '../proyecto-socio-periodo-justificacion-names';
 import { ProyectoSocioPeriodoJustificacionActionService } from '../proyecto-socio-periodo-justificacion.action.service';
 
-const MSG_BUTTON_SAVE = marker('botones.guardar');
-const MSG_SUCCESS = marker('csp.proyecto-socio-periodo-justificacion.editar.correcto');
-const MSG_ERROR = marker('csp.proyecto-socio-periodo-justificacion.editar.error');
+const MSG_BUTTON_SAVE = marker('btn.save.entity');
+const MSG_SUCCESS = marker('msg.update.entity.success');
+const MSG_ERROR = marker('error.update.entity');
+const SOLICITUD_PROYECTO_PERIODO_JUSTIFICACION = marker('csp.solicitud-proyecto-periodo-justificacion');
 
 @Component({
   selector: 'sgi-proyecto-socio-periodo-justificacion-editar',
@@ -21,30 +24,66 @@ const MSG_ERROR = marker('csp.proyecto-socio-periodo-justificacion.editar.error'
     ProyectoSocioPeriodoJustificacionActionService
   ]
 })
-export class ProyectoSocioPeriodoJustificacionEditarComponent extends ActionComponent {
+export class ProyectoSocioPeriodoJustificacionEditarComponent extends ActionComponent implements OnInit {
   PROYECTO_SOCIO_PERIODO_JUSTIFICACION_ROUTE_NAMES = PROYECTO_SOCIO_PERIODO_JUSTIFICACION_ROUTE_NAMES;
 
-  textoCrear = MSG_BUTTON_SAVE;
-  private urlFrom: string;
-  private state: IProyectoSocioState;
+  textoEditar: string;
+  textoEditarSuccess: string;
+  textoEditarError: string;
 
   constructor(
-    private readonly logger: NGXLogger,
-    protected snackBarService: SnackBarService,
+    private logger: NGXLogger,
+    private snackBarService: SnackBarService,
     router: Router,
     route: ActivatedRoute,
     public actionService: ProyectoSocioPeriodoJustificacionActionService,
-    dialogService: DialogService
+    dialogService: DialogService,
+    private readonly translate: TranslateService
   ) {
     super(router, route, actionService, dialogService);
-    this.urlFrom = history.state?.urlProyectoSocio;
-    this.state = {
-      proyectoSocio: history.state?.proyectoSocio,
-      proyectoId: history.state?.proyectoId,
-      coordinadorExterno: history.state?.coordiandorExterno,
-      selectedProyectoSocios: history.state?.selectedProyectoSocios,
-      urlProyecto: history.state?.urlProyecto
-    };
+  }
+
+  ngOnInit(): void {
+    super.ngOnInit();
+    this.setupI18N();
+  }
+
+  private setupI18N(): void {
+    this.translate.get(
+      SOLICITUD_PROYECTO_PERIODO_JUSTIFICACION,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_BUTTON_SAVE,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoEditar = value);
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_PERIODO_JUSTIFICACION,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_SUCCESS,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoEditarSuccess = value);
+
+    this.translate.get(
+      SOLICITUD_PROYECTO_PERIODO_JUSTIFICACION,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_ERROR,
+          { entity: value, ...MSG_PARAMS.GENDER.MALE }
+        );
+      })
+    ).subscribe((value) => this.textoEditarError = value);
   }
 
   saveOrUpdate(): void {
@@ -52,20 +91,16 @@ export class ProyectoSocioPeriodoJustificacionEditarComponent extends ActionComp
       () => { },
       (error) => {
         this.logger.error(error);
-        this.snackBarService.showError(MSG_ERROR);
+        this.snackBarService.showError(this.textoEditarError);
       },
       () => {
-        this.snackBarService.showSuccess(MSG_SUCCESS);
-        this.router.navigateByUrl(this.urlFrom, {
-          state: this.state
-        });
+        this.snackBarService.showSuccess(this.textoEditarSuccess);
+        this.router.navigate(['../'], { relativeTo: this.activatedRoute });
       }
     );
   }
 
   cancel(): void {
-    this.router.navigateByUrl(this.urlFrom, {
-      state: this.state
-    });
+    this.router.navigate(['../'], { relativeTo: this.activatedRoute });
   }
 }

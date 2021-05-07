@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormFragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IDictamen } from '@core/models/eti/dictamen';
 import { IEvaluacion } from '@core/models/eti/evaluacion';
 import { IMemoria } from '@core/models/eti/memoria';
@@ -10,9 +11,6 @@ import { Observable, Subscription } from 'rxjs';
 import { SeguimientoFormularioActionService } from '../seguimiento-formulario.action.service';
 import { SeguimientoListadoAnteriorMemoriaComponent } from '../seguimiento-listado-anterior-memoria/seguimiento-listado-anterior-memoria.component';
 import { SeguimientoEvaluacionFragment } from './seguimiento-evaluacion.fragment';
-
-
-
 
 @Component({
   selector: 'sgi-seguimiento-evaluacion',
@@ -30,6 +28,10 @@ export class SeguimientoEvaluacionComponent extends FormFragmentComponent<IMemor
   dictamenListado: IDictamen[];
   filteredDictamenes: Observable<IDictamen[]>;
   suscriptions: Subscription[] = [];
+
+  get MSG_PARAMS() {
+    return MSG_PARAMS;
+  }
 
   constructor(
     private actionService: SeguimientoFormularioActionService,

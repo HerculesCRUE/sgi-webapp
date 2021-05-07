@@ -2,7 +2,7 @@ import { IProyectoEntidadFinanciadora } from '@core/models/csp/proyecto-entidad-
 import { Fragment } from '@core/services/action-service';
 import { ProyectoEntidadFinanciadoraService } from '@core/services/csp/proyecto-entidad-financiadora.service';
 import { ProyectoService } from '@core/services/csp/proyecto.service';
-import { EmpresaEconomicaService } from '@core/services/sgp/empresa-economica.service';
+import { EmpresaService } from '@core/services/sgemp/empresa.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
 import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
@@ -16,7 +16,7 @@ export class ProyectoEntidadesFinanciadorasFragment extends Fragment {
     key: number,
     private proyectoService: ProyectoService,
     private proyectoEntidadFinanciadoraService: ProyectoEntidadFinanciadoraService,
-    private empresaEconomicaService: EmpresaEconomicaService,
+    private empresaService: EmpresaService,
     public readonly: boolean
   ) {
     super(key);
@@ -34,7 +34,7 @@ export class ProyectoEntidadesFinanciadorasFragment extends Fragment {
             tap((value) => {
               this.entidadesPropias$.next(value);
             }),
-            mergeMap(entidades => this.fillEmpresaEconomica(entidades)),
+            mergeMap(entidades => this.fillEmpresa(entidades)),
           ),
           this.proyectoService.findEntidadesFinanciadorasAjenas(this.getKey() as number).pipe(
             map(response => {
@@ -43,18 +43,18 @@ export class ProyectoEntidadesFinanciadorasFragment extends Fragment {
             tap((value) => {
               this.entidadesAjenas$.next(value);
             }),
-            mergeMap(entidades => this.fillEmpresaEconomica(entidades)),
+            mergeMap(entidades => this.fillEmpresa(entidades)),
           ),
         ).subscribe();
       this.subscriptions.push(subscription);
     }
   }
 
-  private fillEmpresaEconomica(entidades: StatusWrapper<IProyectoEntidadFinanciadora>[]):
+  private fillEmpresa(entidades: StatusWrapper<IProyectoEntidadFinanciadora>[]):
     Observable<StatusWrapper<IProyectoEntidadFinanciadora>> {
     return from(entidades).pipe(
       mergeMap(entidad => {
-        return this.empresaEconomicaService.findById(entidad.value.empresa.personaRef).pipe(
+        return this.empresaService.findById(entidad.value.empresa.id).pipe(
           map((empresa) => {
             entidad.value.empresa = empresa;
             return entidad;

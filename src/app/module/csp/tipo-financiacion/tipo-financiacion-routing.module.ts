@@ -5,7 +5,7 @@ import { SgiRoutes } from '@core/route';
 import { SgiAuthGuard } from '@sgi/framework/auth';
 import { TipoFinanciacionListadoComponent } from './tipo-financiacion-listado/tipo-financiacion-listado.component';
 
-const MSG_LISTADO_TITLE = marker('csp.tipo.financiacion.listado.titulo');
+const MSG_LISTADO_TITLE = marker('menu.csp.configuraciones.tipos-financiacion');
 
 const routes: SgiRoutes = [
   {
@@ -17,7 +17,6 @@ const routes: SgiRoutes = [
     }
   }
 ];
-
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

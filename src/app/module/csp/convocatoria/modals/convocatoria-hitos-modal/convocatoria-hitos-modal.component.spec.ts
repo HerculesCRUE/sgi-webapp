@@ -1,20 +1,19 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
-import { ConvocatoriaHitosModalComponent } from './convocatoria-hitos-modal.component';
-import { LoggerTestingModule } from 'ngx-logger/testing';
-import TestUtils from '@core/utils/test-utils';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MaterialDesignModule } from '@material/material-design.module';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { SgiAuthModule, SgiAuthService } from '@sgi/framework/auth';
-import { SnackBarService } from '@core/services/snack-bar.service';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterTestingModule } from '@angular/router/testing';
 import { DialogComponent } from '@block/dialog/dialog.component';
 import { HeaderComponent } from '@block/header/header.component';
 import { IConvocatoriaHito } from '@core/models/csp/convocatoria-hito';
-
+import { SnackBarService } from '@core/services/snack-bar.service';
+import TestUtils from '@core/utils/test-utils';
+import { MaterialDesignModule } from '@material/material-design.module';
+import { SgiAuthModule, SgiAuthService } from '@sgi/framework/auth';
+import { SharedModule } from '@shared/shared.module';
+import { LoggerTestingModule } from 'ngx-logger/testing';
+import { ConvocatoriaHitosModalComponent } from './convocatoria-hitos-modal.component';
 
 describe('ConvocatoriaHitosModalComponent', () => {
   let component: ConvocatoriaHitosModalComponent;
@@ -40,7 +39,8 @@ describe('ConvocatoriaHitosModalComponent', () => {
         TestUtils.getIdiomas(),
         RouterTestingModule,
         ReactiveFormsModule,
-        SgiAuthModule
+        SgiAuthModule,
+        SharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },

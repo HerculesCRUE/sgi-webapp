@@ -4,30 +4,30 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { AbstractTablePaginationComponent } from '@core/component/abstract-table-pagination.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IComite } from '@core/models/eti/comite';
 import { IMemoria } from '@core/models/eti/memoria';
 import { IPeticionEvaluacion } from '@core/models/eti/peticion-evaluacion';
 import { TipoEstadoMemoria } from '@core/models/eti/tipo-estado-memoria';
-import { IPersona } from '@core/models/sgp/persona';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
 import { ROUTE_NAMES } from '@core/route.names';
 import { ComiteService } from '@core/services/eti/comite.service';
 import { PeticionEvaluacionService } from '@core/services/eti/peticion-evaluacion.service';
 import { TipoEstadoMemoriaService } from '@core/services/eti/tipo-estado-memoria.service';
-import { PersonaFisicaService } from '@core/services/sgp/persona-fisica.service';
+import { PersonaService } from '@core/services/sgp/persona.service';
 import { SnackBarService } from '@core/services/snack-bar.service';
+import { TranslateService } from '@ngx-translate/core';
 import { RSQLSgiRestFilter, SgiRestFilter, SgiRestFilterOperator, SgiRestListResult } from '@sgi/framework/http';
-import { BuscarPersonaComponent } from '@shared/buscar-persona/buscar-persona.component';
+import { TipoColectivo } from '@shared/select-persona/select-persona.component';
 import { NGXLogger } from 'ngx-logger';
 import { Observable, of } from 'rxjs';
 import { catchError, map, startWith, switchMap } from 'rxjs/operators';
 
+const MSG_BUTTON_SAVE = marker('btn.add.entity');
+const MSG_ERROR = marker('error.load');
+const PETICION_EVALUACION_KEY = marker('eti.peticion-evaluacion');
 
-const MSG_BUTTON_SAVE = marker('footer.eti.peticionEvaluacion.crear');
-const MSG_ERROR = marker('eti.peticionEvaluacion.listado.error');
-const TEXT_USER_TITLE = marker('eti.peticionEvaluacion.listado.buscador.solicitante');
-const TEXT_USER_BUTTON = marker('eti.peticionEvaluacion.listado.buscador.buscar.solicitante');
 @Component({
   selector: 'sgi-peticion-evaluacion-listado-ges',
   templateUrl: './peticion-evaluacion-listado-ges.component.html',
@@ -43,11 +43,10 @@ export class PeticionEvaluacionListadoGesComponent extends AbstractTablePaginati
   displayedColumns: string[];
   totalElementos: number;
 
-  textoCrear = MSG_BUTTON_SAVE;
+  textoCrear: string;
 
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   @ViewChild(MatPaginator, { static: false }) paginator: MatPaginator;
-  @ViewChild(BuscarPersonaComponent, { static: false }) private buscarPersona: BuscarPersonaComponent;
 
   peticionesEvaluacion$: Observable<IPeticionEvaluacion[]> = of();
   memorias$: Observable<IMemoria[]> = of();
@@ -58,9 +57,9 @@ export class PeticionEvaluacionListadoGesComponent extends AbstractTablePaginati
   estadoMemoriaListado: TipoEstadoMemoria[];
   filteredEstadosMemoria: Observable<TipoEstadoMemoria[]>;
 
-  textoUsuarioLabel = TEXT_USER_TITLE;
-  textoUsuarioInput = TEXT_USER_TITLE;
-  textoUsuarioButton = TEXT_USER_BUTTON;
+  get tipoColectivoSolicitante() {
+    return TipoColectivo.SOLICITANTE_ETICA;
+  }
 
   constructor(
     private readonly logger: NGXLogger,
@@ -68,7 +67,8 @@ export class PeticionEvaluacionListadoGesComponent extends AbstractTablePaginati
     protected readonly snackBarService: SnackBarService,
     private readonly comiteService: ComiteService,
     private readonly tipoEstadoMemoriaService: TipoEstadoMemoriaService,
-    private readonly personaFisicaService: PersonaFisicaService
+    private readonly personaService: PersonaService,
+    private readonly translate: TranslateService
   ) {
     super(snackBarService, MSG_ERROR);
 
@@ -89,6 +89,7 @@ export class PeticionEvaluacionListadoGesComponent extends AbstractTablePaginati
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
 
     this.formGroup = new FormGroup({
       comite: new FormControl('', []),
@@ -102,6 +103,20 @@ export class PeticionEvaluacionListadoGesComponent extends AbstractTablePaginati
     this.getEstadosMemoria();
   }
 
+  private setupI18N(): void {
+    this.translate.get(
+      PETICION_EVALUACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).pipe(
+      switchMap((value) => {
+        return this.translate.get(
+          MSG_BUTTON_SAVE,
+          { entity: value, ...MSG_PARAMS.GENDER.FEMALE }
+        );
+      })
+    ).subscribe((value) => this.textoCrear = value);
+  }
+
   protected createObservable(): Observable<SgiRestListResult<IPeticionEvaluacion>> {
     return this.peticionesEvaluacionService.findAll(this.getFindOptions()).pipe(
       map((response) => {
@@ -112,20 +127,18 @@ export class PeticionEvaluacionListadoGesComponent extends AbstractTablePaginati
         if (!response.items || response.items.length === 0) {
           return of({} as SgiRestListResult<IPeticionEvaluacion>);
         }
-        const personaRefsEvaluadores = new Set<string>();
+        const personaIdsEvaluadores = new Set<string>();
 
         response.items.forEach((peticionEvaluacion: IPeticionEvaluacion) => {
-          personaRefsEvaluadores.add(peticionEvaluacion?.personaRef);
+          personaIdsEvaluadores.add(peticionEvaluacion?.solicitante?.id);
         });
 
-        const personaSubscription = this.personaFisicaService.findByPersonasRefs([...personaRefsEvaluadores]).subscribe((result) => {
+        const personaSubscription = this.personaService.findAllByIdIn([...personaIdsEvaluadores]).subscribe((result) => {
           const personas = result.items;
           response.items.forEach((peticionEvaluacion: IPeticionEvaluacion) => {
             const datosPersona = personas.find((persona) =>
-              peticionEvaluacion.personaRef === persona.personaRef);
-            peticionEvaluacion.nombre = datosPersona?.nombre;
-            peticionEvaluacion.primerApellido = datosPersona?.primerApellido;
-            peticionEvaluacion.segundoApellido = datosPersona?.segundoApellido;
+              peticionEvaluacion.solicitante.id === persona.id);
+            peticionEvaluacion.solicitante = datosPersona;
           });
         });
         this.suscripciones.push(personaSubscription);
@@ -154,13 +167,12 @@ export class PeticionEvaluacionListadoGesComponent extends AbstractTablePaginati
       .and('peticionEvaluacion.titulo', SgiRestFilterOperator.LIKE_ICASE, controls.titulo.value)
       .and('comite.id', SgiRestFilterOperator.EQUALS, controls.comite.value?.id?.toString())
       .and('estadoActual.id', SgiRestFilterOperator.EQUALS, controls.tipoEstadoMemoria.value?.id?.toString())
-      .and('peticionEvaluacion.personaRef', SgiRestFilterOperator.EQUALS, controls.solicitante.value);
+      .and('peticionEvaluacion.personaRef', SgiRestFilterOperator.EQUALS, controls.solicitante.value.id);
   }
 
   protected loadTable(reset?: boolean) {
     this.peticionesEvaluacion$ = this.getObservableLoadTable(reset);
   }
-
 
   /**
    * Devuelve el nombre de un comité.
@@ -170,7 +182,6 @@ export class PeticionEvaluacionListadoGesComponent extends AbstractTablePaginati
   getComite(comite: IComite): string {
     return comite?.comite;
   }
-
 
   /**
    * Devuelve el nombre de un estado memoria.
@@ -253,21 +264,5 @@ export class PeticionEvaluacionListadoGesComponent extends AbstractTablePaginati
 
     return this.estadoMemoriaListado.filter
       (estadoMemoria => estadoMemoria.nombre.toLowerCase().includes(filterValue));
-  }
-
-  /**
-   * Setea el persona seleccionado a través del componente
-   * @param solicitante persona seleccionado
-   */
-  public setUsuario(solicitante: IPersona) {
-    this.formGroup.controls.solicitante.setValue(solicitante.personaRef);
-  }
-
-  /**
-   * Clean filters an reload the table
-   */
-  public onClearFilters() {
-    super.onClearFilters();
-    this.buscarPersona.clear();
   }
 }

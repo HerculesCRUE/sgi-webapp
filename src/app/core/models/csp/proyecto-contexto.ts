@@ -1,11 +1,9 @@
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
-import { ContextoProyectoService } from '@core/services/csp/contexto-proyecto.service';
-import { IAreaTematica } from "./area-tematica";
-import { IProyecto } from "./proyecto";
+import { IAreaTematica } from './area-tematica';
 
 export interface IProyectoContexto {
   id: number;
-  proyecto: IProyecto;
+  proyectoId: number;
   objetivos: string;
   intereses: string;
   resultadosPrevistos: string;
@@ -14,15 +12,12 @@ export interface IProyectoContexto {
   areaTematicaConvocatoria: IAreaTematica;
 }
 
-
 export enum PropiedadResultados {
   SIN_RESULTADOS = 'SIN_RESULTADOS',
   UNIVERSIDAD = 'UNIVERSIDAD',
   ENTIDAD_FINANCIADORA = 'ENTIDAD_FINANCIADORA',
   COMPARTIDA = 'COMPARTIDA'
 }
-
-
 
 export const PROPIEDAD_RESULTADOS_MAP: Map<PropiedadResultados, string> = new Map([
   [PropiedadResultados.SIN_RESULTADOS, marker('csp.proyecto-contexto.propiedad-resultados.SIN_RESULTADOS')],

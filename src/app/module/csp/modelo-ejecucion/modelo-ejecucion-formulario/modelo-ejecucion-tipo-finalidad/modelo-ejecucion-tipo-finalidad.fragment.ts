@@ -7,7 +7,6 @@ import { StatusWrapper } from '@core/utils/status-wrapper';
 import { SgiRestListResult } from '@sgi/framework/http';
 import { BehaviorSubject, from, merge, Observable, of } from 'rxjs';
 import { map, mergeMap, takeLast, tap } from 'rxjs/operators';
-import { ModeloEjecucionActionService } from '../../modelo-ejecucion.action.service';
 
 export class ModeloEjecucionTipoFinalidadFragment extends Fragment {
   modeloTipoFinalidad$ = new BehaviorSubject<StatusWrapper<IModeloTipoFinalidad>[]>([]);
@@ -16,8 +15,7 @@ export class ModeloEjecucionTipoFinalidadFragment extends Fragment {
   constructor(
     key: number,
     private modeloEjecucionService: ModeloEjecucionService,
-    private modeloTipoFinalidadService: ModeloTipoFinalidadService,
-    actionService: ModeloEjecucionActionService,
+    private modeloTipoFinalidadService: ModeloTipoFinalidadService
   ) {
     super(key);
     this.setComplete(true);

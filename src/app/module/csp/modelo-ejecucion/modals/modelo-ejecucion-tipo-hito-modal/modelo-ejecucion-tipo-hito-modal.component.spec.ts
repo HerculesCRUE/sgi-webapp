@@ -9,8 +9,8 @@ import { ITipoHito } from '@core/models/csp/tipos-configuracion';
 import { SnackBarService } from '@core/services/snack-bar.service';
 import TestUtils from '@core/utils/test-utils';
 import { MaterialDesignModule } from '@material/material-design.module';
+import { SharedModule } from '@shared/shared.module';
 import { LoggerTestingModule } from 'ngx-logger/testing';
-
 import { ModeloEjecucionTipoHitoModalComponent } from './modelo-ejecucion-tipo-hito-modal.component';
 
 describe('ModeloEjecucionTipoHitoModalComponent', () => {
@@ -35,7 +35,8 @@ describe('ModeloEjecucionTipoHitoModalComponent', () => {
         TestUtils.getIdiomas(),
         RouterTestingModule,
         FormsModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        SharedModule
       ],
       providers: [
         { provide: SnackBarService, useValue: TestUtils.getSnackBarServiceSpy() },

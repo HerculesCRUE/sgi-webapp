@@ -4,7 +4,7 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FragmentComponent } from '@core/component/fragment.component';
-import { IProyecto } from '@core/models/csp/proyecto';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoProrroga, Tipo, TIPO_MAP } from '@core/models/csp/proyecto-prorroga';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
@@ -12,17 +12,12 @@ import { ROUTE_NAMES } from '@core/route.names';
 import { ProyectoProrrogaService } from '@core/services/csp/proyecto-prorroga.service';
 import { DialogService } from '@core/services/dialog.service';
 import { StatusWrapper } from '@core/utils/status-wrapper';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { CSP_ROUTE_NAMES } from '../../../csp-route-names';
 import { ProyectoActionService } from '../../proyecto.action.service';
 import { ProyectoProrrogasFragment } from './proyecto-prorrogas.fragment';
 
-export interface IProyectoProrrogaState {
-  proyecto: IProyecto;
-  proyectoProrroga: IProyectoProrroga;
-  selectedProyectoProrrogas: IProyectoProrroga[];
-  readonly: boolean;
-}
+const PROYECTO_PRORROGA_KEY = marker('csp.proyecto-prorroga');
 
 @Component({
   selector: 'sgi-proyecto-prorrogas',
@@ -30,7 +25,6 @@ export interface IProyectoProrrogaState {
   styleUrls: ['./proyecto-prorrogas.component.scss']
 })
 export class ProyectoProrrogasComponent extends FragmentComponent implements OnInit, OnDestroy {
-  CSP_ROUTE_NAMES = CSP_ROUTE_NAMES;
   ROUTE_NAMES = ROUTE_NAMES;
 
   private subscriptions: Subscription[] = [];
@@ -43,6 +37,8 @@ export class ProyectoProrrogasComponent extends FragmentComponent implements OnI
 
   displayedColumns = ['numProrroga', 'fechaConcesion', 'tipo', 'fechaFin', 'importe', 'observaciones', 'acciones'];
 
+  msgParamEntity = {};
+
   dataSource = new MatTableDataSource<StatusWrapper<IProyectoProrroga>>();
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
@@ -54,7 +50,8 @@ export class ProyectoProrrogasComponent extends FragmentComponent implements OnI
   constructor(
     public actionService: ProyectoActionService,
     private dialogService: DialogService,
-    private proyectoProrrogaService: ProyectoProrrogaService
+    private proyectoProrrogaService: ProyectoProrrogaService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.PRORROGAS, actionService);
     this.formPart = this.fragment as ProyectoProrrogasFragment;
@@ -62,6 +59,7 @@ export class ProyectoProrrogasComponent extends FragmentComponent implements OnI
 
   ngOnInit(): void {
     super.ngOnInit();
+    this.setupI18N();
     const subscription = this.formPart.prorrogas$.subscribe(
       (proyectoProrrogas) => {
         this.dataSource.data = proyectoProrrogas;
@@ -83,6 +81,14 @@ export class ProyectoProrrogasComponent extends FragmentComponent implements OnI
     this.dataSource.sort = this.sort;
   }
 
+
+  private setupI18N(): void {
+    this.translate.get(
+      PROYECTO_PRORROGA_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamEntity = { entity: value });
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
@@ -102,20 +108,6 @@ export class ProyectoProrrogasComponent extends FragmentComponent implements OnI
     });
   }
 
-
-  createState(wrapper?: StatusWrapper<IProyectoProrroga>): IProyectoProrrogaState {
-
-    const state: IProyectoProrrogaState = {
-      proyecto: this.actionService.proyecto,
-      proyectoProrroga: wrapper ? wrapper.value : {} as IProyectoProrroga,
-      selectedProyectoProrrogas: this.dataSource.data.map(element => element.value),
-      readonly: this.actionService.readOnly ?
-        this.actionService.readOnly : (wrapper ? wrapper.value.id !== this.lastProyectoProrroga.id : false)
-    };
-
-    return state;
-  }
-
   /**
    * Recalcula los numeros de las prórrogas de todos las prórrogas de la tabla en funcion de su fecha de inicio.
    */
@@ -131,15 +123,20 @@ export class ProyectoProrrogasComponent extends FragmentComponent implements OnI
     this.formPart.prorrogas$.next(this.dataSource.data);
   }
 
-
   private getInfoMensajeDelete(proyectoProrroga: IProyectoProrroga, documento: boolean) {
     switch (proyectoProrroga.tipo) {
       case Tipo.IMPORTE:
-        return documento ? marker('csp.proyecto-prorroga.borrar.documentos.importe') : marker('csp.proyecto-prorroga.borrar.importe');
+        return documento
+          ? marker('msg.csp.proyecto-prorroga.documentos.importe.delete')
+          : marker('msg.csp.proyecto-prorroga.importe.delete');
       case Tipo.TIEMPO:
-        return documento ? marker('csp.proyecto-prorroga.borrar.documentos.tiempo') : marker('csp.proyecto-prorroga.borrar.tiempo');
+        return documento
+          ? marker('msg.csp.proyecto-prorroga.documentos.tiempo.delete')
+          : marker('msg.csp.proyecto-prorroga.tiempo.delete');
       case Tipo.TIEMPO_IMPORTE:
-        return documento ? marker('csp.proyecto-prorroga.borrar.documentos.tiempoImporte') : marker('csp.proyecto-prorroga.borrar.tiempoImporte');
+        return documento
+          ? marker('msg.csp.proyecto-prorroga.documentos.tiempo-importe.delete')
+          : marker('msg.csp.proyecto-prorroga.tiempo-importe.delete');
       default:
         return '';
     }

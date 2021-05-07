@@ -1,23 +1,17 @@
-import { IConvocatoria } from './convocatoria';
+import { DateTime } from 'luxon';
 import { ITipoHito } from './tipos-configuracion';
 
 export interface IConvocatoriaHito {
   /** Id */
   id: number;
-
   /** Fecha inicio  */
-  fecha: Date;
-
+  fecha: DateTime;
   /** Tipo de hito */
   tipoHito: ITipoHito;
-
   /** Comentario */
   comentario: string;
-
-  /** convocatoria */
-  convocatoria: IConvocatoria;
-
+  /** Id de Convocatoria */
+  convocatoriaId: number;
   /** Aviso */
   generaAviso: boolean;
-
 }

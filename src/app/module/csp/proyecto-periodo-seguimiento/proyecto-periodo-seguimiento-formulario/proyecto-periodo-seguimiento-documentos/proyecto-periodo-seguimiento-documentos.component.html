@@ -1,5 +1,5 @@
 <section>
-  <h2>{{'csp.proyecto-periodo-seguimiento.documentos.title' | translate}}</h2>
+  <h2>{{'csp.documentos' | translate}}</h2>
 
   <div class="programa" fxLayout="row" fxLayout.xs="column" fxLayoutGap="10px">
     <div class="arbol" fxFlex>
@@ -36,58 +36,54 @@
 
     <!-- Visualizacion crear/editar/detalle -->
     <form [formGroup]="formGroup" class="visualizacion" fxFlex="50" *ngIf="viewMode !== ''">
-      <h3 *ngIf="viewMode === 'new'">{{'csp.proyecto-periodo-seguimiento.documentos.documento.title.añadir' |
-        translate}}</h3>
-      <h3 *ngIf="viewMode === 'edit'">{{'csp.proyecto-periodo-seguimiento.documentos.documento.title.editar' |
-        translate}}
+      <h3 *ngIf="viewMode === 'new'">{{'btn.add.entity' | translate:msgParamEntity}}</h3>
+      <h3 *ngIf="viewMode === 'edit'">{{'btn.edit.entity' |
+        translate:msgParamEntity}}
       </h3>
-      <h3 *ngIf="viewMode === 'view'">{{'csp.proyecto-periodo-seguimiento.documentos.documento.title.ver' |
-        translate}}</h3>
+      <h3 *ngIf="viewMode === 'view'">{{'btn.view.entity' |
+        translate:msgParamEntity}}</h3>
       <div fxLayout="column" fxLayout.xs="column" fxLayoutGap="10px">
         <mat-form-field class="input-form">
-          <mat-label>{{'csp.proyecto-periodo-seguimiento.documentos.documento.nombre' | translate}}</mat-label>
-          <input matInput type="text"
-            placeholder="{{'csp.proyecto-periodo-seguimiento.documentos.documento.nombre' | translate}}"
-            formControlName="nombre" required>
+          <mat-label>{{'csp.documento.nombre' | translate}}</mat-label>
+          <input matInput type="text" placeholder="{{'csp.documento.nombre' | translate}}" formControlName="nombre"
+            required>
           <mat-error *ngIf="formGroup.get('nombre').errors?.required">
-            {{'csp.proyecto-periodo-seguimiento.documentos.documento.nombre.error' | translate}}
+            {{'error.required.entity' | translate:msgParamNombreEntity}}
           </mat-error>
         </mat-form-field>
         <mat-form-field class="input-form">
-          <mat-label>{{'csp.proyecto-periodo-seguimiento.documentos.documento.fichero' | translate}}</mat-label>
-          <sgi-file-upload #uploader
-            placeholder="{{'csp.proyecto-periodo-seguimiento.documentos.documento.fichero' | translate}}"
+          <mat-label>{{'csp.proyecto-periodo-seguimiento.documento.fichero' | translate}}</mat-label>
+          <sgi-file-upload #uploader placeholder="{{'csp.proyecto-periodo-seguimiento.documento.fichero' | translate}}"
             formControlName="fichero" required autoUpload="false" (uploadEventChange)="onUploadProgress($event)">
           </sgi-file-upload>
           <mat-error *ngIf="formGroup.get('fichero').errors?.required">
-            {{'csp.proyecto-periodo-seguimiento.documentos.documento.fichero.error' | translate}}
+            {{'error.required.entity' | translate:msgParamFicheroEntity}}
           </mat-error>
         </mat-form-field>
         <mat-form-field class="input-form">
-          <mat-label>{{'csp.proyecto-periodo-seguimiento.documentos.documento.tipoDocumento' | translate}}
+          <mat-label>{{'csp.documento.tipo' | translate}}
           </mat-label>
-          <mat-select
-            placeholder="{{'csp.proyecto-periodo-seguimiento.documentos.documento.tipoDocumento' | translate}}"
-            formControlName="tipoDocumento" [compareWith]="compareTipoDocumento">
+          <mat-select placeholder="{{'csp.documento.tipo' | translate}}" formControlName="tipoDocumento"
+            [compareWith]="compareTipoDocumento">
             <mat-option [value]="null"></mat-option>
             <mat-option *ngFor="let tipo of tiposDocumento" [value]="tipo">{{tipo.nombre}}</mat-option>
           </mat-select>
         </mat-form-field>
         <mat-form-field class="input-form">
-          <mat-label>{{'csp.proyecto-periodo-seguimiento.documentos.documento.visible' | translate}}</mat-label>
-          <mat-select placeholder="{{'csp.proyecto-periodo-seguimiento.documentos.documento.visible' | translate}}"
+          <mat-label>{{'csp.proyecto-periodo-seguimiento.documento.visible' | translate}}</mat-label>
+          <mat-select placeholder="{{'csp.proyecto-periodo-seguimiento.documento.visible' | translate}}"
             formControlName="visible" required>
             <mat-option [value]="true">{{'label.si' | translate }}</mat-option>
             <mat-option [value]="false">{{'label.no' | translate }}</mat-option>
           </mat-select>
           <mat-error *ngIf="formGroup.controls.visible.errors?.required">
-            {{'csp.proyecto-periodo-seguimiento.documentos.documento.visible.error' | translate}}
+            {{'error.required.entity' | translate:msgParamVisibleEntity}}
           </mat-error>
         </mat-form-field>
         <mat-form-field class="input-form">
-          <mat-label>{{'csp.proyecto-periodo-seguimiento.documentos.documento.comentario' | translate}}</mat-label>
+          <mat-label>{{'csp.proyecto-periodo-seguimiento.documento.comentario' | translate}}</mat-label>
           <textarea matInput type="text"
-            placeholder="{{'csp.proyecto-periodo-seguimiento.documentos.documento.comentario' | translate}}"
+            placeholder="{{'csp.proyecto-periodo-seguimiento.documento.comentario' | translate}}"
             formControlName="comentario"></textarea>
         </mat-form-field>
       </div>
@@ -95,22 +91,22 @@
         <button *ngIf="viewMode === 'view'" mat-button mat-raised-button color="primary" class="rounded"
           [disabled]="!viewingNode.fichero" (click)="downloadFile(viewingNode)">
           <mat-icon>arrow_downward</mat-icon>
-          {{'csp.proyecto-periodo-seguimiento.documentos.documento.button.descargarFichero' | translate}}
+          {{'btn.download.file' | translate}}
         </button>
         <button *ngIf="!this.formPart.readonly && viewMode === 'new' || viewMode === 'edit'" color="accent" mat-button
           mat-raised-button (click)="acceptDetail()"
-          [disabled]="!status.complete || (status.complete && uploading)">{{'botones.aceptar' | translate}}</button>
+          [disabled]="!status.complete || (status.complete && uploading)">{{'btn.ok' | translate}}</button>
         <button *ngIf="!this.formPart.readonly && viewMode === 'new' || viewMode === 'edit'" class="link-cancelar"
-          mat-button><span class="underline" (click)="cancelDetail()">{{'botones.cancelar' | translate}}</span></button>
+          mat-button><span class="underline" (click)="cancelDetail()">{{'btn.cancel' | translate}}</span></button>
         <button *ngIf="!this.formPart.readonly && viewMode === 'view'" color="accent" class="rounded" mat-button
           mat-raised-button (click)="switchToEdit()">
           <mat-icon>edit</mat-icon>
-          {{'csp.proyecto-periodo-seguimiento.documentos.documento.button.editar'| translate}}
+          {{'btn.edit.entity'| translate:msgParamEntity}}
         </button>
         <button *ngIf="!this.formPart.readonly && viewMode === 'view'" color="warn" class="rounded" mat-button
           mat-raised-button (click)="deleteDetail()">
           <mat-icon>close</mat-icon>
-          {{'csp.proyecto-periodo-seguimiento.documentos.documento.button.eliminar' | translate}}
+          {{'btn.delete.entity' | translate:msgParamEntity}}
         </button>
       </div>
     </form>
@@ -120,7 +116,7 @@
   <div class="separation-button" *ngIf="!this.formPart.readonly">
     <button color="three" aria-label="Center Align" mat-button mat-raised-button (click)="switchToNew()">
       <mat-icon color="accent">add_circle</mat-icon>
-      {{'csp.proyecto-periodo-seguimiento.documentos.button.anadir'| translate}}
+      {{ 'btn.add.entity' | translate:msgParamEntity }}
     </button>
   </div>
 

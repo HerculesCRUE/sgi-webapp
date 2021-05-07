@@ -1,31 +1,41 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormFragmentComponent } from '@core/component/fragment.component';
+import { MSG_PARAMS } from '@core/i18n';
 import { IProyectoSocioPeriodoJustificacion } from '@core/models/csp/proyecto-socio-periodo-justificacion';
 import { FxFlexProperties } from '@core/models/shared/flexLayout/fx-flex-properties';
 import { FxLayoutProperties } from '@core/models/shared/flexLayout/fx-layout-properties';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { ProyectoSocioPeriodoJustificacionActionService } from '../../proyecto-socio-periodo-justificacion.action.service';
 import { ProyectoSocioPeriodoJustificacionDatosGeneralesFragment } from './proyecto-socio-periodo-justificacion-datos-generales.fragment';
 
+const PROYECTO_SOCIO_PERIODO_JUSTIFICACION_FECHA_FIN_KEY = marker('csp.proyecto-socio-periodo-justificacion.fecha-fin');
+const PROYECTO_SOCIO_PERIODO_JUSTIFICACION_FECHA_FIN_PRESENTACION_KEY = marker('csp.proyecto-socio-periodo-justificacion.fecha-fin-presentacion');
+const PROYECTO_SOCIO_PERIODO_JUSTIFICACION_FECHA_INICIO_KEY = marker('csp.proyecto-socio-periodo-justificacion.fecha-inicio');
+const PROYECTO_SOCIO_PERIODO_JUSTIFICACION_FECHA_INICIO_PRESENTACION_KEY = marker('csp.proyecto-socio-periodo-justificacion.fecha-inicio-presentacion');
+const PROYECTO_SOCIO_PERIODO_JUSTIFICACION_OBSERVACIONES_KEY = marker('csp.proyecto-socio-periodo-justificacion.observaciones');
 @Component({
   selector: 'sgi-proyecto-socio-periodo-justificacion-datos-generales',
   templateUrl: './proyecto-socio-periodo-justificacion-datos-generales.component.html',
   styleUrls: ['./proyecto-socio-periodo-justificacion-datos-generales.component.scss']
 })
 export class ProyectoSocioPeriodoJustificacionDatosGeneralesComponent extends
-  FormFragmentComponent<IProyectoSocioPeriodoJustificacion> implements OnDestroy {
+  FormFragmentComponent<IProyectoSocioPeriodoJustificacion> implements OnInit, OnDestroy {
   formPart: ProyectoSocioPeriodoJustificacionDatosGeneralesFragment;
   fxLayoutProperties: FxLayoutProperties;
   fxFlexProperties: FxFlexProperties;
   private subscriptions: Subscription[] = [];
 
-  /** ngx-mat-datetime-picker */
-  showSeconds = true;
-  defaultFechaInicioPresentacion = [0, 0, 0];
-  defaultFechaFinPresentacion = [23, 59, 59];
+  msgParamFechaFin = {};
+  msgParamFechaFinPresentacion = {};
+  msgParamFechaInicio = {};
+  msgParamFechaInicioPresentacion = {}
+  msgParamObservacionesEntity = {};
 
   constructor(
-    protected actionService: ProyectoSocioPeriodoJustificacionActionService
+    protected actionService: ProyectoSocioPeriodoJustificacionActionService,
+    private readonly translate: TranslateService
   ) {
     super(actionService.FRAGMENT.DATOS_GENERALES, actionService);
     this.formPart = this.fragment as ProyectoSocioPeriodoJustificacionDatosGeneralesFragment;
@@ -39,6 +49,40 @@ export class ProyectoSocioPeriodoJustificacionDatosGeneralesComponent extends
     this.fxLayoutProperties.gap = '20px';
     this.fxLayoutProperties.layout = 'row wrap';
     this.fxLayoutProperties.xs = 'column';
+  }
+
+
+  ngOnInit(): void {
+    super.ngOnInit();
+    this.setupI18N();
+  }
+
+
+  private setupI18N(): void {
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_JUSTIFICACION_FECHA_FIN_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaFin = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_JUSTIFICACION_FECHA_INICIO_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaInicio = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_JUSTIFICACION_FECHA_FIN_PRESENTACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaFinPresentacion = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_JUSTIFICACION_FECHA_INICIO_PRESENTACION_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamFechaInicioPresentacion = { entity: value, ...MSG_PARAMS.GENDER.FEMALE });
+
+    this.translate.get(
+      PROYECTO_SOCIO_PERIODO_JUSTIFICACION_OBSERVACIONES_KEY,
+      MSG_PARAMS.CARDINALIRY.SINGULAR
+    ).subscribe((value) => this.msgParamObservacionesEntity = { entity: value, ...MSG_PARAMS.GENDER.FEMALE, ...MSG_PARAMS.CARDINALIRY.PLURAL });
   }
 
   ngOnDestroy(): void {

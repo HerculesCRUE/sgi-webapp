@@ -3,7 +3,7 @@ import { marker } from '@biesbjerg/ngx-translate-extract-marker';
 export enum FormularioSolicitud {
   ESTANDAR = 'ESTANDAR',
   RRHH = 'RRHH',
-  AYUDAS_GRUPOS = ' AYUDAS_GRUPOS'
+  AYUDAS_GRUPOS = 'AYUDAS_GRUPOS'
 }
 
 

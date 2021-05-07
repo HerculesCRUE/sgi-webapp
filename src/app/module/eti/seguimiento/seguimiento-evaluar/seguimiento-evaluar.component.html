@@ -2,15 +2,15 @@
   <mat-drawer class="tabs" mode="side" opened>
     <mat-list class="opciones-menu">
       <sgi-action-fragment-menu-item [route]="[SEGUIMIENTO_ROUTE_NAMES.MEMORIA]"
-        [title]="'eti.seguimiento.evaluar.datosMemoria.cabecera' | translate"
+        [title]="'eti.seguimiento.datos-memoria' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.MEMORIA)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[SEGUIMIENTO_ROUTE_NAMES.DOCUMENTACION]"
-        [title]="'eti.seguimiento.evaluar.documentacion.cabecera' | translate"
+        [title]="'eti.documentacion' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.DOCUMENTACION)">
       </sgi-action-fragment-menu-item>
       <sgi-action-fragment-menu-item [route]="[SEGUIMIENTO_ROUTE_NAMES.COMENTARIOS]"
-        [title]="'eti.seguimiento.evaluar.comentarios.cabecera' | translate"
+        [title]="'eti.seguimiento.comentario' | translate"
         [fragment]="actionService.getFragment(actionService.FRAGMENT.COMENTARIOS)">
       </sgi-action-fragment-menu-item>
     </mat-list>

@@ -1,5 +1,5 @@
 <section class="solicitud-proyecto-presupuesto-datos-generales">
-
+  <h2>{{'label.datos-generales' | translate}}</h2>
   <form [formGroup]="formGroup">
 
     <!-- Nombre -->
@@ -29,7 +29,7 @@
     </div>
 
     <!-- Campos visibles solo si es de la convocatoria -->
-    <ng-container *ngIf="formPart.isEntidadFinanciadoraConvocatoria">
+    <ng-container *ngIf="!formPart.ajena">
       <!-- Fuente financiacion -->
       <div [fxLayout.xs]="fxLayoutProperties.xs" [fxLayout]="fxLayoutProperties.layout"
         [fxLayoutGap]="fxLayoutProperties.gap" ngClass.gt-xs="ml-10">
